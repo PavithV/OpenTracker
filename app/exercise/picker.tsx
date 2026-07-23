@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { FlatList, Text, View } from 'react-native';
+import { SearchX } from 'lucide-react-native';
+import { FlatList, View } from 'react-native';
 
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ListItem } from '@/shared/components/ListItem';
 import { Screen } from '@/shared/components/Screen';
+import { Typography } from '@/shared/components/Typography';
 import { supabase } from '@/shared/lib/supabase';
 
 export default function ExercisePickerScreen() {
@@ -24,11 +27,12 @@ export default function ExercisePickerScreen() {
   return (
     <Screen>
       <View className="py-md">
-        <Text className="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">Übungen</Text>
+        <Typography variant="title">Übungen</Typography>
       </View>
 
       {!isLoading && exercises?.length === 0 ? (
         <EmptyState
+          icon={SearchX}
           title="Keine Übungen gefunden"
           description="Führe `npm run db:seed` aus, um das Exercise-Dataset in Supabase zu importieren."
         />
@@ -36,14 +40,8 @@ export default function ExercisePickerScreen() {
         <FlatList
           data={exercises ?? []}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="border-b border-border-light py-sm dark:border-border-dark">
-              <Text className="text-base text-text-primary-light dark:text-text-primary-dark">{item.name}</Text>
-              <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                {item.category} · {item.target_muscle}
-              </Text>
-            </View>
-          )}
+          ItemSeparatorComponent={() => <View className="border-b border-border-light dark:border-border-dark" />}
+          renderItem={({ item }) => <ListItem title={item.name} description={`${item.category} · ${item.target_muscle}`} />}
         />
       )}
     </Screen>

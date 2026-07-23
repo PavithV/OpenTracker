@@ -1,12 +1,13 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
 import { signInWithEmail } from '@/features/auth/api/auth.api';
 import { signInSchema } from '@/features/auth/types/auth.schema';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
+import { Typography } from '@/shared/components/Typography';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -37,12 +38,8 @@ export default function SignInScreen() {
     <Screen>
       <View className="flex-1 justify-center gap-lg">
         <View className="gap-xs">
-          <Text className="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
-            Willkommen zurück
-          </Text>
-          <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-            Melde dich an, um dein Training fortzusetzen.
-          </Text>
+          <Typography variant="title">Willkommen zurück</Typography>
+          <Typography variant="subtitle">Melde dich an, um dein Training fortzusetzen.</Typography>
         </View>
 
         <View className="gap-md">
@@ -61,7 +58,11 @@ export default function SignInScreen() {
             secureTextEntry
             autoComplete="password"
           />
-          {error ? <Text className="text-sm text-danger">{error}</Text> : null}
+          {error ? (
+            <Typography variant="subtitle" color="danger">
+              {error}
+            </Typography>
+          ) : null}
           <Button label="Anmelden" onPress={handleSubmit} loading={isSubmitting} />
         </View>
 

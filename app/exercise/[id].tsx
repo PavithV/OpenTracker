@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text } from 'react-native';
 
 import { Screen } from '@/shared/components/Screen';
+import { Typography } from '@/shared/components/Typography';
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -9,9 +9,9 @@ export default function ExerciseDetailScreen() {
   // Denk an die Attributionspflicht (© Gym visual) neben Bild/GIF.
   return (
     <Screen>
-      <Text className="pt-md text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
+      <Typography variant="title" className="pt-md">
         Übung {id}
-      </Text>
+      </Typography>
     </Screen>
   );
 }

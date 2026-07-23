@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Card } from '@/shared/components/Card';
+import { Typography } from '@/shared/components/Typography';
 
 import type { WorkoutHistoryItem } from '../types/workout-history.types';
 
@@ -12,25 +13,17 @@ function formatDuration(durationSeconds: number | null): string {
   return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
 }
 
-export function WorkoutHistoryCard({ workout }: { workout: WorkoutHistoryItem }) {
+export function WorkoutHistoryCard({ workout, onPress }: { workout: WorkoutHistoryItem; onPress?: () => void }) {
   return (
-    <Card>
-      <Text className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">
-        {workout.name}
-      </Text>
-      <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-        {dayjs(workout.startedAt).format('DD.MM.YYYY')}
-      </Text>
+    <Card onPress={onPress}>
+      <Typography variant="cardTitle">{workout.name}</Typography>
+      <Typography variant="subtitle">{dayjs(workout.startedAt).format('DD.MM.YYYY')}</Typography>
       <View className="mt-sm flex-row gap-lg">
-        <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-          {formatDuration(workout.durationSeconds)}
-        </Text>
-        <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-          {workout.totalVolume} kg
-        </Text>
-        <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+        <Typography variant="subtitle">{formatDuration(workout.durationSeconds)}</Typography>
+        <Typography variant="subtitle">{workout.totalVolume} kg</Typography>
+        <Typography variant="subtitle">
           {workout.exerciseCount} {workout.exerciseCount === 1 ? 'Übung' : 'Übungen'}
-        </Text>
+        </Typography>
       </View>
     </Card>
   );

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Screen } from '@/shared/components/Screen';
+import { Typography } from '@/shared/components/Typography';
 import { supabase } from '@/shared/lib/supabase';
 import { signOut } from '@/features/auth/api/auth.api';
 import { useSessionStore } from '@/store/session.store';
@@ -28,15 +29,11 @@ export default function ProfileScreen() {
   return (
     <Screen>
       <View className="gap-lg py-md">
-        <Text className="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">Profil</Text>
+        <Typography variant="title">Profil</Typography>
 
         <Card>
-          <Text className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">
-            {profile?.display_name ?? session?.user.email}
-          </Text>
-          <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-            {session?.user.email}
-          </Text>
+          <Typography variant="cardTitle">{profile?.display_name ?? session?.user.email}</Typography>
+          <Typography variant="subtitle">{session?.user.email}</Typography>
         </Card>
 
         {/* TODO (Phase 2): Anzahl Workouts, Trainingsminuten, Gesamtvolumen aus `workouts` aggregieren. */}

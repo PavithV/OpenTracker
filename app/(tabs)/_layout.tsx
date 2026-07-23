@@ -2,21 +2,21 @@ import { Tabs } from 'expo-router';
 import { Dumbbell, House, User } from 'lucide-react-native';
 import { useColorScheme } from 'react-native';
 
-const activeColor = '#6C5CE7';
+import { colors } from '@/shared/theme/colors';
 
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
-  const inactiveColor = colorScheme === 'dark' ? '#9C9CA8' : '#6B6B76';
+  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: inactiveColor,
+        tabBarActiveTintColor: colors.primary.DEFAULT,
+        tabBarInactiveTintColor: colors.textSecondary[scheme],
         tabBarStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#17171C' : '#FFFFFF',
-          borderTopColor: colorScheme === 'dark' ? '#2A2A31' : '#E5E5EA',
+          backgroundColor: colors.surface[scheme],
+          borderTopColor: colors.border[scheme],
         },
       }}
     >

@@ -1,12 +1,13 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
 import { signUpWithEmail } from '@/features/auth/api/auth.api';
 import { signUpSchema } from '@/features/auth/types/auth.schema';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
+import { Typography } from '@/shared/components/Typography';
 
 export default function SignUpScreen() {
   const [displayName, setDisplayName] = useState('');
@@ -50,12 +51,8 @@ export default function SignUpScreen() {
     <Screen>
       <View className="flex-1 justify-center gap-lg">
         <View className="gap-xs">
-          <Text className="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
-            Konto erstellen
-          </Text>
-          <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-            Starte dein Training in wenigen Sekunden.
-          </Text>
+          <Typography variant="title">Konto erstellen</Typography>
+          <Typography variant="subtitle">Starte dein Training in wenigen Sekunden.</Typography>
         </View>
 
         <View className="gap-md">
@@ -75,7 +72,11 @@ export default function SignUpScreen() {
             secureTextEntry
             autoComplete="password-new"
           />
-          {error ? <Text className="text-sm text-danger">{error}</Text> : null}
+          {error ? (
+            <Typography variant="subtitle" color="danger">
+              {error}
+            </Typography>
+          ) : null}
           <Button label="Registrieren" onPress={handleSubmit} loading={isSubmitting} />
         </View>
 
