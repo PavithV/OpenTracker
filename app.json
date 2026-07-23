@@ -1,11 +1,17 @@
 {
   "expo": {
-    "name": "_scaffold_tmp",
-    "slug": "_scaffold_tmp",
+    "name": "OpenTracker",
+    "slug": "opentracker",
+    "scheme": "opentracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-secure-store"
+    ],
     "ios": {
       "supportsTablet": true
     },
