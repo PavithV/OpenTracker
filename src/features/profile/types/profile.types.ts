@@ -8,3 +8,8 @@ export interface ProfileStats {
   totalDurationSeconds: number;
   totalVolume: number;
 }
+
+export interface MuscleSplitEntry {
+  muscle: string;
+  volume: number;
+}
