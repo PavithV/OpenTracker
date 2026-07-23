@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { ScrollView } from 'react-native';
 
 import { signOut } from '@/features/auth/api/auth.api';
@@ -55,6 +56,8 @@ export default function ProfileScreen() {
             />
           </Card>
         ) : null}
+
+        <Button label="Rekorde ansehen" variant="secondary" onPress={() => router.push('/records')} />
 
         <Button label="Abmelden" variant="secondary" onPress={() => signOut()} />
       </ScrollView>
