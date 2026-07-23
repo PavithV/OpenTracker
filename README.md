@@ -8,7 +8,7 @@ Fitness-Tracking-App (Expo + React Native + Supabase). Siehe `PROJECT_OVERVIEW.m
 2. **Migration anwenden**: Inhalt von `supabase/migrations/0001_init.sql` im Supabase SQL-Editor ausführen (legt alle Tabellen, RLS-Policies und die `finish_workout`-Funktion an).
 3. **Env-Datei anlegen**: `.env.example` nach `.env` kopieren und mit den Projekt-Credentials (Settings → API) befüllen.
 4. **Dependencies installieren**: `npm install`
-5. **Übungen importieren**: `npm run db:seed` — lädt `exercises-dataset-main/data/exercises.json` inkl. Bilder/GIFs in Supabase Storage (`exercise-media`-Bucket) und befüllt die `exercises`-Tabelle.
+5. **Übungen importieren**: Das Dataset ist nicht Teil des Repos (siehe `.gitignore`) — den Ordner `exercises-dataset-main/` (mit `data/exercises.json` und den zugehörigen Bild-/GIF-Dateien) lokal ins Projekt-Root legen, dann `npm run db:seed` ausführen. Das Skript lädt die Medien in den Supabase-Storage-Bucket `exercise-media` und befüllt die `exercises`-Tabelle.
 6. **App starten**: `npm run start` (dann `i`/`a` für iOS/Android-Simulator oder mit Expo Go scannen)
 
 ## Scripts

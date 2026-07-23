@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft inzwischen live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`); `database.types.ts` ist entsprechend aus dem echten Schema generiert. Der Storage-Bucket und die Übungsdaten selbst fehlen noch (siehe `TODO.md`).
+**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Der Home-Tab ist als erster Phase-2-Screen von Platzhalter auf echte Datenanbindung umgestellt (siehe `TODO.md`).
 
 ## Ordnerstruktur
 
@@ -12,7 +12,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
     sign-in.tsx                # funktionsfähig
     sign-up.tsx                # funktionsfähig
   (tabs)/
-    home/index.tsx             # Platzhalter (EmptyState)
+    home/index.tsx             # liest echte Workout-Historie aus `workouts`
     training/index.tsx         # Platzhalter (Buttons ohne Datenanbindung)
     profile/index.tsx          # liest bereits echte `profiles`-Zeile
   workout/
@@ -28,7 +28,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
 
 src/
   features/
-    home/             {components, hooks, api, types}        [Platzhalter, leer]
+    home/             {components, hooks, api, types}        [implementiert: api, components, types]
     training/          {components, hooks, api, types, store} [Platzhalter, leer]
     routines/          {components, hooks, api, types}        [Platzhalter, leer]
     exercises/         {components, hooks, api, types}        [Platzhalter, leer]

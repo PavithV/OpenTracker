@@ -40,3 +40,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# exercise dataset used only by supabase/seed/import-exercises.ts — large (2.6k+ files,
+# mostly images/GIFs), not meant to live in the repo. Re-download before running `npm run db:seed`.
+/exercises-dataset-main
