@@ -3,15 +3,9 @@ import { View } from 'react-native';
 
 import { Card } from '@/shared/components/Card';
 import { Typography } from '@/shared/components/Typography';
+import { formatDuration } from '@/shared/utils/format';
 
 import type { WorkoutHistoryItem } from '../types/workout-history.types';
-
-function formatDuration(durationSeconds: number | null): string {
-  if (durationSeconds === null) return '–';
-  const hours = Math.floor(durationSeconds / 3600);
-  const minutes = Math.round((durationSeconds % 3600) / 60);
-  return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
-}
 
 export function WorkoutHistoryCard({ workout, onPress }: { workout: WorkoutHistoryItem; onPress?: () => void }) {
   return (
