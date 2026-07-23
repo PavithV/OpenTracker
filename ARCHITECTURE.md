@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–5 sind umgesetzt: Home-Tab (echte Workout-Historie), Übungsauswahl (Suche/Filter/Mehrfachauswahl/Bilder), Routine erstellen/bearbeiten, Aktives Workout, Workout beenden (kompletter Workout-Flow ist Ende-zu-Ende funktionsfähig; siehe `TODO.md` für Details und Begründungen, inkl. eines dabei gefundenen und gefixten Bugs in `finish_workout`).
+**Status (Stand 2026-07-23, Ende der Session):** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner. `tests/` existiert noch nicht. Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`, 2 Migrationen: Schema + ein Bugfix in `finish_workout`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–5 sind umgesetzt (kompletter Kreislauf Routine/Workout Ende-zu-Ende funktionsfähig und gegen die Live-DB verifiziert), dazu zwei ungeplante Ergänzungen (Routinen-Liste, "Routine starten") — siehe `PROJECT_STATUS.md` und `TODO.md` für Details, Begründungen und die zwei dabei gefundenen Bugs. Nächster Schritt: Punkt 6 (Workout-Detail).
 
 ## Ordnerstruktur
 
@@ -20,7 +20,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
     [id].tsx                   # Platzhalter                [Platzhalter]
   routine/
     create.tsx                 # funktionsfähig (Name, Übungsauswahl, Reihenfolge, Soll-Werte)
-    [id]/edit.tsx               # funktionsfähig, aber noch ohne Einstiegspunkt (keine Routinen-Liste)
+    [id]/edit.tsx               # funktionsfähig, erreichbar über die Routinen-Liste im Training-Tab
   exercise/
     picker.tsx                  # Suche, Kategorie-/Geräte-Filter, Mehrfachauswahl, Bilder
     [id].tsx                    # Platzhalter               [Platzhalter]
