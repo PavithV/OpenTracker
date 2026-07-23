@@ -2,13 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { router, useLocalSearchParams } from 'expo-router';
 import { History } from 'lucide-react-native';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, ScrollView, View } from 'react-native';
 
 import { getExerciseDetail, getExerciseHistory, getExercisePersonalRecord } from '@/features/exercises/api/exercises.api';
 import { ExerciseDetailTabs, type ExerciseDetailTab } from '@/features/exercises/components/ExerciseDetailTabs';
 import { ExerciseHistoryEntryCard } from '@/features/exercises/components/ExerciseHistoryEntryCard';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { LineChart } from '@/shared/components/LineChart';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { capitalize } from '@/shared/utils/format';
@@ -37,11 +38,26 @@ export default function ExerciseDetailScreen() {
     enabled: !!session,
   });
 
+  // Not gated to the "history" tab -- the "summary" tab's progression chart needs the same data.
   const { data: history, isLoading: isHistoryLoading } = useQuery({
     queryKey: ['exercises', 'history', id, session?.user.id],
     queryFn: () => getExerciseHistory(session!.user.id, id),
-    enabled: !!session && tab === 'history',
+    enabled: !!session,
   });
+
+  // getExerciseHistory returns newest-first (for the history list); the chart reads left-to-right
+  // chronologically, so reverse. Per-workout value mirrors finish_workout's own max_weight
+  // definition (heaviest completed set of this exercise in that workout).
+  const chartData = useMemo(() => {
+    if (!history) return [];
+    return [...history]
+      .reverse()
+      .filter((entry) => entry.sets.some((set) => set.weight !== null))
+      .map((entry) => ({
+        label: dayjs(entry.startedAt).format('DD.MM.'),
+        value: Math.max(...entry.sets.map((set) => set.weight ?? 0)),
+      }));
+  }, [history]);
 
   if (isExerciseLoading || !exercise) {
     return (
@@ -85,6 +101,13 @@ export default function ExerciseDetailScreen() {
               <Typography variant="subtitle">Persönlicher Rekord</Typography>
               <Typography variant="cardTitle">{personalRecord.value} kg</Typography>
               <Typography variant="caption">{dayjs(personalRecord.achievedAt).format('DD.MM.YYYY')}</Typography>
+            </View>
+          ) : null}
+
+          {chartData.length > 0 ? (
+            <View className="gap-xs">
+              <Typography variant="label">Gewichtsverlauf</Typography>
+              <LineChart data={chartData} />
             </View>
           ) : null}
 
