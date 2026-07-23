@@ -21,11 +21,14 @@ interface RoutineExerciseSeed {
 interface ActiveWorkoutState {
   startedAt: string | null;
   name: string;
+  notes: string;
   routineId: string | null;
   exercises: ActiveWorkoutExercise[];
   start: () => void;
   startFromRoutine: (routineId: string, name: string, exercises: RoutineExerciseSeed[]) => void;
   setName: (name: string) => void;
+  setNotes: (notes: string) => void;
+  updateExerciseNotes: (exerciseId: string, notes: string) => void;
   addExercises: (exercises: { id: string; name: string }[]) => void;
   removeExercise: (exerciseId: string) => void;
   addSet: (exerciseId: string) => void;
@@ -59,6 +62,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
     (set) => ({
       startedAt: null,
       name: 'Workout',
+      notes: '',
       routineId: null,
       exercises: [],
 
@@ -68,7 +72,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         set((state) =>
           state.startedAt
             ? state
-            : { startedAt: new Date().toISOString(), name: 'Workout', routineId: null, exercises: [] },
+            : { startedAt: new Date().toISOString(), name: 'Workout', notes: '', routineId: null, exercises: [] },
         ),
 
       // Same idempotency guard as start() -- if a workout is already in progress, this is a no-op
@@ -81,10 +85,12 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
             : {
                 startedAt: new Date().toISOString(),
                 name,
+                notes: '',
                 routineId,
                 exercises: exercises.map((exercise) => ({
                   exerciseId: exercise.exerciseId,
                   name: exercise.name,
+                  notes: '',
                   sets: Array.from({ length: exercise.targetSets }, () => ({
                     id: generateLocalId(),
                     weight: exercise.targetWeight,
@@ -96,13 +102,21 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         ),
 
       setName: (name) => set({ name }),
+      setNotes: (notes) => set({ notes }),
+
+      updateExerciseNotes: (exerciseId, notes) =>
+        set((state) => ({
+          exercises: state.exercises.map((exercise) =>
+            exercise.exerciseId === exerciseId ? { ...exercise, notes } : exercise,
+          ),
+        })),
 
       addExercises: (exercises) =>
         set((state) => {
           const existingIds = new Set(state.exercises.map((exercise) => exercise.exerciseId));
           const toAdd = exercises
             .filter((exercise) => !existingIds.has(exercise.id))
-            .map((exercise) => ({ exerciseId: exercise.id, name: exercise.name, sets: [] }));
+            .map((exercise) => ({ exerciseId: exercise.id, name: exercise.name, notes: '', sets: [] }));
           return { exercises: [...state.exercises, ...toAdd] };
         }),
 
@@ -153,7 +167,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           ),
         })),
 
-      reset: () => set({ startedAt: null, name: 'Workout', routineId: null, exercises: [] }),
+      reset: () => set({ startedAt: null, name: 'Workout', notes: '', routineId: null, exercises: [] }),
     }),
     {
       name: 'active-workout-draft',

@@ -52,10 +52,13 @@ export default function ActiveWorkoutScreen() {
   const hasHydrated = useActiveWorkoutHydrated();
   const startedAt = useActiveWorkoutStore((state) => state.startedAt);
   const name = useActiveWorkoutStore((state) => state.name);
+  const notes = useActiveWorkoutStore((state) => state.notes);
   const routineId = useActiveWorkoutStore((state) => state.routineId);
   const exercises = useActiveWorkoutStore((state) => state.exercises);
   const start = useActiveWorkoutStore((state) => state.start);
   const setName = useActiveWorkoutStore((state) => state.setName);
+  const setNotes = useActiveWorkoutStore((state) => state.setNotes);
+  const updateExerciseNotes = useActiveWorkoutStore((state) => state.updateExerciseNotes);
   const removeExercise = useActiveWorkoutStore((state) => state.removeExercise);
   const addSet = useActiveWorkoutStore((state) => state.addSet);
   const updateSet = useActiveWorkoutStore((state) => state.updateSet);
@@ -83,6 +86,7 @@ export default function ActiveWorkoutScreen() {
     try {
       await finishActiveWorkout(session!.user.id, {
         name: name.trim() || 'Workout',
+        notes,
         startedAt: startedAt!,
         routineId,
         exercises,
@@ -122,6 +126,7 @@ export default function ActiveWorkoutScreen() {
       </View>
 
       <Input value={name} onChangeText={setName} placeholder="Workout-Name" />
+      <Input value={notes} onChangeText={setNotes} placeholder="Notizen zum Workout…" multiline numberOfLines={2} />
 
       <FlatList
         className="mt-sm flex-1"
@@ -137,6 +142,7 @@ export default function ActiveWorkoutScreen() {
             onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
             onToggleSetCompleted={(setId) => toggleSetCompleted(item.exerciseId, setId)}
             onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+            onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
           />
         )}
       />

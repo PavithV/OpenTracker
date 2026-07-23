@@ -50,6 +50,11 @@ export default function WorkoutDetailScreen() {
                 {workout.exercises.length} {workout.exercises.length === 1 ? 'Übung' : 'Übungen'}
               </Typography>
             </View>
+            {workout.notes ? (
+              <Typography variant="body" className="mt-xs">
+                {workout.notes}
+              </Typography>
+            ) : null}
           </View>
         }
         renderItem={({ item }) => (

@@ -51,7 +51,7 @@ export default function EditRoutineScreen() {
       <Typography variant="title" className="py-md">
         Routine bearbeiten
       </Typography>
-      <RoutineForm onSave={(name, exercises) => updateRoutine(id, name, exercises)} />
+      <RoutineForm onSave={(name, notes, exercises) => updateRoutine(id, name, notes, exercises)} />
     </Screen>
   );
 }

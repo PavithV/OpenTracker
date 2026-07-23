@@ -71,19 +71,29 @@ async function insertRoutineExercises(routineId: string, exercises: RoutineDraft
 export async function createRoutine(
   userId: string,
   name: string,
+  notes: string,
   exercises: RoutineDraftExercise[],
 ): Promise<string> {
-  const { data, error } = await supabase.from('routines').insert({ user_id: userId, name }).select('id').single();
+  const { data, error } = await supabase
+    .from('routines')
+    .insert({ user_id: userId, name, notes: notes || null })
+    .select('id')
+    .single();
   if (error) throw error;
 
   await insertRoutineExercises(data.id, exercises);
   return data.id;
 }
 
-export async function updateRoutine(routineId: string, name: string, exercises: RoutineDraftExercise[]): Promise<void> {
+export async function updateRoutine(
+  routineId: string,
+  name: string,
+  notes: string,
+  exercises: RoutineDraftExercise[],
+): Promise<void> {
   const { error: updateError } = await supabase
     .from('routines')
-    .update({ name, updated_at: new Date().toISOString() })
+    .update({ name, notes: notes || null, updated_at: new Date().toISOString() })
     .eq('id', routineId);
   if (updateError) throw updateError;
 
@@ -93,10 +103,12 @@ export async function updateRoutine(routineId: string, name: string, exercises: 
   await insertRoutineExercises(routineId, exercises);
 }
 
-export async function getRoutineForEdit(routineId: string): Promise<{ name: string; exercises: RoutineDraftExercise[] }> {
+export async function getRoutineForEdit(
+  routineId: string,
+): Promise<{ name: string; notes: string; exercises: RoutineDraftExercise[] }> {
   const { data: routine, error: routineError } = await supabase
     .from('routines')
-    .select('name')
+    .select('name, notes')
     .eq('id', routineId)
     .single();
   if (routineError) throw routineError;
@@ -119,6 +131,7 @@ export async function getRoutineForEdit(routineId: string): Promise<{ name: stri
 
   return {
     name: routine.name,
+    notes: routine.notes ?? '',
     exercises: routineExercises.map((row) => ({
       exerciseId: row.exercise_id,
       name: nameById.get(row.exercise_id) ?? '',

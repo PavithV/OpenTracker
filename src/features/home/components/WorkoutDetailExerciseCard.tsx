@@ -48,6 +48,12 @@ export function WorkoutDetailExerciseCard({
           </View>
         ))}
       </View>
+
+      {exercise.notes ? (
+        <Typography variant="subtitle" className="mt-sm">
+          {exercise.notes}
+        </Typography>
+      ) : null}
     </Card>
   );
 }

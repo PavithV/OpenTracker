@@ -17,6 +17,7 @@ interface ActiveWorkoutExerciseCardProps {
   onUpdateSet: (setId: string, patch: Partial<Pick<WorkoutSetEntry, 'weight' | 'reps'>>) => void;
   onToggleSetCompleted: (setId: string) => void;
   onRemoveSet: (setId: string) => void;
+  onUpdateNotes: (notes: string) => void;
 }
 
 function toNumberOrNull(text: string): number | null {
@@ -30,6 +31,7 @@ export function ActiveWorkoutExerciseCard({
   onUpdateSet,
   onToggleSetCompleted,
   onRemoveSet,
+  onUpdateNotes,
 }: ActiveWorkoutExerciseCardProps) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const secondaryColor = colors.textSecondary[scheme];
@@ -82,6 +84,14 @@ export function ActiveWorkoutExerciseCard({
       </View>
 
       <Button label="Satz hinzufügen" variant="ghost" size="sm" onPress={onAddSet} />
+
+      <Input
+        placeholder="Notizen zu dieser Übung…"
+        value={exercise.notes}
+        onChangeText={onUpdateNotes}
+        multiline
+        numberOfLines={2}
+      />
     </Card>
   );
 }

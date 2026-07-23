@@ -11,13 +11,15 @@ import type { RoutineDraftExercise } from '../types/routine.types';
 import { RoutineExerciseRow } from './RoutineExerciseRow';
 
 interface RoutineFormProps {
-  onSave: (name: string, exercises: RoutineDraftExercise[]) => Promise<void>;
+  onSave: (name: string, notes: string, exercises: RoutineDraftExercise[]) => Promise<void>;
 }
 
 export function RoutineForm({ onSave }: RoutineFormProps) {
   const name = useRoutineDraftStore((state) => state.name);
+  const notes = useRoutineDraftStore((state) => state.notes);
   const exercises = useRoutineDraftStore((state) => state.exercises);
   const setName = useRoutineDraftStore((state) => state.setName);
+  const setNotes = useRoutineDraftStore((state) => state.setNotes);
   const removeExercise = useRoutineDraftStore((state) => state.removeExercise);
   const moveExercise = useRoutineDraftStore((state) => state.moveExercise);
   const updateTarget = useRoutineDraftStore((state) => state.updateTarget);
@@ -39,7 +41,7 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
     setError(null);
     setIsSaving(true);
     try {
-      await onSave(name.trim(), exercises);
+      await onSave(name.trim(), notes.trim(), exercises);
       reset();
       router.back();
     } catch (err) {
@@ -52,6 +54,14 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
   return (
     <View className="flex-1 gap-md">
       <Input label="Name" value={name} onChangeText={setName} placeholder="z. B. Push Day" />
+      <Input
+        label="Notizen"
+        value={notes}
+        onChangeText={setNotes}
+        placeholder="z. B. Fokus auf Ausführung, Tempo…"
+        multiline
+        numberOfLines={3}
+      />
 
       <FlatList
         className="flex-1"

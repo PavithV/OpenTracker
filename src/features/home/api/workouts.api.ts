@@ -74,14 +74,14 @@ export async function getWorkoutHistory(userId: string): Promise<WorkoutHistoryI
 export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail> {
   const { data: workout, error: workoutError } = await supabase
     .from('workouts')
-    .select('id, name, started_at, duration_seconds, total_volume')
+    .select('id, name, notes, started_at, duration_seconds, total_volume')
     .eq('id', workoutId)
     .single();
   if (workoutError) throw workoutError;
 
   const { data: workoutExercises, error: exercisesError } = await supabase
     .from('workout_exercises')
-    .select('id, exercise_id')
+    .select('id, exercise_id, notes')
     .eq('workout_id', workoutId)
     .order('order_index');
   if (exercisesError) throw exercisesError;
@@ -109,6 +109,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
   return {
     id: workout.id,
     name: workout.name,
+    notes: workout.notes,
     startedAt: workout.started_at,
     durationSeconds: workout.duration_seconds,
     totalVolume: workout.total_volume,
@@ -117,6 +118,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       exerciseId: workoutExercise.exercise_id,
       name: exerciseById.get(workoutExercise.exercise_id)?.name ?? '',
       imageUrl: exerciseById.get(workoutExercise.exercise_id)?.image_url ?? null,
+      notes: workoutExercise.notes,
       sets: sets
         .filter((set) => set.workout_exercise_id === workoutExercise.id)
         .map((set) => ({

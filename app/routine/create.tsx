@@ -13,8 +13,8 @@ export default function CreateRoutineScreen() {
         Routine erstellen
       </Typography>
       <RoutineForm
-        onSave={async (name, exercises) => {
-          await createRoutine(session!.user.id, name, exercises);
+        onSave={async (name, notes, exercises) => {
+          await createRoutine(session!.user.id, name, notes, exercises);
         }}
       />
     </Screen>

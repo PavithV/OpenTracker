@@ -11,12 +11,14 @@ export interface WorkoutDetailExercise {
   exerciseId: string;
   name: string;
   imageUrl: string | null;
+  notes: string | null;
   sets: WorkoutDetailSet[];
 }
 
 export interface WorkoutDetail {
   id: string;
   name: string;
+  notes: string | null;
   startedAt: string;
   durationSeconds: number | null;
   totalVolume: number;

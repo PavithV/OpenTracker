@@ -4,9 +4,11 @@ import type { RoutineDraftExercise } from '../types/routine.types';
 
 interface RoutineDraftState {
   name: string;
+  notes: string;
   exercises: RoutineDraftExercise[];
   hydratedRoutineId: string | null;
   setName: (name: string) => void;
+  setNotes: (notes: string) => void;
   addExercises: (exercises: { id: string; name: string }[]) => void;
   removeExercise: (exerciseId: string) => void;
   moveExercise: (exerciseId: string, direction: 'up' | 'down') => void;
@@ -15,15 +17,17 @@ interface RoutineDraftState {
     patch: Partial<Omit<RoutineDraftExercise, 'exerciseId' | 'name'>>,
   ) => void;
   reset: () => void;
-  hydrate: (routineId: string, data: { name: string; exercises: RoutineDraftExercise[] }) => void;
+  hydrate: (routineId: string, data: { name: string; notes: string; exercises: RoutineDraftExercise[] }) => void;
 }
 
 export const useRoutineDraftStore = create<RoutineDraftState>((set) => ({
   name: '',
+  notes: '',
   exercises: [],
   hydratedRoutineId: null,
 
   setName: (name) => set({ name }),
+  setNotes: (notes) => set({ notes }),
 
   addExercises: (exercises) =>
     set((state) => {
@@ -63,7 +67,8 @@ export const useRoutineDraftStore = create<RoutineDraftState>((set) => ({
       ),
     })),
 
-  reset: () => set({ name: '', exercises: [], hydratedRoutineId: null }),
+  reset: () => set({ name: '', notes: '', exercises: [], hydratedRoutineId: null }),
 
-  hydrate: (routineId, data) => set({ name: data.name, exercises: data.exercises, hydratedRoutineId: routineId }),
+  hydrate: (routineId, data) =>
+    set({ name: data.name, notes: data.notes, exercises: data.exercises, hydratedRoutineId: routineId }),
 }));
