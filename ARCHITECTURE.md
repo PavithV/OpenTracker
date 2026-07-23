@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests.
+**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft inzwischen live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`); `database.types.ts` ist entsprechend aus dem echten Schema generiert. Der Storage-Bucket und die Übungsdaten selbst fehlen noch (siehe `TODO.md`).
 
 ## Ordnerstruktur
 
@@ -44,7 +44,7 @@ src/
   store/                # session.store.ts (Zustand)                [implementiert]
 
 supabase/
-  migrations/           # 0001_init.sql — komplettes DATABASE.md-Schema  [implementiert, noch nicht live angewendet]
+  migrations/           # 0001_init.sql — komplettes DATABASE.md-Schema  [implementiert, live angewendet]
   seed/                 # import-exercises.ts                            [implementiert, noch nicht ausgeführt]
   functions/            # Edge Functions (später)                        [leer]
 
@@ -77,4 +77,4 @@ Der aktive Trainingszustand (`features/training/store`) lebt in einem Zustand-St
 
 ## Tooling: Supabase MCP-Server
 
-Zusätzlich zum manuellen Weg (SQL-Editor + `npm run db:seed`) ist ein projekt-gescopter Supabase-MCP-Server konfiguriert (`.mcp.json`, project_ref `rlcrhsubxcsjbqpgrwvs`, Features: docs/account/database/debugging/development/functions/branching/storage). Damit lassen sich Migrationen, Schema-Inspektion und Debugging direkt aus der Session heraus erledigen, statt SQL-Dateien nur zu schreiben und manuell ausführen zu lassen. Authentifizierung läuft über `claude` → `/mcp` in einer interaktiven Session (nicht in Background-Jobs — dort wurden verbundene MCP-Tools in der Praxis nicht immer nachgeladen, siehe `PROJECT_STATUS.md`). Ergänzend installiert: die Skills `supabase` und `supabase-postgres-best-practices` (`.agents/skills/`, `.claude/skills/`).
+Zusätzlich zum manuellen Weg (SQL-Editor + `npm run db:seed`) ist ein projekt-gescopter Supabase-MCP-Server konfiguriert (`.mcp.json`, project_ref `rlcrhsubxcsjbqpgrwvs`, Features: docs/account/database/debugging/development/functions/branching/storage). Damit lassen sich Migrationen, Schema-Inspektion und Debugging direkt aus der Session heraus erledigen, statt SQL-Dateien nur zu schreiben und manuell ausführen zu lassen — die Migration in `supabase/migrations/0001_init.sql` wurde am 2026-07-23 genau so live angewendet. Authentifizierung läuft über `claude` → `/mcp` in einer interaktiven Session; in einem früheren Background-Job waren die Tools trotz "Connected"-Status nicht auffindbar, in dieser Session dagegen doch (siehe `PROJECT_STATUS.md`) — die MCP-Tools geben aus Sicherheitsgründen aber keinen `service_role`-Key heraus, der bleibt für `npm run db:seed` weiterhin manuell aus dem Dashboard zu holen. Ergänzend installiert: die Skills `supabase` und `supabase-postgres-best-practices` (`.agents/skills/`, `.claude/skills/`).

@@ -1,181 +1,417 @@
 /**
- * Hand-written until a live Supabase project exists. Once `supabase/migrations/0001_init.sql`
- * has been applied to a real project, regenerate this file with:
- *   npx supabase gen types typescript --project-id <id> > src/shared/types/database.types.ts
- * Shape must stay in sync with DATABASE.md.
+ * Generated from the live Supabase project (project_ref rlcrhsubxcsjbqpgrwvs) after
+ * supabase/migrations/0001_init.sql was applied. Regenerate with:
+ *   npx supabase gen types typescript --project-id rlcrhsubxcsjbqpgrwvs > src/shared/types/database.types.ts
  */
 
-export type UnitPreference = 'kg' | 'lb';
-export type SetType = 'warmup' | 'working' | 'dropset' | 'failure';
-export type PersonalRecordType = 'max_weight' | 'max_volume' | 'max_reps' | 'estimated_1rm';
-export type InstructionLanguage = 'en' | 'es' | 'it' | 'tr' | 'ru' | 'zh' | 'hi' | 'pl' | 'ko' | 'fr';
-export type Instructions = Record<InstructionLanguage, string>;
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export interface Database {
+export type Database = {
+  __InternalSupabase: {
+    PostgrestVersion: '14.5';
+  };
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string;
-          display_name: string | null;
-          avatar_url: string | null;
-          unit_preference: UnitPreference;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['profiles']['Row']> & { id: string };
-        Update: Partial<Database['public']['Tables']['profiles']['Row']>;
-        Relationships: [];
-      };
       exercises: {
         Row: {
-          id: string;
-          external_id: string | null;
-          name: string;
-          category: string;
-          equipment: string;
-          target_muscle: string;
-          secondary_muscles: string[];
-          instructions: Instructions;
-          image_url: string | null;
-          gif_url: string | null;
           attribution: string | null;
-          is_custom: boolean;
-          created_by: string | null;
-          created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['exercises']['Row']> & {
-          name: string;
           category: string;
+          created_at: string;
+          created_by: string | null;
           equipment: string;
+          external_id: string | null;
+          gif_url: string | null;
+          id: string;
+          image_url: string | null;
+          instructions: Json;
+          is_custom: boolean;
+          name: string;
+          secondary_muscles: string[];
           target_muscle: string;
         };
-        Update: Partial<Database['public']['Tables']['exercises']['Row']>;
-        Relationships: [];
-      };
-      routines: {
-        Row: {
-          id: string;
-          user_id: string;
+        Insert: {
+          attribution?: string | null;
+          category: string;
+          created_at?: string;
+          created_by?: string | null;
+          equipment: string;
+          external_id?: string | null;
+          gif_url?: string | null;
+          id?: string;
+          image_url?: string | null;
+          instructions?: Json;
+          is_custom?: boolean;
           name: string;
-          notes: string | null;
-          archived_at: string | null;
+          secondary_muscles?: string[];
+          target_muscle: string;
+        };
+        Update: {
+          attribution?: string | null;
+          category?: string;
+          created_at?: string;
+          created_by?: string | null;
+          equipment?: string;
+          external_id?: string | null;
+          gif_url?: string | null;
+          id?: string;
+          image_url?: string | null;
+          instructions?: Json;
+          is_custom?: boolean;
+          name?: string;
+          secondary_muscles?: string[];
+          target_muscle?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'exercises_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      personal_records: {
+        Row: {
+          achieved_at: string;
+          exercise_id: string;
+          id: string;
+          record_type: string;
+          set_id: string | null;
+          user_id: string;
+          value: number;
+        };
+        Insert: {
+          achieved_at?: string;
+          exercise_id: string;
+          id?: string;
+          record_type: string;
+          set_id?: string | null;
+          user_id: string;
+          value: number;
+        };
+        Update: {
+          achieved_at?: string;
+          exercise_id?: string;
+          id?: string;
+          record_type?: string;
+          set_id?: string | null;
+          user_id?: string;
+          value?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'personal_records_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'personal_records_set_id_fkey';
+            columns: ['set_id'];
+            isOneToOne: false;
+            referencedRelation: 'sets';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'personal_records_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      profiles: {
+        Row: {
+          avatar_url: string | null;
           created_at: string;
+          display_name: string | null;
+          id: string;
+          unit_preference: string;
           updated_at: string;
         };
-        Insert: Partial<Database['public']['Tables']['routines']['Row']> & {
-          user_id: string;
-          name: string;
+        Insert: {
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
+          id: string;
+          unit_preference?: string;
+          updated_at?: string;
         };
-        Update: Partial<Database['public']['Tables']['routines']['Row']>;
+        Update: {
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
+          id?: string;
+          unit_preference?: string;
+          updated_at?: string;
+        };
         Relationships: [];
       };
       routine_exercises: {
         Row: {
-          id: string;
-          routine_id: string;
           exercise_id: string;
+          id: string;
           order_index: number;
-          target_sets: number;
-          target_reps_min: number;
-          target_reps_max: number | null;
-          target_weight: number | null;
           rest_seconds: number | null;
-        };
-        Insert: Partial<Database['public']['Tables']['routine_exercises']['Row']> & {
           routine_id: string;
-          exercise_id: string;
-          order_index: number;
+          target_reps_max: number | null;
+          target_reps_min: number;
+          target_sets: number;
+          target_weight: number | null;
         };
-        Update: Partial<Database['public']['Tables']['routine_exercises']['Row']>;
-        Relationships: [];
+        Insert: {
+          exercise_id: string;
+          id?: string;
+          order_index: number;
+          rest_seconds?: number | null;
+          routine_id: string;
+          target_reps_max?: number | null;
+          target_reps_min?: number;
+          target_sets?: number;
+          target_weight?: number | null;
+        };
+        Update: {
+          exercise_id?: string;
+          id?: string;
+          order_index?: number;
+          rest_seconds?: number | null;
+          routine_id?: string;
+          target_reps_max?: number | null;
+          target_reps_min?: number;
+          target_sets?: number;
+          target_weight?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'routine_exercises_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'routine_exercises_routine_id_fkey';
+            columns: ['routine_id'];
+            isOneToOne: false;
+            referencedRelation: 'routines';
+            referencedColumns: ['id'];
+          },
+        ];
       };
-      workouts: {
+      routines: {
         Row: {
-          id: string;
-          user_id: string;
-          routine_id: string | null;
-          name: string;
-          started_at: string;
-          ended_at: string | null;
-          duration_seconds: number | null;
-          total_volume: number;
-          notes: string | null;
+          archived_at: string | null;
           created_at: string;
-        };
-        Insert: Partial<Database['public']['Tables']['workouts']['Row']> & {
-          user_id: string;
-          name: string;
-          started_at: string;
-        };
-        Update: Partial<Database['public']['Tables']['workouts']['Row']>;
-        Relationships: [];
-      };
-      workout_exercises: {
-        Row: {
           id: string;
-          workout_id: string;
-          exercise_id: string;
-          order_index: number;
+          name: string;
           notes: string | null;
+          updated_at: string;
+          user_id: string;
         };
-        Insert: Partial<Database['public']['Tables']['workout_exercises']['Row']> & {
-          workout_id: string;
-          exercise_id: string;
-          order_index: number;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          updated_at?: string;
+          user_id: string;
         };
-        Update: Partial<Database['public']['Tables']['workout_exercises']['Row']>;
-        Relationships: [];
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'routines_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       sets: {
         Row: {
-          id: string;
-          workout_exercise_id: string;
-          set_number: number;
-          set_type: SetType;
-          weight: number | null;
-          reps: number | null;
-          duration_seconds: number | null;
-          rpe: number | null;
           completed: boolean;
           completed_at: string | null;
-        };
-        Insert: Partial<Database['public']['Tables']['sets']['Row']> & {
-          workout_exercise_id: string;
-          set_number: number;
-        };
-        Update: Partial<Database['public']['Tables']['sets']['Row']>;
-        Relationships: [];
-      };
-      personal_records: {
-        Row: {
+          duration_seconds: number | null;
           id: string;
-          user_id: string;
-          exercise_id: string;
-          record_type: PersonalRecordType;
-          value: number;
-          set_id: string | null;
-          achieved_at: string;
+          reps: number | null;
+          rpe: number | null;
+          set_number: number;
+          set_type: string;
+          weight: number | null;
+          workout_exercise_id: string;
         };
-        Insert: Partial<Database['public']['Tables']['personal_records']['Row']> & {
-          user_id: string;
-          exercise_id: string;
-          record_type: PersonalRecordType;
-          value: number;
-          achieved_at: string;
+        Insert: {
+          completed?: boolean;
+          completed_at?: string | null;
+          duration_seconds?: number | null;
+          id?: string;
+          reps?: number | null;
+          rpe?: number | null;
+          set_number: number;
+          set_type?: string;
+          weight?: number | null;
+          workout_exercise_id: string;
         };
-        Update: Partial<Database['public']['Tables']['personal_records']['Row']>;
-        Relationships: [];
+        Update: {
+          completed?: boolean;
+          completed_at?: string | null;
+          duration_seconds?: number | null;
+          id?: string;
+          reps?: number | null;
+          rpe?: number | null;
+          set_number?: number;
+          set_type?: string;
+          weight?: number | null;
+          workout_exercise_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'sets_workout_exercise_id_fkey';
+            columns: ['workout_exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_exercises: {
+        Row: {
+          exercise_id: string;
+          id: string;
+          notes: string | null;
+          order_index: number;
+          workout_id: string;
+        };
+        Insert: {
+          exercise_id: string;
+          id?: string;
+          notes?: string | null;
+          order_index: number;
+          workout_id: string;
+        };
+        Update: {
+          exercise_id?: string;
+          id?: string;
+          notes?: string | null;
+          order_index?: number;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_exercises_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_exercises_workout_id_fkey';
+            columns: ['workout_id'];
+            isOneToOne: false;
+            referencedRelation: 'workouts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workouts: {
+        Row: {
+          created_at: string;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          id: string;
+          name: string;
+          notes: string | null;
+          routine_id: string | null;
+          started_at: string;
+          total_volume: number;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          duration_seconds?: number | null;
+          ended_at?: string | null;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          routine_id?: string | null;
+          started_at?: string;
+          total_volume?: number;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          duration_seconds?: number | null;
+          ended_at?: string | null;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          routine_id?: string | null;
+          started_at?: string;
+          total_volume?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workouts_routine_id_fkey';
+            columns: ['routine_id'];
+            isOneToOne: false;
+            referencedRelation: 'routines';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workouts_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
     Functions: {
       finish_workout: {
         Args: { p_workout_id: string };
-        Returns: Database['public']['Tables']['workouts']['Row'];
+        Returns: {
+          created_at: string;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          id: string;
+          name: string;
+          notes: string | null;
+          routine_id: string | null;
+          started_at: string;
+          total_volume: number;
+          user_id: string;
+        };
       };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
-}
+};
+
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
+type DefaultSchema = DatabaseWithoutInternals['public'];
+
+export type Tables<TableName extends keyof DefaultSchema['Tables']> = DefaultSchema['Tables'][TableName]['Row'];
+
+export type TablesInsert<
+  TableName extends keyof DefaultSchema['Tables'],
+> = DefaultSchema['Tables'][TableName]['Insert'];
+
+export type TablesUpdate<
+  TableName extends keyof DefaultSchema['Tables'],
+> = DefaultSchema['Tables'][TableName]['Update'];
