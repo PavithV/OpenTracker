@@ -1,5 +1,5 @@
 import { Check, Circle } from 'lucide-react-native';
-import { useColorScheme, View } from 'react-native';
+import { Image, useColorScheme, View } from 'react-native';
 
 import { Card } from '@/shared/components/Card';
 import { Typography } from '@/shared/components/Typography';
@@ -20,7 +20,16 @@ export function WorkoutDetailExerciseCard({
 
   return (
     <Card onPress={onPress}>
-      <Typography variant="cardTitle">{exercise.name}</Typography>
+      <View className="flex-row items-center gap-sm">
+        {exercise.imageUrl ? (
+          <Image source={{ uri: exercise.imageUrl }} className="h-12 w-12 rounded-full" />
+        ) : (
+          <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
+        )}
+        <Typography variant="cardTitle" className="flex-1">
+          {exercise.name}
+        </Typography>
+      </View>
 
       <View className="mt-sm gap-xs">
         {exercise.sets.map((set, index) => (

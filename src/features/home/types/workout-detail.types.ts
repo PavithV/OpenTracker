@@ -10,6 +10,7 @@ export interface WorkoutDetailExercise {
   id: string;
   exerciseId: string;
   name: string;
+  imageUrl: string | null;
   sets: WorkoutDetailSet[];
 }
 

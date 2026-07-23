@@ -123,9 +123,9 @@ export default function ExercisePickerScreen() {
               description={capitalize(item.targetMuscle)}
               leading={
                 item.imageUrl ? (
-                  <Image source={{ uri: item.imageUrl }} className="h-12 w-12 rounded-md" />
+                  <Image source={{ uri: item.imageUrl }} className="h-12 w-12 rounded-full" />
                 ) : (
-                  <View className="h-12 w-12 rounded-md bg-surface-light dark:bg-surface-dark" />
+                  <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
                 )
               }
               trailing={selectedIds.has(item.id) ? <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} /> : undefined}

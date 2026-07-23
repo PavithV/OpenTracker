@@ -149,7 +149,11 @@ export default function ExerciseDetailScreen() {
             keyExtractor={(item) => item.workoutId}
             contentContainerClassName="gap-sm py-md"
             renderItem={({ item }) => (
-              <ExerciseHistoryEntryCard entry={item} onPress={() => router.push(`/workout/${item.workoutId}`)} />
+              <ExerciseHistoryEntryCard
+                entry={item}
+                imageUrl={exercise.imageUrl}
+                onPress={() => router.push(`/workout/${item.workoutId}`)}
+              />
             )}
           />
         )

@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status (Stand 2026-07-23, Ende der Session):** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner. `tests/` existiert noch nicht. Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`, 2 Migrationen: Schema + ein Bugfix in `finish_workout`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–8 sind umgesetzt — die komplette geplante Liste ist abgeschlossen (kompletter Kreislauf Routine/Workout Ende-zu-Ende funktionsfähig und gegen die Live-DB verifiziert, inkl. Workout-Detail, Übungsdetail und Profil-Aggregaten), dazu zwei ungeplante Ergänzungen (Routinen-Liste, "Routine starten") — siehe `PROJECT_STATUS.md` und `TODO.md` für Details, Begründungen und die zwei dabei gefundenen Bugs. Nächster Schritt: der ausstehende On-Device-Test durch den Nutzer, oder Phase 3 laut `ROADMAP.md` (Diagramme, One Rep Max, Muskel-Split, `personal_records` aktiv anzeigen).
+**Status (Stand 2026-07-24):** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner. `tests/` existiert noch nicht. Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`, 3 Migrationen: Schema + Bugfix in `finish_workout` + `estimated_1rm`-Erweiterung), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2 (Punkte 1–8) und die aktuelle Phase-3-Planungsgrundlage (Punkte 1–4: PR-Diagramm, One Rep Max, Muskel-Split, Rekorde-Übersicht) sind vollständig umgesetzt und gegen die Live-DB verifiziert — siehe `PROJECT_STATUS.md` und `TODO.md` für Details, Begründungen und die zwei in Phase 2 gefundenen Bugs. Vor Phase 4 wurde außerdem eine zuvor undokumentierte Lücke geschlossen: runde Übungsbild-Thumbnails fehlten im Home-Bereich, Workout-Detail und Übungshistorie. Nächster Schritt: Phase 4 laut `ROADMAP.md` (Kalender, Workout-Erinnerungen, Favoriten, Notizen, Custom Exercises, Rest-Timer, Plattenrechner), noch ohne Feinplanung.
 
 ## Ordnerstruktur
 
@@ -12,18 +12,19 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
     sign-in.tsx                # funktionsfähig
     sign-up.tsx                # funktionsfähig
   (tabs)/
-    home/index.tsx             # liest echte Workout-Historie aus `workouts`
+    home/index.tsx             # liest echte Workout-Historie aus `workouts`, je Karte bis zu 3 Übungen mit rundem Bild + Satzanzahl
     training/index.tsx         # Routinen-Liste (Name+Vorschau+"Routine starten"), "Routine erstellen", "Leeres Workout starten"
-    profile/index.tsx          # echtes Profil + echte Aggregate (Workouts/Trainingszeit/Volumen)
+    profile/index.tsx          # echtes Profil + Aggregate (Workouts/Trainingszeit/Volumen) + Muskel-Split-Balkendiagramm
   workout/
     active.tsx                 # Timer, Volumen/Satz-Anzahl, Satz-Erfassung, lokal AsyncStorage-persistiert
-    [id].tsx                   # Workout-Detail: Name/Datum/Dauer/Volumen + alle Übungen mit Sätzen
+    [id].tsx                   # Workout-Detail: Name/Datum/Dauer/Volumen + alle Übungen (mit Bild) mit Sätzen
   routine/
     create.tsx                 # funktionsfähig (Name, Übungsauswahl, Reihenfolge, Soll-Werte)
     [id]/edit.tsx               # funktionsfähig, erreichbar über die Routinen-Liste im Training-Tab
   exercise/
-    picker.tsx                  # Suche, Kategorie-/Geräte-Filter, Mehrfachauswahl, Bilder
-    [id].tsx                    # Übungsdetail: Tabs Zusammenfassung/Historie/So geht's, erreichbar über Workout-Detail
+    picker.tsx                  # Suche, Kategorie-/Geräte-Filter, Mehrfachauswahl, runde Bilder
+    [id].tsx                    # Übungsdetail: Tabs Zusammenfassung (inkl. PR-Chart)/Historie/So geht's, erreichbar über Workout-Detail
+  records.tsx                   # Rekorde-Übersicht: alle Übungen mit personal_records, erreichbar über den Profil-Tab
   _layout.tsx                   # Auth-Gate (Stack.Protected)
 
 src/
@@ -32,7 +33,8 @@ src/
     training/          {components, hooks, api, types, store} [implementiert: store, api, components, types]
     routines/          {types, store, api, components}        [implementiert]
     exercises/         {components, hooks, api, types}        [implementiert: api (Picker + Detail/Historie/PR), components, types]
-    profile/           {components, hooks, api, types}        [implementiert: api, components, types]
+    profile/           {components, hooks, api, types}        [implementiert: api (Stats + Muskel-Split), components, types]
+    records/            {api, types}                          [implementiert]
     auth/              {components, hooks, api, types}        [implementiert: api, types]
   shared/
     components/         # Button, Card, Input, Screen, EmptyState, Typography, ListItem [implementiert]
@@ -44,7 +46,7 @@ src/
   store/                # session.store.ts (Zustand)                [implementiert]
 
 supabase/
-  migrations/           # 0001_init.sql (Schema) + 0002 (finish_workout-Fix)  [implementiert, live angewendet]
+  migrations/           # 0001_init.sql (Schema) + 0002 (finish_workout-Fix) + 0003 (estimated_1rm)  [implementiert, live angewendet]
   seed/                 # import-exercises.ts                            [implementiert, ausgeführt: 1.324 Übungen]
   functions/            # Edge Functions (später)                        [leer]
 
@@ -93,6 +95,7 @@ Etabliert 2026-07-23 (siehe `TODO.md`), inspiriert an Hevy/Linear/Notion/Apple F
 - `Input` — Fokus-Zustand über kontrolliertes `onFocus`/`onBlur` (nicht über NativeWinds `focus:`-Variant, da in dieser Session nicht auf einem echten Gerät verifizierbar).
 - `ListItem` — Listen-Zeilen-Primitive (leading/title/description/trailing/onPress), divider-agnostisch (Trennlinien über `FlatList`s `ItemSeparatorComponent`).
 - `EmptyState` — optionales `icon`-Prop (lucide-Komponente).
+- `LineChart` / `BarChart` — eigene, minimale `react-native-svg`-Chart-Komponenten (Phase 3), kein externer Chart-Dependency (siehe `TODO.md`, Abschnitt „Phase 3 der Roadmap" für die Entscheidung).
 
 Keine weiteren Komponenten (kein Badge/Alert/Dialog/Avatar) — nichts im bestehenden Code braucht sie aktuell.
 
