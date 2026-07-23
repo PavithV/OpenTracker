@@ -1,6 +1,6 @@
 # Project Status
 
-Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, **Phase 2 (Punkte 1–8) vollständig abgeschlossen** plus zwei ungeplante Zwischenschritte (Routinen-Liste, "Routine starten"). Der komplette Kernkreislauf **Registrieren → Routine erstellen → Routine starten → Workout durchführen → Workout beenden → Workout-Historie ansehen → Workout-Detail ansehen → Übungsdetail ansehen → Profil-Aggregate ansehen** ist Ende-zu-Ende gegen die echte Supabase-Datenbank verifiziert. Zwei reale, vorbestehende Bugs wurden dabei gefunden und gefixt (siehe unten). **Ausstehend ist nur noch der echte On-Device-Test** durch den Nutzer selbst; danach ist der Einstieg in Phase 3 laut `ROADMAP.md` der nächste sinnvolle Schritt.
+Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, **Phase 2 (Punkte 1–8) vollständig abgeschlossen** plus zwei ungeplante Zwischenschritte (Routinen-Liste, "Routine starten"). Der komplette Kernkreislauf **Registrieren → Routine erstellen → Routine starten → Workout durchführen → Workout beenden → Workout-Historie ansehen → Workout-Detail ansehen → Übungsdetail ansehen → Profil-Aggregate ansehen** ist Ende-zu-Ende gegen die echte Supabase-Datenbank verifiziert. Zwei reale, vorbestehende Bugs wurden dabei gefunden und gefixt (siehe unten). **Ausstehend ist nur noch der echte On-Device-Test** durch den Nutzer selbst. `TODO.md` enthält jetzt außerdem eine erste Planungsgrundlage für **Phase 3** (Diagramme, One Rep Max, Muskel-Split, Rekorde) — noch nicht umgesetzt, siehe dort für die vier Punkte und die offene Chart-Lib-Entscheidung.
 
 ## Kurzfassung
 
@@ -14,6 +14,7 @@ Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, *
 - Punkt 6 (Workout-Detail) umgesetzt: `getWorkoutDetail()` (drei flache Queries, in JS gejoint, gleiches Muster wie `getRoutineForEdit`) + `WorkoutDetailExerciseCard`. Gegen die Live-DB verifiziert per SQL-Simulation (echter Nutzer, Test-Workout danach rückstandslos gelöscht inkl. der dabei von `finish_workout` erzeugten `personal_records`-Zeile).
 - Punkt 7 (Übungsdetail) umgesetzt: drei Tabs (Zusammenfassung/Historie/So geht's) nach Hevy-Referenz, mit zwei bewussten Scope-Abweichungen vom Screenshot — kein interaktives PR-Chart (keine Chart-Lib im Projekt, stattdessen eine einfache Rekord-Karte) und Fließtext statt nummerierter Schritte in "So geht's" (`instructions` ist pro Sprache ein Absatz, kein Schritte-Array; Fallback auf `en`, da kein `de`-Key im Datensatz). UI-Einstiegspunkt: Tap auf eine Übung in der Workout-Detailansicht. Auch hier per SQL-Simulation gegen die Live-DB verifiziert (Test-Workout + die davon erzeugte `personal_records`-Zeile danach wieder gelöscht).
 - Punkt 8 (Profil-Tab) umgesetzt: `getProfileStats()` aggregiert Anzahl Workouts/Trainingszeit/Gesamtvolumen aus `workouts` (flache Query, in JS summiert). Bewusst kein Balkendiagramm und keine Follower-Zahlen aus `screenshots/Profile statistics.jpg` — beides ist laut `ROADMAP.md` Phase 3 bzw. Phase 5, nicht Phase-2-Scope. Die bisher inline im Screen liegende `profiles`-Query wurde dabei in ein reguläres `getProfile()`-API-Modul verschoben. **Damit ist die komplette geplante Phase-2-Liste (Punkte 1–8) abgeschlossen.** Verifiziert per SQL-Simulation (zwei Test-Workouts für den echten Nutzer, Aggregat-Query bestätigt exakt den von `getProfileStats()` erwarteten Wert, danach rückstandslos gelöscht inkl. der von `finish_workout` erzeugten `personal_records`-Zeilen).
+- Auf Nutzerwunsch danach `TODO.md`/`PROJECT_STATUS.md` um eine erste **Phase-3-Planungsgrundlage** ergänzt (kein Code, reine Doku): vier Punkte (PR-Diagramm im Übungsdetail, One Rep Max, Muskel-Split, Rekorde-Übersicht) plus eine noch offene Chart-Lib-Entscheidung (eigene `react-native-svg`-Charts vs. dedizierte Lib). Details in `TODO.md`, Abschnitt „Phase 3 der Roadmap".
 
 **Wichtig für alle künftigen Sessions:** Keine Test-Accounts (Supabase-Signups) mehr anlegen — hat beim Nutzer eine Warnmail von Supabase ausgelöst. Siehe Memory `no-test-signups`. Alle DB-Verifikationen in dieser Session liefen stattdessen über direkte SQL-Operationen (per Supabase-MCP-Tools) auf Datentabellen, unter Verwendung der echten, bereits existierenden Nutzer-ID — nie über neue Auth-Accounts. Test-Zeilen wurden nach jeder Verifikation rückstandslos wieder gelöscht.
 
@@ -29,7 +30,8 @@ Beide durch direkte SQL-Simulation der jeweiligen Abläufe gegen die Live-DB gef
 Alle Änderungen dieser und der vorherigen Fortsetzungs-Session liefen über einen Worktree-Branch und wurden per Fast-Forward in `master` gemerged (kein GitHub-Remote vorhanden, daher kein PR):
 
 ```
-(neu) Build profile stats screen (Phase 2, item 8)
+(neu) Add Phase 3 planning to TODO.md/PROJECT_STATUS.md
+b377242 Build profile stats screen (Phase 2, item 8)
 c62baff Build exercise detail screen (Phase 2, item 7)
 e441a31 Build workout detail screen (Phase 2, item 6)
 99bac1b Implement "Routine starten" using Hevy screenshots as reference
