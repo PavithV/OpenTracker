@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -120,3 +121,18 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
     },
   ),
 );
+
+/**
+ * `persist` rehydrates from AsyncStorage asynchronously -- on first render after an app
+ * (re)start, the store briefly holds its default in-memory state (`startedAt: null`) before the
+ * real persisted state loads. Calling the idempotent `start()` before rehydration finishes would
+ * misread "not hydrated yet" as "no workout in progress" and wipe a real one. Callers must wait
+ * for this to be true before calling `start()`.
+ */
+export function useActiveWorkoutHydrated(): boolean {
+  return useSyncExternalStore(
+    useActiveWorkoutStore.persist.onFinishHydration,
+    () => useActiveWorkoutStore.persist.hasHydrated(),
+    () => false,
+  );
+}

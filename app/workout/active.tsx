@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, useColorScheme, View } from 'react-native';
+import { Alert, FlatList, Pressable, useColorScheme, View } from 'react-native';
 
+import { finishActiveWorkout } from '@/features/training/api/workouts.api';
 import { ActiveWorkoutExerciseCard } from '@/features/training/components/ActiveWorkoutExerciseCard';
 import {
   computeCompletedSetCount,
   computeTotalVolume,
+  useActiveWorkoutHydrated,
   useActiveWorkoutStore,
 } from '@/features/training/store/active-workout.store';
 import { Button } from '@/shared/components/Button';
@@ -15,6 +17,7 @@ import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
+import { useSessionStore } from '@/store/session.store';
 
 function useElapsedSeconds(startedAt: string | null): number {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -44,10 +47,9 @@ function formatElapsed(totalSeconds: number): string {
 }
 
 export default function ActiveWorkoutScreen() {
-  // TODO (Phase 2, Punkt 5): "Workout beenden" -> workouts/workout_exercises/sets nach Supabase
-  // syncen und finish_workout-RPC aufrufen. Bis dahin lebt der Workout-Zustand rein lokal
-  // (AsyncStorage-gespiegelt über active-workout.store.ts), siehe ARCHITECTURE.md.
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const session = useSessionStore((state) => state.session);
+  const hasHydrated = useActiveWorkoutHydrated();
   const startedAt = useActiveWorkoutStore((state) => state.startedAt);
   const name = useActiveWorkoutStore((state) => state.name);
   const exercises = useActiveWorkoutStore((state) => state.exercises);
@@ -58,14 +60,39 @@ export default function ActiveWorkoutScreen() {
   const updateSet = useActiveWorkoutStore((state) => state.updateSet);
   const toggleSetCompleted = useActiveWorkoutStore((state) => state.toggleSetCompleted);
   const removeSet = useActiveWorkoutStore((state) => state.removeSet);
+  const reset = useActiveWorkoutStore((state) => state.reset);
+
+  const [isFinishing, setIsFinishing] = useState(false);
 
   useEffect(() => {
-    start();
-  }, [start]);
+    if (hasHydrated) start();
+  }, [hasHydrated, start]);
 
   const elapsedSeconds = useElapsedSeconds(startedAt);
   const totalVolume = computeTotalVolume(exercises);
   const completedSets = computeCompletedSetCount(exercises);
+
+  async function handleFinishWorkout() {
+    if (exercises.length === 0) {
+      Alert.alert('Keine Übungen', 'Füge mindestens eine Übung hinzu, bevor du das Workout beendest.');
+      return;
+    }
+
+    setIsFinishing(true);
+    try {
+      await finishActiveWorkout(session!.user.id, { name: name.trim() || 'Workout', startedAt: startedAt!, exercises });
+      reset();
+      router.replace('/(tabs)/home');
+    } catch (err) {
+      Alert.alert('Speichern fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
+    } finally {
+      setIsFinishing(false);
+    }
+  }
+
+  if (!hasHydrated) {
+    return <Screen />;
+  }
 
   return (
     <Screen>
@@ -113,7 +140,7 @@ export default function ActiveWorkoutScreen() {
         variant="secondary"
         onPress={() => router.push('/exercise/picker?target=workout')}
       />
-      <Button label="Workout beenden" onPress={() => {}} disabled />
+      <Button label="Workout beenden" onPress={handleFinishWorkout} loading={isFinishing} />
     </Screen>
   );
 }

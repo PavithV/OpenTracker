@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–4 sind umgesetzt: Home-Tab (echte Workout-Historie), Übungsauswahl (Suche/Filter/Mehrfachauswahl/Bilder), Routine erstellen/bearbeiten, Aktives Workout (siehe `TODO.md` für Details und Begründungen).
+**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–5 sind umgesetzt: Home-Tab (echte Workout-Historie), Übungsauswahl (Suche/Filter/Mehrfachauswahl/Bilder), Routine erstellen/bearbeiten, Aktives Workout, Workout beenden (kompletter Workout-Flow ist Ende-zu-Ende funktionsfähig; siehe `TODO.md` für Details und Begründungen, inkl. eines dabei gefundenen und gefixten Bugs in `finish_workout`).
 
 ## Ordnerstruktur
 
@@ -29,7 +29,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
 src/
   features/
     home/             {components, hooks, api, types}        [implementiert: api, components, types]
-    training/          {components, hooks, api, types, store} [implementiert: store, components, types]
+    training/          {components, hooks, api, types, store} [implementiert: store, api, components, types]
     routines/          {types, store, api, components}        [implementiert]
     exercises/         {components, hooks, api, types}        [implementiert: api, components, types]
     profile/           {components, hooks, api, types}        [Platzhalter, leer]
@@ -44,7 +44,7 @@ src/
   store/                # session.store.ts (Zustand)                [implementiert]
 
 supabase/
-  migrations/           # 0001_init.sql — komplettes DATABASE.md-Schema  [implementiert, live angewendet]
+  migrations/           # 0001_init.sql (Schema) + 0002 (finish_workout-Fix)  [implementiert, live angewendet]
   seed/                 # import-exercises.ts                            [implementiert, ausgeführt: 1.324 Übungen]
   functions/            # Edge Functions (später)                        [leer]
 
