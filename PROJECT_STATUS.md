@@ -1,6 +1,6 @@
 # Project Status
 
-Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, Phase 2 Punkte 1–6 komplett plus zwei ungeplante Zwischenschritte (Routinen-Liste, "Routine starten"). Der komplette Kernkreislauf **Registrieren → Routine erstellen → Routine starten → Workout durchführen → Workout beenden → Workout-Historie ansehen → Workout-Detail ansehen** ist Ende-zu-Ende gegen die echte Supabase-Datenbank verifiziert. Zwei reale, vorbestehende Bugs wurden dabei gefunden und gefixt (siehe unten). **Ausstehend ist nur noch der echte On-Device-Test** durch den Nutzer selbst.
+Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, Phase 2 Punkte 1–7 komplett (die komplette geplante Liste bis auf Punkt 8) plus zwei ungeplante Zwischenschritte (Routinen-Liste, "Routine starten"). Der komplette Kernkreislauf **Registrieren → Routine erstellen → Routine starten → Workout durchführen → Workout beenden → Workout-Historie ansehen → Workout-Detail ansehen → Übungsdetail ansehen** ist Ende-zu-Ende gegen die echte Supabase-Datenbank verifiziert. Zwei reale, vorbestehende Bugs wurden dabei gefunden und gefixt (siehe unten). **Ausstehend ist nur noch der echte On-Device-Test** durch den Nutzer selbst.
 
 ## Kurzfassung
 
@@ -12,6 +12,7 @@ Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, P
 - Der Nutzer meldete danach zwei UX-Lücken, die sich beide als bewusst offen gelassene, noch nicht gebaute Funktionalität herausstellten (kein Bug): keine Routinen-Listen-Ansicht, und "Routine starten" war nur ein TODO-Kommentar. Beide auf Nutzerwunsch vor Punkt 6 nachgezogen, letzteres orientiert an vom Nutzer bereitgestellten Hevy-Referenz-Screenshots (`screenshots/`, gitignored, dritte Partei).
 - Der Nutzer hat sich zwischenzeitlich selbst erfolgreich über die echte App registriert (`vpavith02@gmail.com`) — bestätigt, dass der Registrierungs-Fix funktioniert.
 - Punkt 6 (Workout-Detail) umgesetzt: `getWorkoutDetail()` (drei flache Queries, in JS gejoint, gleiches Muster wie `getRoutineForEdit`) + `WorkoutDetailExerciseCard`. Gegen die Live-DB verifiziert per SQL-Simulation (echter Nutzer, Test-Workout danach rückstandslos gelöscht inkl. der dabei von `finish_workout` erzeugten `personal_records`-Zeile).
+- Punkt 7 (Übungsdetail) umgesetzt: drei Tabs (Zusammenfassung/Historie/So geht's) nach Hevy-Referenz, mit zwei bewussten Scope-Abweichungen vom Screenshot — kein interaktives PR-Chart (keine Chart-Lib im Projekt, stattdessen eine einfache Rekord-Karte) und Fließtext statt nummerierter Schritte in "So geht's" (`instructions` ist pro Sprache ein Absatz, kein Schritte-Array; Fallback auf `en`, da kein `de`-Key im Datensatz). UI-Einstiegspunkt: Tap auf eine Übung in der Workout-Detailansicht. Auch hier per SQL-Simulation gegen die Live-DB verifiziert (Test-Workout + die davon erzeugte `personal_records`-Zeile danach wieder gelöscht).
 
 **Wichtig für alle künftigen Sessions:** Keine Test-Accounts (Supabase-Signups) mehr anlegen — hat beim Nutzer eine Warnmail von Supabase ausgelöst. Siehe Memory `no-test-signups`. Alle DB-Verifikationen in dieser Session liefen stattdessen über direkte SQL-Operationen (per Supabase-MCP-Tools) auf Datentabellen, unter Verwendung der echten, bereits existierenden Nutzer-ID — nie über neue Auth-Accounts. Test-Zeilen wurden nach jeder Verifikation rückstandslos wieder gelöscht.
 
@@ -27,7 +28,8 @@ Beide durch direkte SQL-Simulation der jeweiligen Abläufe gegen die Live-DB gef
 Alle Änderungen dieser und der vorherigen Fortsetzungs-Session liefen über einen Worktree-Branch und wurden per Fast-Forward in `master` gemerged (kein GitHub-Remote vorhanden, daher kein PR):
 
 ```
-(neu) Build workout detail screen (Phase 2, item 6)
+(neu) Build exercise detail screen (Phase 2, item 7)
+e441a31 Build workout detail screen (Phase 2, item 6)
 99bac1b Implement "Routine starten" using Hevy screenshots as reference
 0606b91 Add routines list to Training tab (unscheduled gap, inserted before item 6)
 c9809ac Wire "Workout beenden" to sync + finish_workout (Phase 2, item 5)
@@ -58,12 +60,13 @@ fc079b5 Add Supabase MCP server config and agent skills
 
 ## Implementierte Features
 
-- **Navigation**: Expo Router mit `Stack.Protected`-Auth-Gate. `(auth)`, `(tabs)` (Home/Training/Profil), `exercise/picker`, `routine/create`, `routine/[id]/edit`, `workout/active`, `workout/[id]` sind alle voll funktionsfähig. `exercise/[id]` bleibt Platzhalter (Punkt 7).
+- **Navigation**: Expo Router mit `Stack.Protected`-Auth-Gate. `(auth)`, `(tabs)` (Home/Training/Profil), `exercise/picker`, `exercise/[id]`, `routine/create`, `routine/[id]/edit`, `workout/active`, `workout/[id]` sind alle voll funktionsfähig. Nur noch der Profil-Tab (Punkt 8) zeigt Platzhalter-Aggregate.
 - **Design System**: siehe `ARCHITECTURE.md`, Abschnitt „Design System" — Tokens + 6 shared Components, alle Screens umgestellt.
 - **Auth**: Sign-in/Sign-up gegen Supabase Auth, inkl. korrekter Behandlung von "Confirm email aktiv" (siehe Bug 1 oben).
 - **Home-Tab**: echte Workout-Historie (Name/Datum/Dauer/Volumen/Anzahl Übungen), Tap → `workout/[id]`.
-- **Workout-Detail** (`workout/[id]`): Name/Datum/Dauer/Volumen/Anzahl Übungen im Header, darunter alle Übungen mit ihren Sätzen (Gewicht/Wiederholungen/completed-Status).
+- **Workout-Detail** (`workout/[id]`): Name/Datum/Dauer/Volumen/Anzahl Übungen im Header, darunter alle Übungen mit ihren Sätzen (Gewicht/Wiederholungen/completed-Status). Übungsname ist tappbar → `exercise/[id]`.
 - **Übungsauswahl**: Suche, Kategorie-/Geräte-Filter, Mehrfachauswahl mit Bildern, Attributions-Hinweis. Wird sowohl von der Routinen- als auch der Workout-Erstellung genutzt (`?target=`-Param).
+- **Übungsdetail** (`exercise/[id]`): Tab "Zusammenfassung" (Bild/GIF, Primär-/Sekundärmuskel, persönlicher Rekord aus `personal_records`, Attribution), Tab "Historie" (alle abgeschlossenen Workouts mit dieser Übung samt Sätzen, Tap → `workout/[id]`), Tab "So geht's" (Anleitungstext aus `instructions`, Fallback auf Englisch).
 - **Routinen** (erstellen/bearbeiten/auflisten/starten): vollständiger Kreislauf, siehe `TODO.md` Punkte 3 und die beiden Zwischenschritte für die Architektur-Begründung (Zustand-Draft-Store statt Navigation-Params).
 - **Aktives Workout + Beenden**: Timer, Volumen/Satz-Anzeige, Satz-Erfassung, lokale AsyncStorage-Persistenz (übersteht App-Kills), echter Sync zu Supabase + `finish_workout`-RPC beim Beenden.
 - **DB-Schema**: `0001_init.sql` (vollständiges Schema aus `DATABASE.md`) + `0002_fix_finish_workout_personal_records.sql` (Bugfix).

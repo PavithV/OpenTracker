@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status (Stand 2026-07-23, Ende der Session):** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner. `tests/` existiert noch nicht. Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`, 2 Migrationen: Schema + ein Bugfix in `finish_workout`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–6 sind umgesetzt (kompletter Kreislauf Routine/Workout Ende-zu-Ende funktionsfähig und gegen die Live-DB verifiziert, inkl. Workout-Detail), dazu zwei ungeplante Ergänzungen (Routinen-Liste, "Routine starten") — siehe `PROJECT_STATUS.md` und `TODO.md` für Details, Begründungen und die zwei dabei gefundenen Bugs. Nächster Schritt: Punkt 7 (Übungsdetail).
+**Status (Stand 2026-07-23, Ende der Session):** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner. `tests/` existiert noch nicht. Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`, 2 Migrationen: Schema + ein Bugfix in `finish_workout`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–7 sind umgesetzt (kompletter Kreislauf Routine/Workout Ende-zu-Ende funktionsfähig und gegen die Live-DB verifiziert, inkl. Workout-Detail und Übungsdetail), dazu zwei ungeplante Ergänzungen (Routinen-Liste, "Routine starten") — siehe `PROJECT_STATUS.md` und `TODO.md` für Details, Begründungen und die zwei dabei gefundenen Bugs. Nächster Schritt: Punkt 8 (Profil-Tab), der letzte Punkt der geplanten Phase-2-Liste.
 
 ## Ordnerstruktur
 
@@ -23,7 +23,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
     [id]/edit.tsx               # funktionsfähig, erreichbar über die Routinen-Liste im Training-Tab
   exercise/
     picker.tsx                  # Suche, Kategorie-/Geräte-Filter, Mehrfachauswahl, Bilder
-    [id].tsx                    # Platzhalter               [Platzhalter]
+    [id].tsx                    # Übungsdetail: Tabs Zusammenfassung/Historie/So geht's, erreichbar über Workout-Detail
   _layout.tsx                   # Auth-Gate (Stack.Protected)
 
 src/
@@ -31,7 +31,7 @@ src/
     home/             {components, hooks, api, types}        [implementiert: api (Historie + Workout-Detail), components, types]
     training/          {components, hooks, api, types, store} [implementiert: store, api, components, types]
     routines/          {types, store, api, components}        [implementiert]
-    exercises/         {components, hooks, api, types}        [implementiert: api, components, types]
+    exercises/         {components, hooks, api, types}        [implementiert: api (Picker + Detail/Historie/PR), components, types]
     profile/           {components, hooks, api, types}        [Platzhalter, leer]
     auth/              {components, hooks, api, types}        [implementiert: api, types]
   shared/

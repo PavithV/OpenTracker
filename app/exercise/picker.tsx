@@ -18,10 +18,7 @@ import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
-
-function capitalize(value: string): string {
-  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
+import { capitalize } from '@/shared/utils/format';
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);

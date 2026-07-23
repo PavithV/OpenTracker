@@ -8,12 +8,18 @@ import { ICON_SIZE } from '@/shared/theme/icons';
 
 import type { WorkoutDetailExercise } from '../types/workout-detail.types';
 
-export function WorkoutDetailExerciseCard({ exercise }: { exercise: WorkoutDetailExercise }) {
+export function WorkoutDetailExerciseCard({
+  exercise,
+  onPress,
+}: {
+  exercise: WorkoutDetailExercise;
+  onPress?: () => void;
+}) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const secondaryColor = colors.textTertiary[scheme];
 
   return (
-    <Card>
+    <Card onPress={onPress}>
       <Typography variant="cardTitle">{exercise.name}</Typography>
 
       <View className="mt-sm gap-xs">

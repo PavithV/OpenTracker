@@ -52,7 +52,9 @@ export default function WorkoutDetailScreen() {
             </View>
           </View>
         }
-        renderItem={({ item }) => <WorkoutDetailExerciseCard exercise={item} />}
+        renderItem={({ item }) => (
+          <WorkoutDetailExerciseCard exercise={item} onPress={() => router.push(`/exercise/${item.exerciseId}`)} />
+        )}
       />
     </Screen>
   );

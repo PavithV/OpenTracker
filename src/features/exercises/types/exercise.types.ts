@@ -60,3 +60,35 @@ export interface ExerciseFilters {
   category?: string;
   equipment?: string;
 }
+
+export interface ExerciseDetail {
+  id: string;
+  name: string;
+  targetMuscle: string;
+  secondaryMuscles: string[];
+  imageUrl: string | null;
+  gifUrl: string | null;
+  attribution: string | null;
+  // Keyed by ISO 639-1 language code (e.g. "en", "es") -- the seeded dataset has no "de" key,
+  // callers fall back to "en".
+  instructions: Record<string, string>;
+}
+
+export interface ExercisePersonalRecord {
+  value: number;
+  achievedAt: string;
+}
+
+export interface ExerciseHistorySet {
+  id: string;
+  setNumber: number;
+  weight: number | null;
+  reps: number | null;
+}
+
+export interface ExerciseHistoryEntry {
+  workoutId: string;
+  workoutName: string;
+  startedAt: string;
+  sets: ExerciseHistorySet[];
+}
