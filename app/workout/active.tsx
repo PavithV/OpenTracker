@@ -52,6 +52,7 @@ export default function ActiveWorkoutScreen() {
   const hasHydrated = useActiveWorkoutHydrated();
   const startedAt = useActiveWorkoutStore((state) => state.startedAt);
   const name = useActiveWorkoutStore((state) => state.name);
+  const routineId = useActiveWorkoutStore((state) => state.routineId);
   const exercises = useActiveWorkoutStore((state) => state.exercises);
   const start = useActiveWorkoutStore((state) => state.start);
   const setName = useActiveWorkoutStore((state) => state.setName);
@@ -80,7 +81,12 @@ export default function ActiveWorkoutScreen() {
 
     setIsFinishing(true);
     try {
-      await finishActiveWorkout(session!.user.id, { name: name.trim() || 'Workout', startedAt: startedAt!, exercises });
+      await finishActiveWorkout(session!.user.id, {
+        name: name.trim() || 'Workout',
+        startedAt: startedAt!,
+        routineId,
+        exercises,
+      });
       reset();
       router.replace('/(tabs)/home');
     } catch (err) {

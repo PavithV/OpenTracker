@@ -5,6 +5,7 @@ import type { ActiveWorkoutExercise } from '../types/active-workout.types';
 interface WorkoutDraft {
   name: string;
   startedAt: string;
+  routineId: string | null;
   exercises: ActiveWorkoutExercise[];
 }
 
@@ -18,7 +19,7 @@ interface WorkoutDraft {
 export async function finishActiveWorkout(userId: string, draft: WorkoutDraft): Promise<string> {
   const { data: workout, error: workoutError } = await supabase
     .from('workouts')
-    .insert({ user_id: userId, name: draft.name, started_at: draft.startedAt })
+    .insert({ user_id: userId, name: draft.name, started_at: draft.startedAt, routine_id: draft.routineId })
     .select('id')
     .single();
   if (workoutError) throw workoutError;

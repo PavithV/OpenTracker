@@ -2,20 +2,52 @@ import { supabase } from '@/shared/lib/supabase';
 
 import type { RoutineDraftExercise, RoutineListItem } from '../types/routine.types';
 
+const ROUTINE_PREVIEW_EXERCISE_COUNT = 3;
+
+// Flat queries joined in JS rather than a nested routines -> routine_exercises -> exercises embed --
+// same reasoning as getRoutineForEdit below (the generated Database type marks the
+// routine_exercises -> exercises FK isOneToOne: false, which makes multi-level embed-shape
+// inference risky to trust without a device to verify against).
 export async function getRoutines(userId: string): Promise<RoutineListItem[]> {
-  const { data, error } = await supabase
+  const { data: routines, error: routinesError } = await supabase
     .from('routines')
-    .select('id, name, routine_exercises(count)')
+    .select('id, name')
     .eq('user_id', userId)
     .is('archived_at', null)
     .order('created_at', { ascending: false });
-  if (error) throw error;
+  if (routinesError) throw routinesError;
+  if (routines.length === 0) return [];
 
-  return data.map((routine) => ({
-    id: routine.id,
-    name: routine.name,
-    exerciseCount: routine.routine_exercises[0]?.count ?? 0,
-  }));
+  const routineIds = routines.map((routine) => routine.id);
+  const { data: routineExercises, error: exercisesError } = await supabase
+    .from('routine_exercises')
+    .select('routine_id, exercise_id, order_index')
+    .in('routine_id', routineIds)
+    .order('order_index');
+  if (exercisesError) throw exercisesError;
+
+  const exerciseIds = Array.from(new Set(routineExercises.map((row) => row.exercise_id)));
+  const { data: exercises, error: namesError } =
+    exerciseIds.length > 0
+      ? await supabase.from('exercises').select('id, name').in('id', exerciseIds)
+      : { data: [] as { id: string; name: string }[], error: null };
+  if (namesError) throw namesError;
+
+  const nameById = new Map(exercises.map((exercise) => [exercise.id, exercise.name]));
+
+  return routines.map((routine) => {
+    const namesForRoutine = routineExercises
+      .filter((row) => row.routine_id === routine.id)
+      .map((row) => nameById.get(row.exercise_id))
+      .filter((name): name is string => !!name);
+
+    return {
+      id: routine.id,
+      name: routine.name,
+      exerciseCount: namesForRoutine.length,
+      exercisePreview: namesForRoutine.slice(0, ROUTINE_PREVIEW_EXERCISE_COUNT).join(', '),
+    };
+  });
 }
 
 async function insertRoutineExercises(routineId: string, exercises: RoutineDraftExercise[]): Promise<void> {

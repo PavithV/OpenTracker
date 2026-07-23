@@ -13,7 +13,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
     sign-up.tsx                # funktionsfähig
   (tabs)/
     home/index.tsx             # liest echte Workout-Historie aus `workouts`
-    training/index.tsx         # "Routine erstellen" und "Leeres Workout starten" beide funktionsfähig
+    training/index.tsx         # Routinen-Liste (Name+Vorschau+"Routine starten"), "Routine erstellen", "Leeres Workout starten"
     profile/index.tsx          # liest bereits echte `profiles`-Zeile
   workout/
     active.tsx                 # Timer, Volumen/Satz-Anzahl, Satz-Erfassung, lokal AsyncStorage-persistiert

@@ -44,3 +44,7 @@ yarn-error.*
 # exercise dataset used only by supabase/seed/import-exercises.ts — large (2.6k+ files,
 # mostly images/GIFs), not meant to live in the repo. Re-download before running `npm run db:seed`.
 /exercises-dataset-main
+
+# reference screenshots of a third-party app (Hevy), used as design inspiration during
+# development — not our IP, keep local-only, never commit.
+/screenshots

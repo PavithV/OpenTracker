@@ -9,11 +9,22 @@ function generateLocalId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+// Deliberately narrower than routines/types RoutineDraftExercise (no targetRepsMin/Max/restSeconds
+// -- unused here) so this store isn't coupled to the routines feature's exact shape, just this.
+interface RoutineExerciseSeed {
+  exerciseId: string;
+  name: string;
+  targetSets: number;
+  targetWeight: number | null;
+}
+
 interface ActiveWorkoutState {
   startedAt: string | null;
   name: string;
+  routineId: string | null;
   exercises: ActiveWorkoutExercise[];
   start: () => void;
+  startFromRoutine: (routineId: string, name: string, exercises: RoutineExerciseSeed[]) => void;
   setName: (name: string) => void;
   addExercises: (exercises: { id: string; name: string }[]) => void;
   removeExercise: (exerciseId: string) => void;
@@ -48,12 +59,41 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
     (set) => ({
       startedAt: null,
       name: 'Workout',
+      routineId: null,
       exercises: [],
 
       // Idempotent: resuming an in-progress workout (e.g. after the app was killed) must not
       // reset it. Only a genuinely fresh start (no workout in progress) initializes state.
       start: () =>
-        set((state) => (state.startedAt ? state : { startedAt: new Date().toISOString(), name: 'Workout', exercises: [] })),
+        set((state) =>
+          state.startedAt
+            ? state
+            : { startedAt: new Date().toISOString(), name: 'Workout', routineId: null, exercises: [] },
+        ),
+
+      // Same idempotency guard as start() -- if a workout is already in progress, this is a no-op
+      // (the caller is responsible for warning the user before calling, since silently landing on
+      // an unrelated in-progress workout instead of the routine they tapped would be confusing).
+      startFromRoutine: (routineId, name, exercises) =>
+        set((state) =>
+          state.startedAt
+            ? state
+            : {
+                startedAt: new Date().toISOString(),
+                name,
+                routineId,
+                exercises: exercises.map((exercise) => ({
+                  exerciseId: exercise.exerciseId,
+                  name: exercise.name,
+                  sets: Array.from({ length: exercise.targetSets }, () => ({
+                    id: generateLocalId(),
+                    weight: exercise.targetWeight,
+                    reps: null,
+                    completed: false,
+                  })),
+                })),
+              },
+        ),
 
       setName: (name) => set({ name }),
 
@@ -113,7 +153,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           ),
         })),
 
-      reset: () => set({ startedAt: null, name: 'Workout', exercises: [] }),
+      reset: () => set({ startedAt: null, name: 'Workout', routineId: null, exercises: [] }),
     }),
     {
       name: 'active-workout-draft',

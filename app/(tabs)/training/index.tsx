@@ -1,19 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { FlatList, View } from 'react-native';
+import { Alert, FlatList, View } from 'react-native';
 
-import { getRoutines } from '@/features/routines/api/routines.api';
+import { getRoutineForEdit, getRoutines } from '@/features/routines/api/routines.api';
+import { RoutineCard } from '@/features/routines/components/RoutineCard';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
+import { useActiveWorkoutStore } from '@/features/training/store/active-workout.store';
 import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { ListItem } from '@/shared/components/ListItem';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { useSessionStore } from '@/store/session.store';
 
 export default function TrainingScreen() {
-  // TODO (Phase 2): "Routine starten" -> aktives Workout aus einer Routine vorbefüllen. Bisher
-  // führt nur der Tap auf eine Routine zu routine/[id]/edit.tsx (Ansehen/Bearbeiten).
   const session = useSessionStore((state) => state.session);
 
   const { data: routines, isLoading } = useQuery({
@@ -25,6 +24,24 @@ export default function TrainingScreen() {
   function handleCreateRoutine() {
     useRoutineDraftStore.getState().reset();
     router.push('/routine/create');
+  }
+
+  async function handleStartRoutine(routineId: string) {
+    if (useActiveWorkoutStore.getState().startedAt) {
+      Alert.alert(
+        'Workout läuft bereits',
+        'Es läuft schon ein Workout. Beende es zuerst oder öffne es über "Leeres Workout starten".',
+      );
+      return;
+    }
+
+    try {
+      const { name, exercises } = await getRoutineForEdit(routineId);
+      useActiveWorkoutStore.getState().startFromRoutine(routineId, name, exercises);
+      router.push('/workout/active');
+    } catch (err) {
+      Alert.alert('Routine konnte nicht geladen werden', err instanceof Error ? err.message : 'Unbekannter Fehler');
+    }
   }
 
   return (
@@ -44,12 +61,11 @@ export default function TrainingScreen() {
           data={routines ?? []}
           keyExtractor={(item) => item.id}
           contentContainerClassName="gap-sm"
-          ItemSeparatorComponent={() => <View className="border-b border-border-light dark:border-border-dark" />}
           renderItem={({ item }) => (
-            <ListItem
-              title={item.name}
-              description={`${item.exerciseCount} ${item.exerciseCount === 1 ? 'Übung' : 'Übungen'}`}
+            <RoutineCard
+              routine={item}
               onPress={() => router.push(`/routine/${item.id}/edit`)}
+              onStart={() => handleStartRoutine(item.id)}
             />
           )}
         />

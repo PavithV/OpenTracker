@@ -12,4 +12,5 @@ export interface RoutineListItem {
   id: string;
   name: string;
   exerciseCount: number;
+  exercisePreview: string;
 }
