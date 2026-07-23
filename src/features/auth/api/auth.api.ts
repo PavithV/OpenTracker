@@ -5,13 +5,24 @@ export async function signInWithEmail(email: string, password: string) {
   if (error) throw error;
 }
 
-export async function signUpWithEmail(email: string, password: string, displayName: string) {
-  const { error } = await supabase.auth.signUp({
+/**
+ * Returns whether a session was created immediately. If the Supabase project has
+ * "Confirm email" enabled (the default), signUp succeeds but `data.session` is null
+ * until the user clicks the confirmation link — the caller must not assume a
+ * successful signUp means the user is logged in.
+ */
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<{ needsEmailConfirmation: boolean }> {
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { display_name: displayName } },
   });
   if (error) throw error;
+  return { needsEmailConfirmation: data.session === null };
 }
 
 export async function signOut() {

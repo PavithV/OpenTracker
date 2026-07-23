@@ -25,8 +25,20 @@ export default function SignUpScreen() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await signUpWithEmail(result.data.email, result.data.password, result.data.displayName);
-      router.replace('/(tabs)/home');
+      const { needsEmailConfirmation } = await signUpWithEmail(
+        result.data.email,
+        result.data.password,
+        result.data.displayName,
+      );
+      if (needsEmailConfirmation) {
+        Alert.alert(
+          'Fast geschafft',
+          'Wir haben dir eine Bestätigungs-E-Mail geschickt. Bitte bestätige deine Adresse und melde dich danach an.',
+        );
+        router.replace('/(auth)/sign-in');
+      } else {
+        router.replace('/(tabs)/home');
+      }
     } catch (err) {
       Alert.alert('Registrierung fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
     } finally {
