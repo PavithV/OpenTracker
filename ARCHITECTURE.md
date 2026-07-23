@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status (Stand 2026-07-23, Ende der Session):** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner. `tests/` existiert noch nicht. Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`, 2 Migrationen: Schema + ein Bugfix in `finish_workout`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–7 sind umgesetzt (kompletter Kreislauf Routine/Workout Ende-zu-Ende funktionsfähig und gegen die Live-DB verifiziert, inkl. Workout-Detail und Übungsdetail), dazu zwei ungeplante Ergänzungen (Routinen-Liste, "Routine starten") — siehe `PROJECT_STATUS.md` und `TODO.md` für Details, Begründungen und die zwei dabei gefundenen Bugs. Nächster Schritt: Punkt 8 (Profil-Tab), der letzte Punkt der geplanten Phase-2-Liste.
+**Status (Stand 2026-07-23, Ende der Session):** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner. `tests/` existiert noch nicht. Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`, 2 Migrationen: Schema + ein Bugfix in `finish_workout`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–8 sind umgesetzt — die komplette geplante Liste ist abgeschlossen (kompletter Kreislauf Routine/Workout Ende-zu-Ende funktionsfähig und gegen die Live-DB verifiziert, inkl. Workout-Detail, Übungsdetail und Profil-Aggregaten), dazu zwei ungeplante Ergänzungen (Routinen-Liste, "Routine starten") — siehe `PROJECT_STATUS.md` und `TODO.md` für Details, Begründungen und die zwei dabei gefundenen Bugs. Nächster Schritt: der ausstehende On-Device-Test durch den Nutzer, oder Phase 3 laut `ROADMAP.md` (Diagramme, One Rep Max, Muskel-Split, `personal_records` aktiv anzeigen).
 
 ## Ordnerstruktur
 
@@ -14,7 +14,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
   (tabs)/
     home/index.tsx             # liest echte Workout-Historie aus `workouts`
     training/index.tsx         # Routinen-Liste (Name+Vorschau+"Routine starten"), "Routine erstellen", "Leeres Workout starten"
-    profile/index.tsx          # liest bereits echte `profiles`-Zeile
+    profile/index.tsx          # echtes Profil + echte Aggregate (Workouts/Trainingszeit/Volumen)
   workout/
     active.tsx                 # Timer, Volumen/Satz-Anzahl, Satz-Erfassung, lokal AsyncStorage-persistiert
     [id].tsx                   # Workout-Detail: Name/Datum/Dauer/Volumen + alle Übungen mit Sätzen
@@ -32,7 +32,7 @@ src/
     training/          {components, hooks, api, types, store} [implementiert: store, api, components, types]
     routines/          {types, store, api, components}        [implementiert]
     exercises/         {components, hooks, api, types}        [implementiert: api (Picker + Detail/Historie/PR), components, types]
-    profile/           {components, hooks, api, types}        [Platzhalter, leer]
+    profile/           {components, hooks, api, types}        [implementiert: api, components, types]
     auth/              {components, hooks, api, types}        [implementiert: api, types]
   shared/
     components/         # Button, Card, Input, Screen, EmptyState, Typography, ListItem [implementiert]
