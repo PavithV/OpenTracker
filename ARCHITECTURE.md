@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Der Home-Tab ist als erster Phase-2-Screen von Platzhalter auf echte Datenanbindung umgestellt (siehe `TODO.md`).
+**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–3 sind umgesetzt: Home-Tab (echte Workout-Historie), Übungsauswahl (Suche/Filter/Mehrfachauswahl/Bilder), Routine erstellen/bearbeiten (siehe `TODO.md` für Details und Begründungen).
 
 ## Ordnerstruktur
 
@@ -13,16 +13,16 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
     sign-up.tsx                # funktionsfähig
   (tabs)/
     home/index.tsx             # liest echte Workout-Historie aus `workouts`
-    training/index.tsx         # Platzhalter (Buttons ohne Datenanbindung)
+    training/index.tsx         # "Routine erstellen" funktionsfähig, "Leeres Workout starten" noch Platzhalter-Ziel
     profile/index.tsx          # liest bereits echte `profiles`-Zeile
   workout/
     active.tsx                 # Platzhalter               [Platzhalter]
     [id].tsx                   # Platzhalter                [Platzhalter]
   routine/
-    create.tsx                 # Platzhalter                [Platzhalter]
-    [id]/edit.tsx               # Platzhalter               [Platzhalter]
+    create.tsx                 # funktionsfähig (Name, Übungsauswahl, Reihenfolge, Soll-Werte)
+    [id]/edit.tsx               # funktionsfähig, aber noch ohne Einstiegspunkt (keine Routinen-Liste)
   exercise/
-    picker.tsx                  # liest bereits echte `exercises`-Zeilen (Smoke-Test)
+    picker.tsx                  # Suche, Kategorie-/Geräte-Filter, Mehrfachauswahl, Bilder
     [id].tsx                    # Platzhalter               [Platzhalter]
   _layout.tsx                   # Auth-Gate (Stack.Protected)
 
@@ -30,8 +30,8 @@ src/
   features/
     home/             {components, hooks, api, types}        [implementiert: api, components, types]
     training/          {components, hooks, api, types, store} [Platzhalter, leer]
-    routines/          {components, hooks, api, types}        [Platzhalter, leer]
-    exercises/         {components, hooks, api, types}        [Platzhalter, leer]
+    routines/          {types, store, api, components}        [implementiert]
+    exercises/         {components, hooks, api, types}        [implementiert: api, components, types]
     profile/           {components, hooks, api, types}        [Platzhalter, leer]
     auth/              {components, hooks, api, types}        [implementiert: api, types]
   shared/
@@ -40,7 +40,7 @@ src/
     theme/              # global.css, tailwind.config.js-Tokens, colors.ts, icons.ts [implementiert]
     lib/                # supabase.ts, query-client.ts             [implementiert]
     utils/
-    types/               # database.types.ts (handgeschrieben), css.d.ts [implementiert]
+    types/               # database.types.ts (aus Live-Schema generiert), css.d.ts [implementiert]
   store/                # session.store.ts (Zustand)                [implementiert]
 
 supabase/

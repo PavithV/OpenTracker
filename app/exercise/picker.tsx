@@ -1,11 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { Check, SearchX } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Image, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getExercises } from '@/features/exercises/api/exercises.api';
 import { FilterChip } from '@/features/exercises/components/FilterChip';
 import { EXERCISE_CATEGORIES, EXERCISE_EQUIPMENT } from '@/features/exercises/types/exercise.types';
+import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
+import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Input } from '@/shared/components/Input';
 import { ListItem } from '@/shared/components/ListItem';
@@ -28,13 +32,13 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 export default function ExercisePickerScreen() {
-  // TODO (Phase 2): Auswahl an `routine/create.tsx` übergeben, sobald das gebaut ist —
-  // aktuell nur lokaler Auswahlzustand ohne Ziel-Screen.
+  // Übungen für die aktuelle Routine auswählen — siehe routine-draft.store.ts.
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [category, setCategory] = useState<string | null>(null);
   const [equipment, setEquipment] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const addExercisesToDraft = useRoutineDraftStore((state) => state.addExercises);
 
   const { data: exercises, isLoading } = useQuery({
     queryKey: ['exercises', 'picker', debouncedSearch, category, equipment],
@@ -52,6 +56,14 @@ export default function ExercisePickerScreen() {
       }
       return next;
     });
+  }
+
+  function handleConfirmSelection() {
+    const selected = (exercises ?? [])
+      .filter((exercise) => selectedIds.has(exercise.id))
+      .map((exercise) => ({ id: exercise.id, name: exercise.name }));
+    addExercisesToDraft(selected);
+    router.back();
   }
 
   const hasActiveFilter = debouncedSearch.length > 0 || category !== null || equipment !== null;
@@ -83,11 +95,6 @@ export default function ExercisePickerScreen() {
             />
           ))}
         </ScrollView>
-        {selectedIds.size > 0 ? (
-          <Typography variant="subtitle">
-            {selectedIds.size} {selectedIds.size === 1 ? 'Übung ausgewählt' : 'Übungen ausgewählt'}
-          </Typography>
-        ) : null}
       </View>
 
       {!isLoading && exercises?.length === 0 ? (
@@ -122,6 +129,20 @@ export default function ExercisePickerScreen() {
           )}
         />
       )}
+
+      {selectedIds.size > 0 ? (
+        <SafeAreaView
+          edges={['bottom']}
+          className="border-t border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark"
+        >
+          <View className="p-md">
+            <Button
+              label={`${selectedIds.size} ${selectedIds.size === 1 ? 'Übung' : 'Übungen'} hinzufügen`}
+              onPress={handleConfirmSelection}
+            />
+          </View>
+        </SafeAreaView>
+      ) : null}
 
       <Typography variant="caption" className="py-sm text-center">
         Bilder &amp; Animationen: © Gym visual — https://gymvisual.com/

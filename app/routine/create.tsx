@@ -1,13 +1,22 @@
+import { createRoutine } from '@/features/routines/api/routines.api';
+import { RoutineForm } from '@/features/routines/components/RoutineForm';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { useSessionStore } from '@/store/session.store';
 
 export default function CreateRoutineScreen() {
-  // TODO (Phase 2): Name, Übungsauswahl (siehe exercise/picker), Reihenfolge, Soll-Werte.
+  const session = useSessionStore((state) => state.session);
+
   return (
     <Screen>
-      <Typography variant="title" className="pt-md">
+      <Typography variant="title" className="py-md">
         Routine erstellen
       </Typography>
+      <RoutineForm
+        onSave={async (name, exercises) => {
+          await createRoutine(session!.user.id, name, exercises);
+        }}
+      />
     </Screen>
   );
 }
