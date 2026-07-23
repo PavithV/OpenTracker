@@ -7,3 +7,9 @@ export interface RoutineDraftExercise {
   targetWeight: number | null;
   restSeconds: number | null;
 }
+
+export interface RoutineListItem {
+  id: string;
+  name: string;
+  exerciseCount: number;
+}

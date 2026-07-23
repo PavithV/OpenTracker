@@ -1,6 +1,22 @@
 import { supabase } from '@/shared/lib/supabase';
 
-import type { RoutineDraftExercise } from '../types/routine.types';
+import type { RoutineDraftExercise, RoutineListItem } from '../types/routine.types';
+
+export async function getRoutines(userId: string): Promise<RoutineListItem[]> {
+  const { data, error } = await supabase
+    .from('routines')
+    .select('id, name, routine_exercises(count)')
+    .eq('user_id', userId)
+    .is('archived_at', null)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  return data.map((routine) => ({
+    id: routine.id,
+    name: routine.name,
+    exerciseCount: routine.routine_exercises[0]?.count ?? 0,
+  }));
+}
 
 async function insertRoutineExercises(routineId: string, exercises: RoutineDraftExercise[]): Promise<void> {
   if (exercises.length === 0) return;
