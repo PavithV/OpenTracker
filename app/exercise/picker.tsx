@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Check, SearchX } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Image, ScrollView, View } from 'react-native';
@@ -9,6 +9,7 @@ import { getExercises } from '@/features/exercises/api/exercises.api';
 import { FilterChip } from '@/features/exercises/components/FilterChip';
 import { EXERCISE_CATEGORIES, EXERCISE_EQUIPMENT } from '@/features/exercises/types/exercise.types';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
+import { useActiveWorkoutStore } from '@/features/training/store/active-workout.store';
 import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Input } from '@/shared/components/Input';
@@ -32,13 +33,16 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 export default function ExercisePickerScreen() {
-  // Übungen für die aktuelle Routine auswählen — siehe routine-draft.store.ts.
+  // Übungen für eine Routine (routine-draft.store.ts) oder ein aktives Workout
+  // (active-workout.store.ts) auswählen, je nach `target`-Param.
+  const { target } = useLocalSearchParams<{ target?: string }>();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [category, setCategory] = useState<string | null>(null);
   const [equipment, setEquipment] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const addExercisesToDraft = useRoutineDraftStore((state) => state.addExercises);
+  const addExercisesToRoutineDraft = useRoutineDraftStore((state) => state.addExercises);
+  const addExercisesToWorkoutDraft = useActiveWorkoutStore((state) => state.addExercises);
 
   const { data: exercises, isLoading } = useQuery({
     queryKey: ['exercises', 'picker', debouncedSearch, category, equipment],
@@ -62,7 +66,11 @@ export default function ExercisePickerScreen() {
     const selected = (exercises ?? [])
       .filter((exercise) => selectedIds.has(exercise.id))
       .map((exercise) => ({ id: exercise.id, name: exercise.name }));
-    addExercisesToDraft(selected);
+    if (target === 'workout') {
+      addExercisesToWorkoutDraft(selected);
+    } else {
+      addExercisesToRoutineDraft(selected);
+    }
     router.back();
   }
 

@@ -2,7 +2,7 @@
 
 Ergänzt `TECH_STACK.md` (Feature-Based Architecture) um eine konkrete Ordner- und API-Struktur.
 
-**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–3 sind umgesetzt: Home-Tab (echte Workout-Historie), Übungsauswahl (Suche/Filter/Mehrfachauswahl/Bilder), Routine erstellen/bearbeiten (siehe `TODO.md` für Details und Begründungen).
+**Status:** Diese Struktur ist seit Phase 1 real angelegt (nicht mehr nur geplant). `[implementiert]` markiert Ordner mit echtem Inhalt, `[Platzhalter]` markiert angelegte, aber noch leere bzw. nur mit Stub-Screens gefüllte Ordner (werden in Phase 2 befüllt, siehe `TODO.md`). `tests/` existiert noch nicht — bisher gibt es keine Tests. **Update 2026-07-23:** Die Migration läuft live gegen das Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`), `database.types.ts` ist aus dem echten Schema generiert, alle 1.324 Übungen samt Medien sind importiert. Phase 2, Punkte 1–4 sind umgesetzt: Home-Tab (echte Workout-Historie), Übungsauswahl (Suche/Filter/Mehrfachauswahl/Bilder), Routine erstellen/bearbeiten, Aktives Workout (siehe `TODO.md` für Details und Begründungen).
 
 ## Ordnerstruktur
 
@@ -13,10 +13,10 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
     sign-up.tsx                # funktionsfähig
   (tabs)/
     home/index.tsx             # liest echte Workout-Historie aus `workouts`
-    training/index.tsx         # "Routine erstellen" funktionsfähig, "Leeres Workout starten" noch Platzhalter-Ziel
+    training/index.tsx         # "Routine erstellen" und "Leeres Workout starten" beide funktionsfähig
     profile/index.tsx          # liest bereits echte `profiles`-Zeile
   workout/
-    active.tsx                 # Platzhalter               [Platzhalter]
+    active.tsx                 # Timer, Volumen/Satz-Anzahl, Satz-Erfassung, lokal AsyncStorage-persistiert
     [id].tsx                   # Platzhalter                [Platzhalter]
   routine/
     create.tsx                 # funktionsfähig (Name, Übungsauswahl, Reihenfolge, Soll-Werte)
@@ -29,7 +29,7 @@ app/                        # Expo Router – nur Routing, keine Business-Logik 
 src/
   features/
     home/             {components, hooks, api, types}        [implementiert: api, components, types]
-    training/          {components, hooks, api, types, store} [Platzhalter, leer]
+    training/          {components, hooks, api, types, store} [implementiert: store, components, types]
     routines/          {types, store, api, components}        [implementiert]
     exercises/         {components, hooks, api, types}        [implementiert: api, components, types]
     profile/           {components, hooks, api, types}        [Platzhalter, leer]
@@ -45,7 +45,7 @@ src/
 
 supabase/
   migrations/           # 0001_init.sql — komplettes DATABASE.md-Schema  [implementiert, live angewendet]
-  seed/                 # import-exercises.ts                            [implementiert, noch nicht ausgeführt]
+  seed/                 # import-exercises.ts                            [implementiert, ausgeführt: 1.324 Übungen]
   functions/            # Edge Functions (später)                        [leer]
 
 tests/                   # existiert noch nicht
