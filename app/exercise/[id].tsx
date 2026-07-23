@@ -5,7 +5,7 @@ import { History } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, ScrollView, View } from 'react-native';
 
-import { getExerciseDetail, getExerciseHistory, getExercisePersonalRecord } from '@/features/exercises/api/exercises.api';
+import { getExerciseDetail, getExerciseHistory, getExercisePersonalRecords } from '@/features/exercises/api/exercises.api';
 import { ExerciseDetailTabs, type ExerciseDetailTab } from '@/features/exercises/components/ExerciseDetailTabs';
 import { ExerciseHistoryEntryCard } from '@/features/exercises/components/ExerciseHistoryEntryCard';
 import { EmptyState } from '@/shared/components/EmptyState';
@@ -32,9 +32,9 @@ export default function ExerciseDetailScreen() {
     queryFn: () => getExerciseDetail(id),
   });
 
-  const { data: personalRecord } = useQuery({
-    queryKey: ['exercises', 'personal-record', id, session?.user.id],
-    queryFn: () => getExercisePersonalRecord(session!.user.id, id),
+  const { data: personalRecords } = useQuery({
+    queryKey: ['exercises', 'personal-records', id, session?.user.id],
+    queryFn: () => getExercisePersonalRecords(session!.user.id, id),
     enabled: !!session,
   });
 
@@ -96,11 +96,26 @@ export default function ExerciseDetailScreen() {
             ) : null}
           </View>
 
-          {personalRecord ? (
-            <View className="gap-xs rounded-lg border border-border-light p-md dark:border-border-dark">
-              <Typography variant="subtitle">Persönlicher Rekord</Typography>
-              <Typography variant="cardTitle">{personalRecord.value} kg</Typography>
-              <Typography variant="caption">{dayjs(personalRecord.achievedAt).format('DD.MM.YYYY')}</Typography>
+          {personalRecords?.maxWeight || personalRecords?.estimated1Rm ? (
+            <View className="flex-row gap-sm">
+              {personalRecords.maxWeight ? (
+                <View className="flex-1 gap-xs rounded-lg border border-border-light p-md dark:border-border-dark">
+                  <Typography variant="subtitle">Persönlicher Rekord</Typography>
+                  <Typography variant="cardTitle">{personalRecords.maxWeight.value} kg</Typography>
+                  <Typography variant="caption">
+                    {dayjs(personalRecords.maxWeight.achievedAt).format('DD.MM.YYYY')}
+                  </Typography>
+                </View>
+              ) : null}
+              {personalRecords.estimated1Rm ? (
+                <View className="flex-1 gap-xs rounded-lg border border-border-light p-md dark:border-border-dark">
+                  <Typography variant="subtitle">Geschätztes 1RM</Typography>
+                  <Typography variant="cardTitle">{personalRecords.estimated1Rm.value} kg</Typography>
+                  <Typography variant="caption">
+                    {dayjs(personalRecords.estimated1Rm.achievedAt).format('DD.MM.YYYY')}
+                  </Typography>
+                </View>
+              ) : null}
             </View>
           ) : null}
 

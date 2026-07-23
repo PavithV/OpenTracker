@@ -5,7 +5,7 @@ import type {
   ExerciseFilters,
   ExerciseHistoryEntry,
   ExerciseListItem,
-  ExercisePersonalRecord,
+  ExercisePersonalRecords,
 } from '../types/exercise.types';
 
 const PAGE_SIZE = 50;
@@ -54,20 +54,23 @@ export async function getExerciseDetail(exerciseId: string): Promise<ExerciseDet
   };
 }
 
-export async function getExercisePersonalRecord(
+export async function getExercisePersonalRecords(
   userId: string,
   exerciseId: string,
-): Promise<ExercisePersonalRecord | null> {
+): Promise<ExercisePersonalRecords> {
   const { data, error } = await supabase
     .from('personal_records')
-    .select('value, achieved_at')
+    .select('record_type, value, achieved_at')
     .eq('user_id', userId)
     .eq('exercise_id', exerciseId)
-    .eq('record_type', 'max_weight')
-    .maybeSingle();
+    .in('record_type', ['max_weight', 'estimated_1rm']);
   if (error) throw error;
 
-  return data ? { value: data.value, achievedAt: data.achieved_at } : null;
+  const byType = new Map(data.map((row) => [row.record_type, { value: row.value, achievedAt: row.achieved_at }]));
+  return {
+    maxWeight: byType.get('max_weight') ?? null,
+    estimated1Rm: byType.get('estimated_1rm') ?? null,
+  };
 }
 
 // Flat queries joined in JS rather than a nested embed -- same reasoning as getWorkoutDetail in

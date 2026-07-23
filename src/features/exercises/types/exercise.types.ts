@@ -79,6 +79,13 @@ export interface ExercisePersonalRecord {
   achievedAt: string;
 }
 
+export interface ExercisePersonalRecords {
+  maxWeight: ExercisePersonalRecord | null;
+  // Epley formula (weight * (1 + reps/30)), computed server-side in finish_workout. Independent
+  // of maxWeight -- a lighter, higher-rep set can win here even though it loses on maxWeight.
+  estimated1Rm: ExercisePersonalRecord | null;
+}
+
 export interface ExerciseHistorySet {
   id: string;
   setNumber: number;

@@ -1,6 +1,6 @@
 # Project Status
 
-Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, **Phase 2 (Punkte 1–8) vollständig abgeschlossen** plus zwei ungeplante Zwischenschritte (Routinen-Liste, "Routine starten"). Der komplette Kernkreislauf **Registrieren → Routine erstellen → Routine starten → Workout durchführen → Workout beenden → Workout-Historie ansehen → Workout-Detail ansehen → Übungsdetail ansehen → Profil-Aggregate ansehen** ist Ende-zu-Ende gegen die echte Supabase-Datenbank verifiziert. Zwei reale, vorbestehende Bugs wurden dabei gefunden und gefixt (siehe unten). **Ausstehend ist nur noch der echte On-Device-Test** durch den Nutzer selbst. **Phase 3, Punkt 1 (PR-Diagramm) ist umgesetzt** — siehe dort für die restlichen drei Punkte (One Rep Max, Muskel-Split, Rekorde-Übersicht), noch nicht umgesetzt.
+Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, **Phase 2 (Punkte 1–8) vollständig abgeschlossen** plus zwei ungeplante Zwischenschritte (Routinen-Liste, "Routine starten"). Der komplette Kernkreislauf **Registrieren → Routine erstellen → Routine starten → Workout durchführen → Workout beenden → Workout-Historie ansehen → Workout-Detail ansehen → Übungsdetail ansehen → Profil-Aggregate ansehen** ist Ende-zu-Ende gegen die echte Supabase-Datenbank verifiziert. Zwei reale, vorbestehende Bugs wurden dabei gefunden und gefixt (siehe unten). **Ausstehend ist nur noch der echte On-Device-Test** durch den Nutzer selbst. **Phase 3, Punkte 1–2 (PR-Diagramm, One Rep Max) sind umgesetzt** — Punkt 2 brachte eine dritte Live-Migration (`0003_add_estimated_1rm_personal_record.sql`). Siehe `TODO.md` für die restlichen zwei Punkte (Muskel-Split, Rekorde-Übersicht), noch nicht umgesetzt.
 
 ## Kurzfassung
 
@@ -17,6 +17,7 @@ Stand: 2026-07-23, Ende der Session. Phase 1 komplett, Design System komplett, *
 - Auf Nutzerwunsch danach `TODO.md`/`PROJECT_STATUS.md` um eine erste **Phase-3-Planungsgrundlage** ergänzt (kein Code, reine Doku): vier Punkte (PR-Diagramm im Übungsdetail, One Rep Max, Muskel-Split, Rekorde-Übersicht) plus eine zunächst offene Chart-Lib-Entscheidung. Details in `TODO.md`, Abschnitt „Phase 3 der Roadmap".
 - Der Nutzer hat sich direkt danach für Option (a) entschieden: eigene, minimale Chart-Komponenten auf dem bereits vorhandenen `react-native-svg` (Peer von `lucide-react-native`), kein neuer Dependency (`victory-native`/`react-native-gifted-charts` bewusst nicht installiert). `TODO.md` entsprechend aktualisiert — Punkt 1 (PR-Diagramm) und Punkt 3 (Muskel-Split) sind damit nicht mehr durch eine offene Architekturfrage blockiert.
 - Phase-3-Punkt 1 (PR-Diagramm) umgesetzt: `src/shared/components/LineChart.tsx` (eigene `react-native-svg`-Komponente, `Path`+`Circle` auf festem `viewBox`, `preserveAspectRatio="none"` für responsive Breite). Keine neue Query — nutzt das bereits vorhandene `getExerciseHistory()` aus Punkt 7, dessen `enabled`-Flag von „nur Historie-Tab" auf „immer wenn eingeloggt" geändert wurde, da der Chart jetzt auf dem Zusammenfassung-Tab dieselben Daten braucht. Ein Datenpunkt pro Workout = schwerstes completed Gewicht dieser Übung in diesem Workout (spiegelt `finish_workout`s `max_weight`-Definition), chronologisch aufsteigend dargestellt. Verifiziert per SQL-Simulation (drei Test-Workouts an unterschiedlichen Tagen mit unterschiedlichen Gewichten, Reihenfolge nach `reverse()` bestätigt korrekt chronologisch statt nach Wert sortiert), Test-Daten danach gelöscht.
+- Phase-3-Punkt 2 (One Rep Max) umgesetzt: neue Migration `0003_add_estimated_1rm_personal_record.sql`, live angewendet (`mcp__supabase__apply_migration`) — `finish_workout` schreibt jetzt zusätzlich `record_type = 'estimated_1rm'` (Epley-Formel, eigener `DISTINCT ON (exercise_id)`-Block, unabhängig vom `max_weight`-Sieger-Satz). Client-seitig `getExercisePersonalRecord()` zu `getExercisePersonalRecords()` verallgemeinert (eine Query für beide `record_type`-Werte statt zwei Aufrufe), Übungsdetail zeigt beide Karten nebeneinander. Gegen die Live-DB verifiziert: ein Testfall mit einem schweren Ein-Wiederholungs-Satz und einem leichteren Mehr-Wiederholungs-Satz bestätigte, dass `max_weight` und `estimated_1rm` von unterschiedlichen Sätzen gewonnen werden können (unabhängige Berechnung funktioniert wie beabsichtigt), ein zweiter Testfall bestätigte den reinen Formel-Wert. Test-Daten jeweils danach gelöscht.
 
 **Wichtig für alle künftigen Sessions:** Keine Test-Accounts (Supabase-Signups) mehr anlegen — hat beim Nutzer eine Warnmail von Supabase ausgelöst. Siehe Memory `no-test-signups`. Alle DB-Verifikationen in dieser Session liefen stattdessen über direkte SQL-Operationen (per Supabase-MCP-Tools) auf Datentabellen, unter Verwendung der echten, bereits existierenden Nutzer-ID — nie über neue Auth-Accounts. Test-Zeilen wurden nach jeder Verifikation rückstandslos wieder gelöscht.
 
@@ -32,7 +33,8 @@ Beide durch direkte SQL-Simulation der jeweiligen Abläufe gegen die Live-DB gef
 Alle Änderungen dieser und der vorherigen Fortsetzungs-Session liefen über einen Worktree-Branch und wurden per Fast-Forward in `master` gemerged (kein GitHub-Remote vorhanden, daher kein PR):
 
 ```
-(neu) Build PR chart in exercise detail (Phase 3, item 1)
+(neu) Add estimated 1RM to finish_workout (Phase 3, item 2)
+072b6e5 Build PR chart in exercise detail (Phase 3, item 1)
 859aae1 Decide Phase 3 chart approach: custom react-native-svg, no new dep
 e42819c Add Phase 3 planning to TODO.md/PROJECT_STATUS.md
 b377242 Build profile stats screen (Phase 2, item 8)
@@ -60,7 +62,7 @@ fc079b5 Add Supabase MCP server config and agent skills
 ## Was funktioniert (verifiziert)
 
 - `npx tsc --noEmit`, `npm run lint`, `npx expo export --platform ios` (Bundling-Smoke-Test) → alle drei nach jeder Änderung dieser Session sauber geblieben.
-- Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`) vollständig provisioniert: 8 Tabellen, RLS aktiv, 2 Migrationen angewendet, 1.324 Übungen samt Medien importiert.
+- Supabase-Projekt (`rlcrhsubxcsjbqpgrwvs`) vollständig provisioniert: 8 Tabellen, RLS aktiv, 3 Migrationen angewendet, 1.324 Übungen samt Medien importiert.
 - Kompletter Kernkreislauf end-to-end gegen die Live-DB verifiziert (per SQL-Simulation, siehe „Gefundene Bugs" und die einzelnen Punkte in `TODO.md`): Routine anlegen → bearbeiten → auflisten → starten → Workout mit mehreren Sätzen durchführen → beenden (Sync + `finish_workout` + `personal_records`) → in der Workout-Historie erscheinen.
 - Ein echter Nutzer-Account existiert und hat sich selbst erfolgreich registriert.
 
@@ -74,11 +76,11 @@ fc079b5 Add Supabase MCP server config and agent skills
 - **Home-Tab**: echte Workout-Historie (Name/Datum/Dauer/Volumen/Anzahl Übungen), Tap → `workout/[id]`.
 - **Workout-Detail** (`workout/[id]`): Name/Datum/Dauer/Volumen/Anzahl Übungen im Header, darunter alle Übungen mit ihren Sätzen (Gewicht/Wiederholungen/completed-Status). Übungsname ist tappbar → `exercise/[id]`.
 - **Übungsauswahl**: Suche, Kategorie-/Geräte-Filter, Mehrfachauswahl mit Bildern, Attributions-Hinweis. Wird sowohl von der Routinen- als auch der Workout-Erstellung genutzt (`?target=`-Param).
-- **Übungsdetail** (`exercise/[id]`): Tab "Zusammenfassung" (Bild/GIF, Primär-/Sekundärmuskel, persönlicher Rekord aus `personal_records`, Gewichtsverlauf-Diagramm über `LineChart`, Attribution), Tab "Historie" (alle abgeschlossenen Workouts mit dieser Übung samt Sätzen, Tap → `workout/[id]`), Tab "So geht's" (Anleitungstext aus `instructions`, Fallback auf Englisch).
+- **Übungsdetail** (`exercise/[id]`): Tab "Zusammenfassung" (Bild/GIF, Primär-/Sekundärmuskel, persönlicher Rekord + geschätztes 1RM aus `personal_records`, Gewichtsverlauf-Diagramm über `LineChart`, Attribution), Tab "Historie" (alle abgeschlossenen Workouts mit dieser Übung samt Sätzen, Tap → `workout/[id]`), Tab "So geht's" (Anleitungstext aus `instructions`, Fallback auf Englisch).
 - **Profil-Tab**: echtes Profil (Name/E-Mail) + echte Aggregate (Anzahl Workouts, Trainingszeit, Gesamtvolumen) aus `workouts`, per `getProfileStats()`.
 - **Routinen** (erstellen/bearbeiten/auflisten/starten): vollständiger Kreislauf, siehe `TODO.md` Punkte 3 und die beiden Zwischenschritte für die Architektur-Begründung (Zustand-Draft-Store statt Navigation-Params).
 - **Aktives Workout + Beenden**: Timer, Volumen/Satz-Anzeige, Satz-Erfassung, lokale AsyncStorage-Persistenz (übersteht App-Kills), echter Sync zu Supabase + `finish_workout`-RPC beim Beenden.
-- **DB-Schema**: `0001_init.sql` (vollständiges Schema aus `DATABASE.md`) + `0002_fix_finish_workout_personal_records.sql` (Bugfix).
+- **DB-Schema**: `0001_init.sql` (vollständiges Schema aus `DATABASE.md`) + `0002_fix_finish_workout_personal_records.sql` (Bugfix) + `0003_add_estimated_1rm_personal_record.sql` (One Rep Max, Phase 3 Punkt 2).
 - **Exercise-Seed-Skript**: ausgeführt, 1.324 Übungen importiert.
 - **Tooling**: ESLint + Prettier, `.npmrc` mit `legacy-peer-deps=true`.
 
