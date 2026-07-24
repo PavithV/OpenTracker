@@ -59,6 +59,8 @@ export default function ProfileScreen() {
 
         <Button label="Rekorde ansehen" variant="secondary" onPress={() => router.push('/records')} />
 
+        <Button label="Workout-Erinnerungen" variant="secondary" onPress={() => router.push('/reminders')} />
+
         <Button label="Abmelden" variant="secondary" onPress={() => signOut()} />
       </ScrollView>
     </Screen>
