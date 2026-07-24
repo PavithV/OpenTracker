@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Trophy } from 'lucide-react-native';
+import { Trophy } from 'phosphor-react-native';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 
 import { getPersonalRecords } from '@/features/records/api/records.api';

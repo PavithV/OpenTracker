@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { router } from 'expo-router';
-import { ChevronLeft, ChevronRight, History } from 'lucide-react-native';
+import { CaretLeft, CaretRight, ClockCounterClockwise } from 'phosphor-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, useColorScheme, View } from 'react-native';
 
@@ -61,13 +61,13 @@ export default function CalendarScreen() {
 
       <View className="flex-row items-center justify-between pb-sm">
         <Pressable onPress={() => setMonthRef((prev) => prev.subtract(1, 'month'))} hitSlop={8}>
-          <ChevronLeft size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
+          <CaretLeft size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
         </Pressable>
         <Typography variant="cardTitle">
           {GERMAN_MONTHS[monthRef.month()]} {monthRef.year()}
         </Typography>
         <Pressable onPress={() => setMonthRef((prev) => prev.add(1, 'month'))} hitSlop={8}>
-          <ChevronRight size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
+          <CaretRight size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
         </Pressable>
       </View>
 
@@ -93,24 +93,20 @@ export default function CalendarScreen() {
           return (
             <Pressable
               onPress={() => setSelectedDate(dateKey)}
-              className={`flex-1 items-center justify-center gap-xs rounded-md py-sm ${isSelected ? 'bg-primary' : ''}`}
+              className={`flex-1 items-center justify-center gap-xs rounded-md border py-sm ${
+                isSelected ? 'border-primary bg-primary/15' : 'border-transparent'
+              }`}
             >
               <Text
-                className={`text-base ${
-                  isSelected
-                    ? 'font-semibold text-white'
-                    : isToday
-                      ? 'font-semibold text-primary'
-                      : 'text-text-primary-light dark:text-text-primary-dark'
+                className={`text-base font-sans ${
+                  isSelected || isToday
+                    ? 'font-sans-medium text-primary'
+                    : 'text-text-primary-light dark:text-text-primary-dark'
                 }`}
               >
                 {day.date()}
               </Text>
-              {hasWorkout ? (
-                <View className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-primary'}`} />
-              ) : (
-                <View className="h-1.5 w-1.5" />
-              )}
+              {hasWorkout ? <View className="h-1.5 w-1.5 rounded-full bg-primary" /> : <View className="h-1.5 w-1.5" />}
             </Pressable>
           );
         }}
@@ -119,7 +115,7 @@ export default function CalendarScreen() {
       <View className="mt-md flex-1">
         {selectedWorkouts.length === 0 ? (
           <EmptyState
-            icon={History}
+            icon={ClockCounterClockwise}
             title="Keine Workouts"
             description={
               selectedDate

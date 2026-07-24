@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { CalendarDays, History } from 'lucide-react-native';
+import { Calendar, ClockCounterClockwise } from 'phosphor-react-native';
 import { FlatList, Pressable, useColorScheme, View } from 'react-native';
 
 import { getWorkoutHistory } from '@/features/home/api/workouts.api';
@@ -27,13 +27,13 @@ export default function HomeScreen() {
       <View className="flex-row items-center justify-between py-md">
         <Typography variant="title">Home</Typography>
         <Pressable onPress={() => router.push('/calendar')} hitSlop={8}>
-          <CalendarDays size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
+          <Calendar size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
         </Pressable>
       </View>
 
       {!isLoading && workouts?.length === 0 ? (
         <EmptyState
-          icon={History}
+          icon={ClockCounterClockwise}
           title="Noch keine Workouts"
           description="Starte dein erstes Training im Training-Tab, um hier deinen Verlauf zu sehen."
         />

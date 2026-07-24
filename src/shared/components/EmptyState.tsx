@@ -17,9 +17,9 @@ export function EmptyState({ title, description, icon: Icon }: EmptyStateProps) 
   return (
     <View className="flex-1 items-center justify-center gap-xs px-lg">
       {Icon ? <Icon size={ICON_SIZE.lg + 8} color={iconColor} /> : null}
-      <Text className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">{title}</Text>
+      <Text className="text-lg font-sans-medium text-text-primary-light dark:text-text-primary-dark">{title}</Text>
       {description ? (
-        <Text className="text-center text-sm text-text-secondary-light dark:text-text-secondary-dark">
+        <Text className="text-center text-sm font-sans text-text-secondary-light dark:text-text-secondary-dark">
           {description}
         </Text>
       ) : null}

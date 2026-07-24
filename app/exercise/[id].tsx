@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { router, useLocalSearchParams } from 'expo-router';
-import { History, Star } from 'lucide-react-native';
+import { ClockCounterClockwise, Star } from 'phosphor-react-native';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Pressable, ScrollView, useColorScheme, View } from 'react-native';
 
@@ -113,7 +113,7 @@ export default function ExerciseDetailScreen() {
           <Star
             size={ICON_SIZE.lg}
             color={isFavorited ? colors.warning : colors.textTertiary[scheme]}
-            fill={isFavorited ? colors.warning : 'transparent'}
+            weight={isFavorited ? 'fill' : 'regular'}
           />
         </Pressable>
       </View>
@@ -181,7 +181,7 @@ export default function ExerciseDetailScreen() {
           <ActivityIndicator className="mt-md" />
         ) : history?.length === 0 ? (
           <EmptyState
-            icon={History}
+            icon={ClockCounterClockwise}
             title="Noch keine Historie"
             description="Diese Übung wurde noch in keinem abgeschlossenen Workout durchgeführt."
           />

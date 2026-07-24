@@ -1,4 +1,4 @@
-import { Check, Circle } from 'lucide-react-native';
+import { Check, CircleIcon as Circle } from 'phosphor-react-native';
 import { Image, useColorScheme, View } from 'react-native';
 
 import { Card } from '@/shared/components/Card';

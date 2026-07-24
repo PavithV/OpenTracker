@@ -11,12 +11,12 @@ export function FilterChip({ label, selected, onPress }: FilterChipProps) {
     <Pressable
       onPress={onPress}
       className={`rounded-full border px-md py-xs active:opacity-70 ${
-        selected ? 'border-primary bg-primary' : 'border-border-light bg-transparent dark:border-border-dark'
+        selected ? 'border-primary bg-primary/15' : 'border-border-light bg-transparent dark:border-border-dark'
       }`}
     >
       <Text
-        className={`text-sm font-medium ${
-          selected ? 'text-white' : 'text-text-secondary-light dark:text-text-secondary-dark'
+        className={`text-sm font-sans-medium ${
+          selected ? 'text-primary' : 'text-text-secondary-light dark:text-text-secondary-dark'
         }`}
       >
         {label}

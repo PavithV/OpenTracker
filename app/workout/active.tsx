@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { X } from 'lucide-react-native';
+import { X } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, useColorScheme, View } from 'react-native';
 

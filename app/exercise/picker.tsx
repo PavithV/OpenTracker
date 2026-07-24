@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, SearchX, Star } from 'lucide-react-native';
+import { Check, MagnifyingGlass, Star } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Image, Pressable, ScrollView, useColorScheme, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -152,7 +152,7 @@ export default function ExercisePickerScreen() {
 
       {!isLoading && visibleExercises.length === 0 ? (
         <EmptyState
-          icon={SearchX}
+          icon={MagnifyingGlass}
           title="Keine Übungen gefunden"
           description={
             hasActiveFilter
@@ -182,7 +182,7 @@ export default function ExercisePickerScreen() {
                     <Star
                       size={ICON_SIZE.md}
                       color={favoriteIds?.has(item.id) ? colors.warning : colors.textTertiary[scheme]}
-                      fill={favoriteIds?.has(item.id) ? colors.warning : 'transparent'}
+                      weight={favoriteIds?.has(item.id) ? 'fill' : 'regular'}
                     />
                   </Pressable>
                   {selectedIds.has(item.id) ? <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} /> : null}

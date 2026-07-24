@@ -1,5 +1,6 @@
 import '@/shared/theme/global.css';
 
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
@@ -16,6 +17,13 @@ export default function RootLayout() {
   const setSession = useSessionStore((state) => state.setSession);
   const finishInitializing = useSessionStore((state) => state.finishInitializing);
 
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -29,7 +37,7 @@ export default function RootLayout() {
     return () => listener.subscription.unsubscribe();
   }, [setSession, finishInitializing]);
 
-  if (isInitializing) {
+  if (isInitializing || !fontsLoaded) {
     return null;
   }
 

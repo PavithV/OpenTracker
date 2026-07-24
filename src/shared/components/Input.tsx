@@ -1,6 +1,8 @@
 import { forwardRef, useState } from 'react';
 import { Text, TextInput, View, type TextInputProps } from 'react-native';
 
+import { colors } from '@/shared/theme/colors';
+
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
@@ -19,13 +21,13 @@ export const Input = forwardRef<TextInput, InputProps>(
     return (
       <View className="gap-xs">
         {label ? (
-          <Text className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">
+          <Text className="text-sm font-sans-medium text-text-secondary-light dark:text-text-secondary-dark">
             {label}
           </Text>
         ) : null}
         <TextInput
           ref={ref}
-          placeholderTextColor="#9C9CA8"
+          placeholderTextColor={colors.textTertiary.dark}
           onFocus={(event) => {
             setIsFocused(true);
             onFocus?.(event);
@@ -34,10 +36,10 @@ export const Input = forwardRef<TextInput, InputProps>(
             setIsFocused(false);
             onBlur?.(event);
           }}
-          className={`rounded-md border px-md py-md text-base text-text-primary-light dark:text-text-primary-dark ${borderClass} bg-white dark:bg-surface-dark ${className ?? ''}`}
+          className={`rounded-md border px-md py-md font-sans text-base text-text-primary-light dark:text-text-primary-dark ${borderClass} bg-surface-light dark:bg-surface-dark ${className ?? ''}`}
           {...props}
         />
-        {error ? <Text className="text-sm text-danger">{error}</Text> : null}
+        {error ? <Text className="text-sm font-sans text-danger">{error}</Text> : null}
       </View>
     );
   },

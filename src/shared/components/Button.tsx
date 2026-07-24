@@ -14,16 +14,21 @@ interface ButtonProps {
   loading?: boolean;
 }
 
+// Nocturne buttons are outlined, never solid-filled ("the primary is an accent outline, never a
+// fill") -- press tints come from the accent/text ramp via Tailwind's color-opacity modifiers,
+// matching styles.css's color-mix(accent 22%)/color-mix(text 14%) active states. `destructive`
+// has no Nocturne equivalent (the system defines no danger role) -- kept as a solid danger fill
+// so destructive actions stay visually distinct from the calmer outlined actions everywhere else.
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-primary active:bg-primary-dark',
+  primary: 'border border-primary bg-transparent active:bg-primary/20',
   secondary:
-    'bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark active:opacity-70',
-  ghost: 'bg-transparent active:opacity-60',
+    'border border-border-light dark:border-border-dark bg-transparent active:bg-text-primary-light/10 dark:active:bg-text-primary-dark/10',
+  ghost: 'bg-transparent active:bg-primary/15',
   destructive: 'bg-danger active:opacity-90',
 };
 
 const labelClasses: Record<Variant, string> = {
-  primary: 'text-white',
+  primary: 'text-primary',
   secondary: 'text-text-primary-light dark:text-text-primary-dark',
   ghost: 'text-primary',
   destructive: 'text-danger-foreground',
@@ -42,7 +47,7 @@ const labelSizeClasses: Record<Size, string> = {
 };
 
 const spinnerColor: Record<Variant, string> = {
-  primary: '#FFFFFF',
+  primary: colors.primary.DEFAULT,
   secondary: colors.primary.DEFAULT,
   ghost: colors.primary.DEFAULT,
   destructive: '#FFFFFF',
@@ -62,7 +67,7 @@ export function Button({ label, onPress, variant = 'primary', size = 'md', disab
       {loading ? (
         <ActivityIndicator color={spinnerColor[variant]} />
       ) : (
-        <Text className={`font-semibold ${labelSizeClasses[size]} ${labelClasses[variant]}`}>{label}</Text>
+        <Text className={`font-sans-medium ${labelSizeClasses[size]} ${labelClasses[variant]}`}>{label}</Text>
       )}
     </Pressable>
   );

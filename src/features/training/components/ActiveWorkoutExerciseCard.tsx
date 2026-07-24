@@ -1,4 +1,4 @@
-import { Check, Circle, Dumbbell, Trash2 } from 'lucide-react-native';
+import { Barbell, Check, CircleIcon as Circle, Trash } from 'phosphor-react-native';
 import { Pressable, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
@@ -45,7 +45,7 @@ export function ActiveWorkoutExerciseCard({
           {exercise.name}
         </Typography>
         <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
-          <Trash2 size={ICON_SIZE.md} color={colors.danger} />
+          <Trash size={ICON_SIZE.md} color={colors.danger} />
         </Pressable>
       </View>
 
@@ -72,7 +72,7 @@ export function ActiveWorkoutExerciseCard({
               />
             </View>
             <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
-              <Dumbbell size={ICON_SIZE.sm} color={secondaryColor} />
+              <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
             </Pressable>
             <Pressable onPress={() => onToggleSetCompleted(set.id)} hitSlop={8} className="active:opacity-60">
               {set.completed ? (
@@ -82,7 +82,7 @@ export function ActiveWorkoutExerciseCard({
               )}
             </Pressable>
             <Pressable onPress={() => onRemoveSet(set.id)} hitSlop={8} className="active:opacity-60">
-              <Trash2 size={ICON_SIZE.sm} color={secondaryColor} />
+              <Trash size={ICON_SIZE.sm} color={secondaryColor} />
             </Pressable>
           </View>
         ))}

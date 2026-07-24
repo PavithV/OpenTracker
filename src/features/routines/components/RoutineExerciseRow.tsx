@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native';
+import { CaretDown, CaretUp, Trash } from 'phosphor-react-native';
 import { Pressable, useColorScheme, View } from 'react-native';
 
 import { Card } from '@/shared/components/Card';
@@ -45,7 +45,7 @@ export function RoutineExerciseRow({
             hitSlop={8}
             className={isFirst ? 'opacity-30' : 'active:opacity-60'}
           >
-            <ChevronUp size={ICON_SIZE.sm} color={secondaryColor} />
+            <CaretUp size={ICON_SIZE.sm} color={secondaryColor} />
           </Pressable>
           <Pressable
             onPress={onMoveDown}
@@ -53,7 +53,7 @@ export function RoutineExerciseRow({
             hitSlop={8}
             className={isLast ? 'opacity-30' : 'active:opacity-60'}
           >
-            <ChevronDown size={ICON_SIZE.sm} color={secondaryColor} />
+            <CaretDown size={ICON_SIZE.sm} color={secondaryColor} />
           </Pressable>
         </View>
 
@@ -62,7 +62,7 @@ export function RoutineExerciseRow({
         </Typography>
 
         <Pressable onPress={onRemove} hitSlop={8} className="active:opacity-60">
-          <Trash2 size={ICON_SIZE.md} color={colors.danger} />
+          <Trash size={ICON_SIZE.md} color={colors.danger} />
         </Pressable>
       </View>
 
