@@ -1,4 +1,4 @@
-import { Check, Circle, Trash2 } from 'lucide-react-native';
+import { Check, Circle, Dumbbell, Trash2 } from 'lucide-react-native';
 import { Pressable, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
@@ -18,6 +18,7 @@ interface ActiveWorkoutExerciseCardProps {
   onToggleSetCompleted: (setId: string) => void;
   onRemoveSet: (setId: string) => void;
   onUpdateNotes: (notes: string) => void;
+  onOpenPlateCalculator: (weight: number | null) => void;
 }
 
 function toNumberOrNull(text: string): number | null {
@@ -32,6 +33,7 @@ export function ActiveWorkoutExerciseCard({
   onToggleSetCompleted,
   onRemoveSet,
   onUpdateNotes,
+  onOpenPlateCalculator,
 }: ActiveWorkoutExerciseCardProps) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const secondaryColor = colors.textSecondary[scheme];
@@ -69,6 +71,9 @@ export function ActiveWorkoutExerciseCard({
                 onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
               />
             </View>
+            <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
+              <Dumbbell size={ICON_SIZE.sm} color={secondaryColor} />
+            </Pressable>
             <Pressable onPress={() => onToggleSetCompleted(set.id)} hitSlop={8} className="active:opacity-60">
               {set.completed ? (
                 <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />

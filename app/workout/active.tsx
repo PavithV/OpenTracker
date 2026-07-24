@@ -193,6 +193,12 @@ export default function ActiveWorkoutScreen() {
             onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
             onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
             onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
+            onOpenPlateCalculator={(weight) =>
+              router.push({
+                pathname: '/plate-calculator',
+                params: { weight: weight !== null ? String(weight) : undefined },
+              })
+            }
           />
         )}
       />
