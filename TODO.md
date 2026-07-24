@@ -1,6 +1,6 @@
 # TODO
 
-Reihenfolge ist bewusst so gewählt — jeder Punkt baut auf dem vorherigen auf. Siehe `PROJECT_STATUS.md` für den Gesamtüberblick und die zwei in dieser Session gefundenen Bugs.
+Reihenfolge ist bewusst so gewählt — jeder Punkt baut auf dem vorherigen auf. Siehe `PROJECT_STATUS.md` für den Gesamtüberblick und die zwei bisher gefundenen Bugs.
 
 ## Phase 1 (Projekt-Setup) — ✅ vollständig abgeschlossen
 
