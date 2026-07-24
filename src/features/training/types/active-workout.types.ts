@@ -10,4 +10,7 @@ export interface ActiveWorkoutExercise {
   name: string;
   notes: string;
   sets: WorkoutSetEntry[];
+  // Target rest between sets, carried over from routine_exercises.rest_seconds when started from a
+  // routine. Null for ad-hoc-added exercises (no target captured) -- no rest timer fires for those.
+  restSeconds: number | null;
 }

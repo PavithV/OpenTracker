@@ -11,6 +11,7 @@ import {
   useActiveWorkoutHydrated,
   useActiveWorkoutStore,
 } from '@/features/training/store/active-workout.store';
+import type { ActiveWorkoutExercise } from '@/features/training/types/active-workout.types';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
@@ -38,6 +39,30 @@ function useElapsedSeconds(startedAt: string | null): number {
   return elapsedSeconds;
 }
 
+// Mirrors useElapsedSeconds but counts down from an absolute end-timestamp and calls onComplete
+// once remaining hits 0 (fires at most once per endsAt value, since reaching 0 doesn't change it
+// again -- only a fresh startRestTimer() call does).
+function useRemainingSeconds(endsAt: string | null, onComplete: () => void): number {
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!endsAt) return;
+    const endMs = new Date(endsAt).getTime();
+
+    function tick() {
+      const remaining = Math.max(0, Math.ceil((endMs - Date.now()) / 1000));
+      setRemainingSeconds(remaining);
+      if (remaining === 0) onComplete();
+    }
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [endsAt, onComplete]);
+
+  return remainingSeconds;
+}
+
 function formatElapsed(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -55,6 +80,7 @@ export default function ActiveWorkoutScreen() {
   const notes = useActiveWorkoutStore((state) => state.notes);
   const routineId = useActiveWorkoutStore((state) => state.routineId);
   const exercises = useActiveWorkoutStore((state) => state.exercises);
+  const restEndsAt = useActiveWorkoutStore((state) => state.restEndsAt);
   const start = useActiveWorkoutStore((state) => state.start);
   const setName = useActiveWorkoutStore((state) => state.setName);
   const setNotes = useActiveWorkoutStore((state) => state.setNotes);
@@ -64,6 +90,8 @@ export default function ActiveWorkoutScreen() {
   const updateSet = useActiveWorkoutStore((state) => state.updateSet);
   const toggleSetCompleted = useActiveWorkoutStore((state) => state.toggleSetCompleted);
   const removeSet = useActiveWorkoutStore((state) => state.removeSet);
+  const startRestTimer = useActiveWorkoutStore((state) => state.startRestTimer);
+  const clearRestTimer = useActiveWorkoutStore((state) => state.clearRestTimer);
   const reset = useActiveWorkoutStore((state) => state.reset);
 
   const [isFinishing, setIsFinishing] = useState(false);
@@ -73,8 +101,20 @@ export default function ActiveWorkoutScreen() {
   }, [hasHydrated, start]);
 
   const elapsedSeconds = useElapsedSeconds(startedAt);
+  const remainingRestSeconds = useRemainingSeconds(restEndsAt, clearRestTimer);
   const totalVolume = computeTotalVolume(exercises);
   const completedSets = computeCompletedSetCount(exercises);
+
+  // Only the false->true transition should start a rest timer -- un-completing a set (tapping it
+  // again) must not also fire one.
+  function handleToggleSetCompleted(exercise: ActiveWorkoutExercise, setId: string) {
+    const targetSet = exercise.sets.find((workoutSet) => workoutSet.id === setId);
+    const willComplete = targetSet ? !targetSet.completed : false;
+    toggleSetCompleted(exercise.exerciseId, setId);
+    if (willComplete && exercise.restSeconds) {
+      startRestTimer(exercise.restSeconds);
+    }
+  }
 
   async function handleFinishWorkout() {
     if (exercises.length === 0) {
@@ -125,6 +165,16 @@ export default function ActiveWorkoutScreen() {
         </View>
       </View>
 
+      {restEndsAt ? (
+        <View className="mb-md flex-row items-center justify-between rounded-md bg-surface-light px-md py-sm dark:bg-surface-dark">
+          <View>
+            <Typography variant="caption">Pause</Typography>
+            <Typography variant="cardTitle">{formatElapsed(remainingRestSeconds)}</Typography>
+          </View>
+          <Button label="Überspringen" variant="ghost" size="sm" onPress={clearRestTimer} />
+        </View>
+      ) : null}
+
       <Input value={name} onChangeText={setName} placeholder="Workout-Name" />
       <Input value={notes} onChangeText={setNotes} placeholder="Notizen zum Workout…" multiline numberOfLines={2} />
 
@@ -140,7 +190,7 @@ export default function ActiveWorkoutScreen() {
             onRemoveExercise={() => removeExercise(item.exerciseId)}
             onAddSet={() => addSet(item.exerciseId)}
             onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
-            onToggleSetCompleted={(setId) => toggleSetCompleted(item.exerciseId, setId)}
+            onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
             onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
             onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
           />

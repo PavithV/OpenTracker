@@ -9,13 +9,14 @@ function generateLocalId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-// Deliberately narrower than routines/types RoutineDraftExercise (no targetRepsMin/Max/restSeconds
-// -- unused here) so this store isn't coupled to the routines feature's exact shape, just this.
+// Deliberately narrower than routines/types RoutineDraftExercise (no targetRepsMin/Max -- unused
+// here) so this store isn't coupled to the routines feature's exact shape, just this.
 interface RoutineExerciseSeed {
   exerciseId: string;
   name: string;
   targetSets: number;
   targetWeight: number | null;
+  restSeconds: number | null;
 }
 
 interface ActiveWorkoutState {
@@ -24,6 +25,9 @@ interface ActiveWorkoutState {
   notes: string;
   routineId: string | null;
   exercises: ActiveWorkoutExercise[];
+  // Absolute end-timestamp (ISO string), not a live countdown -- survives app kills the same way
+  // startedAt does, since a persisted "seconds remaining" value would go stale across a restart.
+  restEndsAt: string | null;
   start: () => void;
   startFromRoutine: (routineId: string, name: string, exercises: RoutineExerciseSeed[]) => void;
   setName: (name: string) => void;
@@ -35,6 +39,8 @@ interface ActiveWorkoutState {
   updateSet: (exerciseId: string, setId: string, patch: Partial<Pick<WorkoutSetEntry, 'weight' | 'reps'>>) => void;
   toggleSetCompleted: (exerciseId: string, setId: string) => void;
   removeSet: (exerciseId: string, setId: string) => void;
+  startRestTimer: (seconds: number) => void;
+  clearRestTimer: () => void;
   reset: () => void;
 }
 
@@ -65,6 +71,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
       notes: '',
       routineId: null,
       exercises: [],
+      restEndsAt: null,
 
       // Idempotent: resuming an in-progress workout (e.g. after the app was killed) must not
       // reset it. Only a genuinely fresh start (no workout in progress) initializes state.
@@ -72,7 +79,14 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         set((state) =>
           state.startedAt
             ? state
-            : { startedAt: new Date().toISOString(), name: 'Workout', notes: '', routineId: null, exercises: [] },
+            : {
+                startedAt: new Date().toISOString(),
+                name: 'Workout',
+                notes: '',
+                routineId: null,
+                exercises: [],
+                restEndsAt: null,
+              },
         ),
 
       // Same idempotency guard as start() -- if a workout is already in progress, this is a no-op
@@ -87,10 +101,12 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
                 name,
                 notes: '',
                 routineId,
+                restEndsAt: null,
                 exercises: exercises.map((exercise) => ({
                   exerciseId: exercise.exerciseId,
                   name: exercise.name,
                   notes: '',
+                  restSeconds: exercise.restSeconds,
                   sets: Array.from({ length: exercise.targetSets }, () => ({
                     id: generateLocalId(),
                     weight: exercise.targetWeight,
@@ -116,7 +132,13 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           const existingIds = new Set(state.exercises.map((exercise) => exercise.exerciseId));
           const toAdd = exercises
             .filter((exercise) => !existingIds.has(exercise.id))
-            .map((exercise) => ({ exerciseId: exercise.id, name: exercise.name, notes: '', sets: [] }));
+            .map((exercise) => ({
+              exerciseId: exercise.id,
+              name: exercise.name,
+              notes: '',
+              sets: [],
+              restSeconds: null,
+            }));
           return { exercises: [...state.exercises, ...toAdd] };
         }),
 
@@ -167,7 +189,11 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           ),
         })),
 
-      reset: () => set({ startedAt: null, name: 'Workout', notes: '', routineId: null, exercises: [] }),
+      startRestTimer: (seconds) => set({ restEndsAt: new Date(Date.now() + seconds * 1000).toISOString() }),
+      clearRestTimer: () => set({ restEndsAt: null }),
+
+      reset: () =>
+        set({ startedAt: null, name: 'Workout', notes: '', routineId: null, exercises: [], restEndsAt: null }),
     }),
     {
       name: 'active-workout-draft',
