@@ -1,17 +1,26 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { router, useLocalSearchParams } from 'expo-router';
-import { History } from 'lucide-react-native';
+import { History, Star } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, ScrollView, useColorScheme, View } from 'react-native';
 
-import { getExerciseDetail, getExerciseHistory, getExercisePersonalRecords } from '@/features/exercises/api/exercises.api';
+import {
+  addFavoriteExercise,
+  getExerciseDetail,
+  getExerciseHistory,
+  getExercisePersonalRecords,
+  getFavoriteExerciseIds,
+  removeFavoriteExercise,
+} from '@/features/exercises/api/exercises.api';
 import { ExerciseDetailTabs, type ExerciseDetailTab } from '@/features/exercises/components/ExerciseDetailTabs';
 import { ExerciseHistoryEntryCard } from '@/features/exercises/components/ExerciseHistoryEntryCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { LineChart } from '@/shared/components/LineChart';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { colors } from '@/shared/theme/colors';
+import { ICON_SIZE } from '@/shared/theme/icons';
 import { capitalize } from '@/shared/utils/format';
 import { useSessionStore } from '@/store/session.store';
 
@@ -24,13 +33,37 @@ function pickInstructions(instructions: Record<string, string>): string | null {
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const session = useSessionStore((state) => state.session);
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<ExerciseDetailTab>('summary');
 
   const { data: exercise, isLoading: isExerciseLoading } = useQuery({
     queryKey: ['exercises', 'detail', id],
     queryFn: () => getExerciseDetail(id),
   });
+
+  const favoritesQueryKey = ['exercises', 'favorites', session?.user.id];
+  const { data: favoriteIds } = useQuery({
+    queryKey: favoritesQueryKey,
+    queryFn: () => getFavoriteExerciseIds(session!.user.id),
+    enabled: !!session,
+  });
+  const isFavorited = favoriteIds?.has(id) ?? false;
+
+  async function handleToggleFavorite() {
+    if (!session) return;
+    try {
+      if (isFavorited) {
+        await removeFavoriteExercise(session.user.id, id);
+      } else {
+        await addFavoriteExercise(session.user.id, id);
+      }
+      queryClient.invalidateQueries({ queryKey: favoritesQueryKey });
+    } catch (err) {
+      Alert.alert('Fehler', err instanceof Error ? err.message : 'Unbekannter Fehler');
+    }
+  }
 
   const { data: personalRecords } = useQuery({
     queryKey: ['exercises', 'personal-records', id, session?.user.id],
@@ -72,9 +105,18 @@ export default function ExerciseDetailScreen() {
 
   return (
     <Screen>
-      <Typography variant="title" className="py-md" numberOfLines={2}>
-        {exercise.name}
-      </Typography>
+      <View className="flex-row items-center gap-sm py-md">
+        <Typography variant="title" className="flex-1" numberOfLines={2}>
+          {exercise.name}
+        </Typography>
+        <Pressable onPress={handleToggleFavorite} hitSlop={8} className="active:opacity-60">
+          <Star
+            size={ICON_SIZE.lg}
+            color={isFavorited ? colors.warning : colors.textTertiary[scheme]}
+            fill={isFavorited ? colors.warning : 'transparent'}
+          />
+        </Pressable>
+      </View>
       <ExerciseDetailTabs active={tab} onChange={setTab} />
 
       {tab === 'summary' ? (

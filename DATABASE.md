@@ -93,6 +93,13 @@
 - `achieved_at` timestamptz
 - UNIQUE (`user_id`, `exercise_id`, `record_type`)
 
+## favorite_exercises
+
+- `user_id` uuid → `profiles.id`
+- `exercise_id` uuid → `exercises.id`
+- `created_at`
+- PK (`user_id`, `exercise_id`)
+
 ## Row Level Security
 
 Jede nutzerbezogene Tabelle (`routines`, `workouts`, `sets` via Join über `workout_exercises`, `personal_records`, …) bekommt eine Policy `user_id = auth.uid()`. `exercises` ist lesend für alle offen; Schreiben nur wenn `is_custom = true AND created_by = auth.uid()`.

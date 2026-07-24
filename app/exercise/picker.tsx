@@ -1,11 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, SearchX } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { FlatList, Image, ScrollView, View } from 'react-native';
+import { Check, SearchX, Star } from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, FlatList, Image, Pressable, ScrollView, useColorScheme, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getExercises } from '@/features/exercises/api/exercises.api';
+import {
+  addFavoriteExercise,
+  getExercises,
+  getFavoriteExerciseIds,
+  removeFavoriteExercise,
+} from '@/features/exercises/api/exercises.api';
 import { FilterChip } from '@/features/exercises/components/FilterChip';
 import { EXERCISE_CATEGORIES, EXERCISE_EQUIPMENT } from '@/features/exercises/types/exercise.types';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
@@ -19,6 +24,7 @@ import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
 import { capitalize } from '@/shared/utils/format';
+import { useSessionStore } from '@/store/session.store';
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -33,10 +39,14 @@ export default function ExercisePickerScreen() {
   // Übungen für eine Routine (routine-draft.store.ts) oder ein aktives Workout
   // (active-workout.store.ts) auswählen, je nach `target`-Param.
   const { target } = useLocalSearchParams<{ target?: string }>();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const session = useSessionStore((state) => state.session);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [category, setCategory] = useState<string | null>(null);
   const [equipment, setEquipment] = useState<string | null>(null);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const addExercisesToRoutineDraft = useRoutineDraftStore((state) => state.addExercises);
   const addExercisesToWorkoutDraft = useActiveWorkoutStore((state) => state.addExercises);
@@ -46,6 +56,33 @@ export default function ExercisePickerScreen() {
     queryFn: () =>
       getExercises({ search: debouncedSearch || undefined, category: category ?? undefined, equipment: equipment ?? undefined }),
   });
+
+  const favoritesQueryKey = ['exercises', 'favorites', session?.user.id];
+  const { data: favoriteIds } = useQuery({
+    queryKey: favoritesQueryKey,
+    queryFn: () => getFavoriteExerciseIds(session!.user.id),
+    enabled: !!session,
+  });
+
+  const visibleExercises = useMemo(() => {
+    if (!favoritesOnly) return exercises ?? [];
+    return (exercises ?? []).filter((exercise) => favoriteIds?.has(exercise.id));
+  }, [exercises, favoritesOnly, favoriteIds]);
+
+  async function handleToggleFavorite(exerciseId: string) {
+    if (!session) return;
+    const isFavorited = favoriteIds?.has(exerciseId) ?? false;
+    try {
+      if (isFavorited) {
+        await removeFavoriteExercise(session.user.id, exerciseId);
+      } else {
+        await addFavoriteExercise(session.user.id, exerciseId);
+      }
+      queryClient.invalidateQueries({ queryKey: favoritesQueryKey });
+    } catch (err) {
+      Alert.alert('Fehler', err instanceof Error ? err.message : 'Unbekannter Fehler');
+    }
+  }
 
   function toggleSelected(id: string) {
     setSelectedIds((previous) => {
@@ -71,13 +108,16 @@ export default function ExercisePickerScreen() {
     router.back();
   }
 
-  const hasActiveFilter = debouncedSearch.length > 0 || category !== null || equipment !== null;
+  const hasActiveFilter = debouncedSearch.length > 0 || category !== null || equipment !== null || favoritesOnly;
 
   return (
     <Screen>
       <View className="gap-sm py-md">
         <Typography variant="title">Übungen</Typography>
         <Input placeholder="Übung suchen…" value={search} onChangeText={setSearch} autoCapitalize="none" />
+        <View className="flex-row">
+          <FilterChip label="★ Favoriten" selected={favoritesOnly} onPress={() => setFavoritesOnly((prev) => !prev)} />
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-xs">
           <FilterChip label="Alle" selected={category === null} onPress={() => setCategory(null)} />
           {EXERCISE_CATEGORIES.map((value) => (
@@ -110,7 +150,7 @@ export default function ExercisePickerScreen() {
         />
       </View>
 
-      {!isLoading && exercises?.length === 0 ? (
+      {!isLoading && visibleExercises.length === 0 ? (
         <EmptyState
           icon={SearchX}
           title="Keine Übungen gefunden"
@@ -122,7 +162,7 @@ export default function ExercisePickerScreen() {
         />
       ) : (
         <FlatList
-          data={exercises ?? []}
+          data={visibleExercises}
           keyExtractor={(item) => item.id}
           ItemSeparatorComponent={() => <View className="border-b border-border-light dark:border-border-dark" />}
           renderItem={({ item }) => (
@@ -136,7 +176,18 @@ export default function ExercisePickerScreen() {
                   <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
                 )
               }
-              trailing={selectedIds.has(item.id) ? <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} /> : undefined}
+              trailing={
+                <View className="flex-row items-center gap-sm">
+                  <Pressable onPress={() => handleToggleFavorite(item.id)} hitSlop={8} className="active:opacity-60">
+                    <Star
+                      size={ICON_SIZE.md}
+                      color={favoriteIds?.has(item.id) ? colors.warning : colors.textTertiary[scheme]}
+                      fill={favoriteIds?.has(item.id) ? colors.warning : 'transparent'}
+                    />
+                  </Pressable>
+                  {selectedIds.has(item.id) ? <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} /> : null}
+                </View>
+              }
               onPress={() => toggleSelected(item.id)}
             />
           )}

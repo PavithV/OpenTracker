@@ -152,3 +152,23 @@ export async function getExerciseHistory(userId: string, exerciseId: string): Pr
     })
     .filter((entry): entry is ExerciseHistoryEntry => entry !== null);
 }
+
+export async function getFavoriteExerciseIds(userId: string): Promise<Set<string>> {
+  const { data, error } = await supabase.from('favorite_exercises').select('exercise_id').eq('user_id', userId);
+  if (error) throw error;
+  return new Set(data.map((row) => row.exercise_id));
+}
+
+export async function addFavoriteExercise(userId: string, exerciseId: string): Promise<void> {
+  const { error } = await supabase.from('favorite_exercises').insert({ user_id: userId, exercise_id: exerciseId });
+  if (error) throw error;
+}
+
+export async function removeFavoriteExercise(userId: string, exerciseId: string): Promise<void> {
+  const { error } = await supabase
+    .from('favorite_exercises')
+    .delete()
+    .eq('user_id', userId)
+    .eq('exercise_id', exerciseId);
+  if (error) throw error;
+}
