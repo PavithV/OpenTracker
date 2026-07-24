@@ -30,7 +30,7 @@ Nach dem Merge des Nocturne-Redesigns (neue Dependencies `phosphor-react-native`
 
 ## Git
 
-Kein `git init`-Neustart nötig; **GitHub-Remote seit dieser Session vorhanden**: `origin` → `https://github.com/PavithV/OpenTracker.git` (auf Nutzerwunsch eingerichtet und gepusht, `master`-Branch, Auth lief automatisch über bereits vorhandene Git-Credential-Manager-Anmeldedaten). Workflow weiterhin: alle Änderungen über Worktree-Branches (`EnterWorktree`-Tool), Fast-Forward-Merge in `master`, danach `git push origin master`. Aktueller `master`-Head: `76b274b` ("Implement Nocturne design system"). Kein PR-Workflow (Direct-Push, da Solo-Projekt).
+Kein `git init`-Neustart nötig; **GitHub-Remote seit dieser Session vorhanden**: `origin` → `https://github.com/PavithV/OpenTracker.git` (auf Nutzerwunsch eingerichtet und gepusht, `master`-Branch, Auth lief automatisch über bereits vorhandene Git-Credential-Manager-Anmeldedaten). Workflow weiterhin: alle Änderungen über Worktree-Branches (`EnterWorktree`-Tool), Fast-Forward-Merge in `master`, danach `git push origin master`. Aktueller `master`-Head: `2d496e3` ("Add local workout reminders (Phase 4, item 7)"). Kein PR-Workflow (Direct-Push, da Solo-Projekt).
 
 ## Was funktioniert (verifiziert)
 
