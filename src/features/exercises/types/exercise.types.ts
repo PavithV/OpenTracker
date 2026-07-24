@@ -61,6 +61,14 @@ export interface ExerciseFilters {
   equipment?: string;
 }
 
+export interface CreateCustomExerciseInput {
+  name: string;
+  category: string;
+  equipment: string;
+  targetMuscle: string;
+  imageUrl: string | null;
+}
+
 export interface ExerciseDetail {
   id: string;
   name: string;

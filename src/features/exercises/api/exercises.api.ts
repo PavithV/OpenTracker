@@ -1,6 +1,7 @@
 import { supabase } from '@/shared/lib/supabase';
 
 import type {
+  CreateCustomExerciseInput,
   ExerciseDetail,
   ExerciseFilters,
   ExerciseHistoryEntry,
@@ -32,6 +33,38 @@ export async function getExercises(filters: ExerciseFilters): Promise<ExerciseLi
     targetMuscle: row.target_muscle,
     imageUrl: row.image_url,
   }));
+}
+
+// Requires is_custom: true and created_by: userId together -- both the DB check constraint
+// (custom_exercise_requires_owner) and the "custom exercises are owner-writable" RLS policy
+// enforce this pairing, so a non-custom or other-user insert is rejected server-side either way.
+export async function createCustomExercise(
+  userId: string,
+  input: CreateCustomExerciseInput,
+): Promise<ExerciseListItem> {
+  const { data, error } = await supabase
+    .from('exercises')
+    .insert({
+      name: input.name,
+      category: input.category,
+      equipment: input.equipment,
+      target_muscle: input.targetMuscle,
+      image_url: input.imageUrl,
+      is_custom: true,
+      created_by: userId,
+    })
+    .select('id, name, category, equipment, target_muscle, image_url')
+    .single();
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    name: data.name,
+    category: data.category,
+    equipment: data.equipment,
+    targetMuscle: data.target_muscle,
+    imageUrl: data.image_url,
+  };
 }
 
 export async function getExerciseDetail(exerciseId: string): Promise<ExerciseDetail> {

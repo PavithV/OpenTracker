@@ -100,6 +100,14 @@ export default function ExercisePickerScreen() {
             />
           ))}
         </ScrollView>
+        <Button
+          label="+ Eigene Übung erstellen"
+          variant="ghost"
+          size="sm"
+          onPress={() =>
+            router.push({ pathname: '/exercise/create', params: { target, search: debouncedSearch || undefined } })
+          }
+        />
       </View>
 
       {!isLoading && exercises?.length === 0 ? (
