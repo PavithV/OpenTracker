@@ -3,7 +3,12 @@ import { ScrollView, View } from 'react-native';
 
 import { FilterChip } from '@/features/exercises/components/FilterChip';
 import { useRemindersStore } from '@/features/reminders/store/reminders.store';
-import { cancelWorkoutReminders, requestNotificationPermission, rescheduleWorkoutReminders } from '@/features/reminders/utils/notifications';
+import {
+  cancelWorkoutReminders,
+  isReminderSchedulingSupported,
+  requestNotificationPermission,
+  rescheduleWorkoutReminders,
+} from '@/features/reminders/utils/notifications';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
@@ -52,6 +57,7 @@ export default function RemindersScreen() {
   const [minuteText, setMinuteText] = useState(String(minute).padStart(2, '0'));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const supported = isReminderSchedulingSupported();
 
   async function handleSave() {
     setError(null);
@@ -78,6 +84,8 @@ export default function RemindersScreen() {
       setTime(parsedHour, parsedMinute);
       await rescheduleWorkoutReminders(weekdays, parsedHour, parsedMinute);
       setEnabled(true);
+    } catch {
+      setError('Erinnerungen konnten nicht geplant werden. Bitte später erneut versuchen.');
     } finally {
       setSaving(false);
     }
@@ -88,6 +96,8 @@ export default function RemindersScreen() {
     try {
       await cancelWorkoutReminders();
       setEnabled(false);
+    } catch {
+      setError('Erinnerungen konnten nicht deaktiviert werden. Bitte später erneut versuchen.');
     } finally {
       setSaving(false);
     }
@@ -98,11 +108,20 @@ export default function RemindersScreen() {
       <ScrollView className="flex-1" contentContainerClassName="gap-lg py-md">
         <Typography variant="title">Workout-Erinnerungen</Typography>
 
-        <Card>
-          <Typography variant="body">
-            {enabled ? formatActiveSummary(weekdays, hour, minute) : 'Keine Erinnerungen aktiv.'}
-          </Typography>
-        </Card>
+        {supported ? (
+          <Card>
+            <Typography variant="body">
+              {enabled ? formatActiveSummary(weekdays, hour, minute) : 'Keine Erinnerungen aktiv.'}
+            </Typography>
+          </Card>
+        ) : (
+          <Card>
+            <Typography variant="body" color="danger">
+              Auf diesem Gerät nicht verfügbar: Expo Go auf Android unterstützt seit SDK 53 keine
+              Benachrichtigungen mehr. Dafür ist ein Development Build nötig.
+            </Typography>
+          </Card>
+        )}
 
         <View className="gap-xs">
           <Typography variant="label">Wochentage</Typography>
@@ -143,7 +162,7 @@ export default function RemindersScreen() {
 
         {error ? <Typography color="danger">{error}</Typography> : null}
 
-        <Button label="Erinnerungen speichern" onPress={handleSave} loading={saving} />
+        <Button label="Erinnerungen speichern" onPress={handleSave} loading={saving} disabled={!supported} />
         {enabled ? (
           <Button label="Erinnerungen deaktivieren" variant="destructive" onPress={handleDisable} disabled={saving} />
         ) : null}

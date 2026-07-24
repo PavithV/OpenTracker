@@ -1,8 +1,4 @@
 import '@/shared/theme/global.css';
-// Side-effect only: registers Notifications.setNotificationHandler() so a scheduled reminder can
-// still show a banner if it fires while the app happens to be in the foreground. Must run before
-// any reminder can fire, not just when the reminders screen itself is mounted.
-import '@/features/reminders/utils/notifications';
 
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
 import { QueryClientProvider } from '@tanstack/react-query';
