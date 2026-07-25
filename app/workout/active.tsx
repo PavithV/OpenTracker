@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { X } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, Pressable, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, useColorScheme, View } from 'react-native';
+import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 
 import { finishActiveWorkout } from '@/features/training/api/workouts.api';
 import { ActiveWorkoutExerciseCard } from '@/features/training/components/ActiveWorkoutExerciseCard';
@@ -12,6 +13,7 @@ import {
   useActiveWorkoutStore,
 } from '@/features/training/store/active-workout.store';
 import type { ActiveWorkoutExercise } from '@/features/training/types/active-workout.types';
+import { formatElapsed, useElapsedSeconds } from '@/features/training/utils/elapsed-time';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
@@ -19,25 +21,6 @@ import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
 import { useSessionStore } from '@/store/session.store';
-
-function useElapsedSeconds(startedAt: string | null): number {
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-
-  useEffect(() => {
-    if (!startedAt) return;
-    const startMs = new Date(startedAt).getTime();
-
-    function tick() {
-      setElapsedSeconds(Math.floor((Date.now() - startMs) / 1000));
-    }
-
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [startedAt]);
-
-  return elapsedSeconds;
-}
 
 // Mirrors useElapsedSeconds but counts down from an absolute end-timestamp and calls onComplete
 // once remaining hits 0 (fires at most once per endsAt value, since reaching 0 doesn't change it
@@ -63,14 +46,6 @@ function useRemainingSeconds(endsAt: string | null, onComplete: () => void): num
   return remainingSeconds;
 }
 
-function formatElapsed(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const pad = (value: number) => String(value).padStart(2, '0');
-  return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
-}
-
 export default function ActiveWorkoutScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const session = useSessionStore((state) => state.session);
@@ -86,6 +61,7 @@ export default function ActiveWorkoutScreen() {
   const setNotes = useActiveWorkoutStore((state) => state.setNotes);
   const updateExerciseNotes = useActiveWorkoutStore((state) => state.updateExerciseNotes);
   const removeExercise = useActiveWorkoutStore((state) => state.removeExercise);
+  const reorderExercises = useActiveWorkoutStore((state) => state.reorderExercises);
   const addSet = useActiveWorkoutStore((state) => state.addSet);
   const updateSet = useActiveWorkoutStore((state) => state.updateSet);
   const toggleSetCompleted = useActiveWorkoutStore((state) => state.toggleSetCompleted);
@@ -178,28 +154,33 @@ export default function ActiveWorkoutScreen() {
       <Input value={name} onChangeText={setName} placeholder="Workout-Name" />
       <Input value={notes} onChangeText={setNotes} placeholder="Notizen zum Workout…" multiline numberOfLines={2} />
 
-      <FlatList
+      <DraggableFlatList
         className="mt-sm flex-1"
         data={exercises}
         keyExtractor={(item) => item.exerciseId}
         contentContainerClassName="gap-sm"
+        onDragEnd={({ data }) => reorderExercises(data)}
         ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
-        renderItem={({ item }) => (
-          <ActiveWorkoutExerciseCard
-            exercise={item}
-            onRemoveExercise={() => removeExercise(item.exerciseId)}
-            onAddSet={() => addSet(item.exerciseId)}
-            onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
-            onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
-            onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
-            onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
-            onOpenPlateCalculator={(weight) =>
-              router.push({
-                pathname: '/plate-calculator',
-                params: { weight: weight !== null ? String(weight) : undefined },
-              })
-            }
-          />
+        renderItem={({ item, drag, isActive }: RenderItemParams<ActiveWorkoutExercise>) => (
+          <ScaleDecorator>
+            <ActiveWorkoutExerciseCard
+              exercise={item}
+              drag={drag}
+              isActive={isActive}
+              onRemoveExercise={() => removeExercise(item.exerciseId)}
+              onAddSet={() => addSet(item.exerciseId)}
+              onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
+              onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
+              onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+              onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
+              onOpenPlateCalculator={(weight) =>
+                router.push({
+                  pathname: '/plate-calculator',
+                  params: { weight: weight !== null ? String(weight) : undefined },
+                })
+              }
+            />
+          </ScaleDecorator>
         )}
       />
 

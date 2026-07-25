@@ -27,7 +27,7 @@ export default function CreateCustomExerciseScreen() {
           const created = await createCustomExercise(session!.user.id, input);
           queryClient.invalidateQueries({ queryKey: ['exercises'] });
           if (target === 'workout') {
-            addExercisesToWorkoutDraft([{ id: created.id, name: created.name }]);
+            addExercisesToWorkoutDraft([{ id: created.id, name: created.name, imageUrl: created.imageUrl }]);
           } else {
             addExercisesToRoutineDraft([{ id: created.id, name: created.name, imageUrl: created.imageUrl }]);
           }

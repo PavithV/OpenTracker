@@ -5,6 +5,7 @@ import { FlatList, Pressable, useColorScheme, View } from 'react-native';
 
 import { getWorkoutHistory } from '@/features/home/api/workouts.api';
 import { WorkoutHistoryCard } from '@/features/home/components/WorkoutHistoryCard';
+import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorkoutMiniBar';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
@@ -23,7 +24,7 @@ export default function HomeScreen() {
   });
 
   return (
-    <Screen>
+    <Screen edges={['top', 'left', 'right']}>
       <View className="flex-row items-center justify-between py-md">
         <Typography variant="title">Home</Typography>
         <Pressable onPress={() => router.push('/calendar')} hitSlop={8}>
@@ -47,6 +48,8 @@ export default function HomeScreen() {
           )}
         />
       )}
+
+      <ActiveWorkoutMiniBar />
     </Screen>
   );
 }

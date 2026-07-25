@@ -15,6 +15,7 @@ function generateLocalId(): string {
 interface RoutineExerciseSeed {
   exerciseId: string;
   name: string;
+  imageUrl: string | null;
   restSeconds: number | null;
   sets: { targetWeight: number | null }[];
 }
@@ -33,8 +34,9 @@ interface ActiveWorkoutState {
   setName: (name: string) => void;
   setNotes: (notes: string) => void;
   updateExerciseNotes: (exerciseId: string, notes: string) => void;
-  addExercises: (exercises: { id: string; name: string }[]) => void;
+  addExercises: (exercises: { id: string; name: string; imageUrl?: string | null }[]) => void;
   removeExercise: (exerciseId: string) => void;
+  reorderExercises: (exercises: ActiveWorkoutExercise[]) => void;
   addSet: (exerciseId: string) => void;
   updateSet: (exerciseId: string, setId: string, patch: Partial<Pick<WorkoutSetEntry, 'weight' | 'reps'>>) => void;
   toggleSetCompleted: (exerciseId: string, setId: string) => void;
@@ -105,6 +107,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
                 exercises: exercises.map((exercise) => ({
                   exerciseId: exercise.exerciseId,
                   name: exercise.name,
+                  imageUrl: exercise.imageUrl,
                   notes: '',
                   restSeconds: exercise.restSeconds,
                   sets: exercise.sets.map((seedSet) => ({
@@ -135,6 +138,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
             .map((exercise) => ({
               exerciseId: exercise.id,
               name: exercise.name,
+              imageUrl: exercise.imageUrl ?? null,
               notes: '',
               sets: [],
               restSeconds: null,
@@ -144,6 +148,8 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
 
       removeExercise: (exerciseId) =>
         set((state) => ({ exercises: state.exercises.filter((exercise) => exercise.exerciseId !== exerciseId) })),
+
+      reorderExercises: (exercises) => set({ exercises }),
 
       addSet: (exerciseId) =>
         set((state) => ({

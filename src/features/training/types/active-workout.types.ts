@@ -8,6 +8,7 @@ export interface WorkoutSetEntry {
 export interface ActiveWorkoutExercise {
   exerciseId: string;
   name: string;
+  imageUrl: string | null;
   notes: string;
   sets: WorkoutSetEntry[];
   // Target rest between sets, carried over from routine_exercises.rest_seconds when started from a

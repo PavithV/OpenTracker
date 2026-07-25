@@ -1,5 +1,5 @@
-import { Barbell, Check, CircleIcon as Circle, Trash } from 'phosphor-react-native';
-import { Pressable, useColorScheme, View } from 'react-native';
+import { Barbell, Check, CircleIcon as Circle, DotsSixVertical, Trash } from 'phosphor-react-native';
+import { Image, Pressable, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -12,6 +12,8 @@ import type { ActiveWorkoutExercise, WorkoutSetEntry } from '../types/active-wor
 
 interface ActiveWorkoutExerciseCardProps {
   exercise: ActiveWorkoutExercise;
+  drag: () => void;
+  isActive: boolean;
   onRemoveExercise: () => void;
   onAddSet: () => void;
   onUpdateSet: (setId: string, patch: Partial<Pick<WorkoutSetEntry, 'weight' | 'reps'>>) => void;
@@ -27,6 +29,8 @@ function toNumberOrNull(text: string): number | null {
 
 export function ActiveWorkoutExerciseCard({
   exercise,
+  drag,
+  isActive,
   onRemoveExercise,
   onAddSet,
   onUpdateSet,
@@ -41,62 +45,79 @@ export function ActiveWorkoutExerciseCard({
   return (
     <Card>
       <View className="flex-row items-center gap-sm">
+        <Pressable onLongPress={drag} hitSlop={8} className="active:opacity-60">
+          <DotsSixVertical size={ICON_SIZE.md} color={secondaryColor} />
+        </Pressable>
+
+        {exercise.imageUrl ? (
+          <Image source={{ uri: exercise.imageUrl }} className="h-12 w-12 rounded-full" />
+        ) : (
+          <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
+        )}
+
         <Typography variant="cardTitle" className="flex-1">
           {exercise.name}
         </Typography>
-        <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
-          <Trash size={ICON_SIZE.md} color={colors.danger} />
-        </Pressable>
+
+        {isActive ? null : (
+          <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
+            <Trash size={ICON_SIZE.md} color={colors.danger} />
+          </Pressable>
+        )}
       </View>
 
-      <View className="mt-sm gap-xs">
-        {exercise.sets.map((set, index) => (
-          <View key={set.id} className="flex-row items-center gap-sm">
-            <Typography variant="caption" className="w-8">
-              {index + 1}
-            </Typography>
-            <View className="w-20">
-              <Input
-                placeholder="kg"
-                keyboardType="numeric"
-                value={set.weight === null ? '' : String(set.weight)}
-                onChangeText={(text) => onUpdateSet(set.id, { weight: toNumberOrNull(text) })}
-              />
-            </View>
-            <View className="w-20">
-              <Input
-                placeholder="Wdh"
-                keyboardType="numeric"
-                value={set.reps === null ? '' : String(set.reps)}
-                onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
-              />
-            </View>
-            <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
-              <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
-            </Pressable>
-            <Pressable onPress={() => onToggleSetCompleted(set.id)} hitSlop={8} className="active:opacity-60">
-              {set.completed ? (
-                <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />
-              ) : (
-                <Circle size={ICON_SIZE.md} color={secondaryColor} />
-              )}
-            </Pressable>
-            <Pressable onPress={() => onRemoveSet(set.id)} hitSlop={8} className="active:opacity-60">
-              <Trash size={ICON_SIZE.sm} color={secondaryColor} />
-            </Pressable>
+      {isActive ? null : (
+        <>
+          <View className="mt-sm gap-xs">
+            {exercise.sets.map((set, index) => (
+              <View key={set.id} className="flex-row items-center gap-sm">
+                <Typography variant="caption" className="w-8">
+                  {index + 1}
+                </Typography>
+                <View className="w-20">
+                  <Input
+                    placeholder="kg"
+                    keyboardType="numeric"
+                    value={set.weight === null ? '' : String(set.weight)}
+                    onChangeText={(text) => onUpdateSet(set.id, { weight: toNumberOrNull(text) })}
+                  />
+                </View>
+                <View className="w-20">
+                  <Input
+                    placeholder="Wdh"
+                    keyboardType="numeric"
+                    value={set.reps === null ? '' : String(set.reps)}
+                    onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
+                  />
+                </View>
+                <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
+                  <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
+                </Pressable>
+                <Pressable onPress={() => onToggleSetCompleted(set.id)} hitSlop={8} className="active:opacity-60">
+                  {set.completed ? (
+                    <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />
+                  ) : (
+                    <Circle size={ICON_SIZE.md} color={secondaryColor} />
+                  )}
+                </Pressable>
+                <Pressable onPress={() => onRemoveSet(set.id)} hitSlop={8} className="active:opacity-60">
+                  <Trash size={ICON_SIZE.sm} color={secondaryColor} />
+                </Pressable>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
 
-      <Button label="Satz hinzufügen" variant="ghost" size="sm" onPress={onAddSet} />
+          <Button label="Satz hinzufügen" variant="ghost" size="sm" onPress={onAddSet} />
 
-      <Input
-        placeholder="Notizen zu dieser Übung…"
-        value={exercise.notes}
-        onChangeText={onUpdateNotes}
-        multiline
-        numberOfLines={2}
-      />
+          <Input
+            placeholder="Notizen zu dieser Übung…"
+            value={exercise.notes}
+            onChangeText={onUpdateNotes}
+            multiline
+            numberOfLines={2}
+          />
+        </>
+      )}
     </Card>
   );
 }

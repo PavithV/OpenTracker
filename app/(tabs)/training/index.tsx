@@ -5,6 +5,7 @@ import { Alert, FlatList, View } from 'react-native';
 import { archiveRoutine, getRoutineForEdit, getRoutines } from '@/features/routines/api/routines.api';
 import { RoutineCard } from '@/features/routines/components/RoutineCard';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
+import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorkoutMiniBar';
 import { useActiveWorkoutStore } from '@/features/training/store/active-workout.store';
 import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
@@ -64,7 +65,7 @@ export default function TrainingScreen() {
   }
 
   return (
-    <Screen>
+    <Screen edges={['top', 'left', 'right']}>
       <View className="py-md">
         <Typography variant="title">Training</Typography>
       </View>
@@ -95,6 +96,8 @@ export default function TrainingScreen() {
         <Button label="Leeres Workout starten" onPress={() => router.push('/workout/active')} />
         <Button label="Routine erstellen" variant="secondary" onPress={handleCreateRoutine} />
       </View>
+
+      <ActiveWorkoutMiniBar />
     </Screen>
   );
 }

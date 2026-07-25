@@ -6,6 +6,7 @@ import { signOut } from '@/features/auth/api/auth.api';
 import { getProfile, getProfileStats } from '@/features/profile/api/profile.api';
 import { ProfileStatsCard } from '@/features/profile/components/ProfileStatsCard';
 import { ProfileVolumeChart } from '@/features/profile/components/ProfileVolumeChart';
+import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorkoutMiniBar';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Screen } from '@/shared/components/Screen';
@@ -28,7 +29,7 @@ export default function ProfileScreen() {
   });
 
   return (
-    <Screen>
+    <Screen edges={['top', 'left', 'right']}>
       <ScrollView className="flex-1" contentContainerClassName="gap-lg py-md">
         <Typography variant="title">Profil</Typography>
 
@@ -47,6 +48,8 @@ export default function ProfileScreen() {
 
         <Button label="Abmelden" variant="secondary" onPress={() => signOut()} />
       </ScrollView>
+
+      <ActiveWorkoutMiniBar />
     </Screen>
   );
 }
