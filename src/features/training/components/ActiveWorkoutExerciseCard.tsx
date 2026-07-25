@@ -13,7 +13,7 @@ import type { ActiveWorkoutExercise, WorkoutSetEntry } from '../types/active-wor
 interface ActiveWorkoutExerciseCardProps {
   exercise: ActiveWorkoutExercise;
   drag: () => void;
-  isActive: boolean;
+  isCompact: boolean;
   onRemoveExercise: () => void;
   onAddSet: () => void;
   onUpdateSet: (setId: string, patch: Partial<Pick<WorkoutSetEntry, 'weight' | 'reps'>>) => void;
@@ -30,7 +30,7 @@ function toNumberOrNull(text: string): number | null {
 export function ActiveWorkoutExerciseCard({
   exercise,
   drag,
-  isActive,
+  isCompact,
   onRemoveExercise,
   onAddSet,
   onUpdateSet,
@@ -59,14 +59,14 @@ export function ActiveWorkoutExerciseCard({
           {exercise.name}
         </Typography>
 
-        {isActive ? null : (
+        {isCompact ? null : (
           <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
             <Trash size={ICON_SIZE.md} color={colors.danger} />
           </Pressable>
         )}
       </View>
 
-      {isActive ? null : (
+      {isCompact ? null : (
         <>
           <View className="mt-sm gap-xs">
             {exercise.sets.map((set, index) => (

@@ -71,21 +71,32 @@ async function insertRoutineExercises(routineId: string, exercises: RoutineDraft
     rest_seconds: exercise.restSeconds,
   }));
 
+  // `order_index` must be part of the select projection -- PostgREST orders the *returned*
+  // representation of an insert, and can't sort by a column that isn't in it (was previously
+  // select('id').order('order_index'), which Postgres rejected with "column ...order_index does
+  // not exist" on every save). Matching back to `exercises` via the returned order_index (rather
+  // than assuming positional correspondence) also makes this robust regardless of return order.
   const { data: insertedRoutineExercises, error } = await supabase
     .from('routine_exercises')
     .insert(rows)
-    .select('id')
+    .select('id, order_index')
     .order('order_index');
   if (error) throw error;
 
-  const setRows = exercises.flatMap((exercise, index) =>
-    exercise.sets.map((set, setIndex) => ({
-      routine_exercise_id: insertedRoutineExercises[index].id,
+  const routineExerciseIdByIndex = new Map(
+    insertedRoutineExercises.map((row) => [row.order_index, row.id]),
+  );
+
+  const setRows = exercises.flatMap((exercise, index) => {
+    const routineExerciseId = routineExerciseIdByIndex.get(index);
+    if (!routineExerciseId) throw new Error(`Missing inserted routine_exercises row for index ${index}`);
+    return exercise.sets.map((set, setIndex) => ({
+      routine_exercise_id: routineExerciseId,
       set_number: setIndex + 1,
       target_weight: set.targetWeight,
       target_reps: set.targetReps,
-    })),
-  );
+    }));
+  });
   if (setRows.length === 0) return;
 
   const { error: setsError } = await supabase.from('routine_exercise_sets').insert(setRows);

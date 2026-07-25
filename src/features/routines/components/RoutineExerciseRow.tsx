@@ -13,7 +13,7 @@ import type { RoutineDraftExercise, RoutineDraftSet } from '../types/routine.typ
 interface RoutineExerciseRowProps {
   exercise: RoutineDraftExercise;
   drag: () => void;
-  isActive: boolean;
+  isCompact: boolean;
   onRemoveExercise: () => void;
   onAddSet: () => void;
   onRemoveSet: (setId: string) => void;
@@ -28,7 +28,7 @@ function toNumberOrNull(text: string): number | null {
 export function RoutineExerciseRow({
   exercise,
   drag,
-  isActive,
+  isCompact,
   onRemoveExercise,
   onAddSet,
   onRemoveSet,
@@ -55,14 +55,14 @@ export function RoutineExerciseRow({
           {exercise.name}
         </Typography>
 
-        {isActive ? null : (
+        {isCompact ? null : (
           <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
             <Trash size={ICON_SIZE.md} color={colors.danger} />
           </Pressable>
         )}
       </View>
 
-      {isActive ? null : (
+      {isCompact ? null : (
         <>
           <View className="mt-md gap-sm">
             <View className="flex-row items-center gap-sm">

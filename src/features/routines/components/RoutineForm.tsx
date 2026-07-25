@@ -31,6 +31,7 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   async function handleSave() {
     if (name.trim().length === 0) {
@@ -55,14 +56,14 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
     }
   }
 
-  function renderItem({ item, drag, isActive }: RenderItemParams<RoutineDraftExercise>) {
+  function renderItem({ item, drag }: RenderItemParams<RoutineDraftExercise>) {
     return (
       <ScaleDecorator>
         <View className="mb-sm">
           <RoutineExerciseRow
             exercise={item}
             drag={drag}
-            isActive={isActive}
+            isCompact={isDragging}
             onRemoveExercise={() => removeExercise(item.exerciseId)}
             onAddSet={() => addSet(item.exerciseId)}
             onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
@@ -90,7 +91,11 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
         <DraggableFlatList
           data={exercises}
           keyExtractor={(item) => item.exerciseId}
-          onDragEnd={({ data }) => reorderExercises(data)}
+          onDragBegin={() => setIsDragging(true)}
+          onDragEnd={({ data }) => {
+            setIsDragging(false);
+            reorderExercises(data);
+          }}
           ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
           renderItem={renderItem}
         />

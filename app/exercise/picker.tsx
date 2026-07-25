@@ -170,11 +170,13 @@ export default function ExercisePickerScreen() {
               title={item.name}
               description={capitalize(item.targetMuscle)}
               leading={
-                item.imageUrl ? (
-                  <Image source={{ uri: item.imageUrl }} className="h-12 w-12 rounded-full" />
-                ) : (
-                  <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
-                )
+                <Pressable onPress={() => router.push(`/exercise/${item.id}`)} hitSlop={8}>
+                  {item.imageUrl ? (
+                    <Image source={{ uri: item.imageUrl }} className="h-12 w-12 rounded-full" />
+                  ) : (
+                    <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
+                  )}
+                </Pressable>
               }
               trailing={
                 <View className="flex-row items-center gap-sm">

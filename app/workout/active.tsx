@@ -71,6 +71,7 @@ export default function ActiveWorkoutScreen() {
   const reset = useActiveWorkoutStore((state) => state.reset);
 
   const [isFinishing, setIsFinishing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     if (hasHydrated) start();
@@ -158,15 +159,19 @@ export default function ActiveWorkoutScreen() {
         <DraggableFlatList
           data={exercises}
           keyExtractor={(item) => item.exerciseId}
-          onDragEnd={({ data }) => reorderExercises(data)}
+          onDragBegin={() => setIsDragging(true)}
+          onDragEnd={({ data }) => {
+            setIsDragging(false);
+            reorderExercises(data);
+          }}
           ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
-          renderItem={({ item, drag, isActive }: RenderItemParams<ActiveWorkoutExercise>) => (
+          renderItem={({ item, drag }: RenderItemParams<ActiveWorkoutExercise>) => (
             <ScaleDecorator>
               <View className="mb-sm">
                 <ActiveWorkoutExerciseCard
                   exercise={item}
                   drag={drag}
-                  isActive={isActive}
+                  isCompact={isDragging}
                   onRemoveExercise={() => removeExercise(item.exerciseId)}
                   onAddSet={() => addSet(item.exerciseId)}
                   onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
