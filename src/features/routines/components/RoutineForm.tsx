@@ -32,6 +32,7 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   async function handleSave() {
     if (name.trim().length === 0) {
@@ -56,14 +57,21 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
     }
   }
 
-  function renderItem({ item, drag, isActive }: RenderItemParams<RoutineDraftExercise>) {
+  function renderItem({ item, drag, getIndex }: RenderItemParams<RoutineDraftExercise>) {
+    const rowIndex = getIndex();
+    // Only rows strictly BELOW the dragged item compact. Compacting rows ABOVE it would shrink
+    // their height and shove the dragged row's own resting layout position upward mid-gesture --
+    // react-native-draggable-flatlist renders the active row via a translateY *delta* from its
+    // resting position, so that shift isn't compensated for and the card visibly jumps. Rows
+    // above never change size here, so that jump can't happen regardless of which row is dragged.
+    const isCompact = isDragging && activeIndex !== null && rowIndex !== undefined && rowIndex > activeIndex;
     return (
       <ScaleDecorator>
         <View className="mb-sm">
           <RoutineExerciseRow
             exercise={item}
             drag={drag}
-            isCompact={isDragging && !isActive}
+            isCompact={isCompact}
             onRemoveExercise={() => removeExercise(item.exerciseId)}
             onAddSet={() => addSet(item.exerciseId)}
             onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
@@ -91,9 +99,13 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
         <DraggableFlatList
           data={exercises}
           keyExtractor={(item) => item.exerciseId}
-          onDragBegin={() => setIsDragging(true)}
+          onDragBegin={(index) => {
+            setIsDragging(true);
+            setActiveIndex(index);
+          }}
           onDragEnd={({ data }) => {
             setIsDragging(false);
+            setActiveIndex(null);
             reorderExercises(data);
           }}
           ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
