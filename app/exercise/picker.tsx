@@ -12,7 +12,11 @@ import {
   removeFavoriteExercise,
 } from '@/features/exercises/api/exercises.api';
 import { FilterChip } from '@/features/exercises/components/FilterChip';
-import { EXERCISE_CATEGORIES, EXERCISE_EQUIPMENT } from '@/features/exercises/types/exercise.types';
+import {
+  EXERCISE_CATEGORIES,
+  EXERCISE_EQUIPMENT,
+  type ExerciseListItem,
+} from '@/features/exercises/types/exercise.types';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
 import { useActiveWorkoutStore } from '@/features/training/store/active-workout.store';
 import { Button } from '@/shared/components/Button';
@@ -47,7 +51,7 @@ export default function ExercisePickerScreen() {
   const [category, setCategory] = useState<string | null>(null);
   const [equipment, setEquipment] = useState<string | null>(null);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedExercises, setSelectedExercises] = useState<Map<string, ExerciseListItem>>(new Map());
   const addExercisesToRoutineDraft = useRoutineDraftStore((state) => state.addExercises);
   const addExercisesToWorkoutDraft = useActiveWorkoutStore((state) => state.addExercises);
 
@@ -84,22 +88,24 @@ export default function ExercisePickerScreen() {
     }
   }
 
-  function toggleSelected(id: string) {
-    setSelectedIds((previous) => {
-      const next = new Set(previous);
-      if (next.has(id)) {
-        next.delete(id);
+  function toggleSelected(exercise: ExerciseListItem) {
+    setSelectedExercises((previous) => {
+      const next = new Map(previous);
+      if (next.has(exercise.id)) {
+        next.delete(exercise.id);
       } else {
-        next.add(id);
+        next.set(exercise.id, exercise);
       }
       return next;
     });
   }
 
   function handleConfirmSelection() {
-    const selected = (exercises ?? [])
-      .filter((exercise) => selectedIds.has(exercise.id))
-      .map((exercise) => ({ id: exercise.id, name: exercise.name, imageUrl: exercise.imageUrl }));
+    const selected = Array.from(selectedExercises.values()).map((exercise) => ({
+      id: exercise.id,
+      name: exercise.name,
+      imageUrl: exercise.imageUrl,
+    }));
     if (target === 'workout') {
       addExercisesToWorkoutDraft(selected);
     } else {
@@ -187,23 +193,23 @@ export default function ExercisePickerScreen() {
                       weight={favoriteIds?.has(item.id) ? 'fill' : 'regular'}
                     />
                   </Pressable>
-                  {selectedIds.has(item.id) ? <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} /> : null}
+                  {selectedExercises.has(item.id) ? <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} /> : null}
                 </View>
               }
-              onPress={() => toggleSelected(item.id)}
+              onPress={() => toggleSelected(item)}
             />
           )}
         />
       )}
 
-      {selectedIds.size > 0 ? (
+      {selectedExercises.size > 0 ? (
         <SafeAreaView
           edges={['bottom']}
           className="border-t border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark"
         >
           <View className="p-md">
             <Button
-              label={`${selectedIds.size} ${selectedIds.size === 1 ? 'Übung' : 'Übungen'} hinzufügen`}
+              label={`${selectedExercises.size} ${selectedExercises.size === 1 ? 'Übung' : 'Übungen'} hinzufügen`}
               onPress={handleConfirmSelection}
             />
           </View>
