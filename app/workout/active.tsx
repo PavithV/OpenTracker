@@ -154,35 +154,37 @@ export default function ActiveWorkoutScreen() {
       <Input value={name} onChangeText={setName} placeholder="Workout-Name" />
       <Input value={notes} onChangeText={setNotes} placeholder="Notizen zum Workout…" multiline numberOfLines={2} />
 
-      <DraggableFlatList
-        className="mt-sm flex-1"
-        data={exercises}
-        keyExtractor={(item) => item.exerciseId}
-        contentContainerClassName="gap-sm"
-        onDragEnd={({ data }) => reorderExercises(data)}
-        ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
-        renderItem={({ item, drag, isActive }: RenderItemParams<ActiveWorkoutExercise>) => (
-          <ScaleDecorator>
-            <ActiveWorkoutExerciseCard
-              exercise={item}
-              drag={drag}
-              isActive={isActive}
-              onRemoveExercise={() => removeExercise(item.exerciseId)}
-              onAddSet={() => addSet(item.exerciseId)}
-              onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
-              onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
-              onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
-              onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
-              onOpenPlateCalculator={(weight) =>
-                router.push({
-                  pathname: '/plate-calculator',
-                  params: { weight: weight !== null ? String(weight) : undefined },
-                })
-              }
-            />
-          </ScaleDecorator>
-        )}
-      />
+      <View className="mt-sm flex-1">
+        <DraggableFlatList
+          data={exercises}
+          keyExtractor={(item) => item.exerciseId}
+          onDragEnd={({ data }) => reorderExercises(data)}
+          ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
+          renderItem={({ item, drag, isActive }: RenderItemParams<ActiveWorkoutExercise>) => (
+            <ScaleDecorator>
+              <View className="mb-sm">
+                <ActiveWorkoutExerciseCard
+                  exercise={item}
+                  drag={drag}
+                  isActive={isActive}
+                  onRemoveExercise={() => removeExercise(item.exerciseId)}
+                  onAddSet={() => addSet(item.exerciseId)}
+                  onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
+                  onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
+                  onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+                  onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
+                  onOpenPlateCalculator={(weight) =>
+                    router.push({
+                      pathname: '/plate-calculator',
+                      params: { weight: weight !== null ? String(weight) : undefined },
+                    })
+                  }
+                />
+              </View>
+            </ScaleDecorator>
+          )}
+        />
+      </View>
 
       <Button
         label="Übung hinzufügen"
