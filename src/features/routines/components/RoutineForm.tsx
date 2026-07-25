@@ -56,14 +56,14 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
     }
   }
 
-  function renderItem({ item, drag }: RenderItemParams<RoutineDraftExercise>) {
+  function renderItem({ item, drag, isActive }: RenderItemParams<RoutineDraftExercise>) {
     return (
       <ScaleDecorator>
         <View className="mb-sm">
           <RoutineExerciseRow
             exercise={item}
             drag={drag}
-            isCompact={isDragging}
+            isCompact={isDragging && !isActive}
             onRemoveExercise={() => removeExercise(item.exerciseId)}
             onAddSet={() => addSet(item.exerciseId)}
             onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
