@@ -1,6 +1,6 @@
 /**
  * Generated from the live Supabase project (project_ref rlcrhsubxcsjbqpgrwvs) after
- * supabase/migrations/0004_add_favorite_exercises.sql was applied. Regenerate with:
+ * supabase/migrations/0005_add_routine_exercise_sets.sql was applied. Regenerate with:
  *   npx supabase gen types typescript --project-id rlcrhsubxcsjbqpgrwvs > src/shared/types/database.types.ts
  */
 export type Json =
@@ -190,6 +190,38 @@ export type Database = {
         }
         Relationships: []
       }
+      routine_exercise_sets: {
+        Row: {
+          id: string
+          routine_exercise_id: string
+          set_number: number
+          target_reps: number | null
+          target_weight: number | null
+        }
+        Insert: {
+          id?: string
+          routine_exercise_id: string
+          set_number: number
+          target_reps?: number | null
+          target_weight?: number | null
+        }
+        Update: {
+          id?: string
+          routine_exercise_id?: string
+          set_number?: number
+          target_reps?: number | null
+          target_weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_exercise_sets_routine_exercise_id_fkey"
+            columns: ["routine_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "routine_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routine_exercises: {
         Row: {
           exercise_id: string
@@ -197,10 +229,6 @@ export type Database = {
           order_index: number
           rest_seconds: number | null
           routine_id: string
-          target_reps_max: number | null
-          target_reps_min: number
-          target_sets: number
-          target_weight: number | null
         }
         Insert: {
           exercise_id: string
@@ -208,10 +236,6 @@ export type Database = {
           order_index: number
           rest_seconds?: number | null
           routine_id: string
-          target_reps_max?: number | null
-          target_reps_min?: number
-          target_sets?: number
-          target_weight?: number | null
         }
         Update: {
           exercise_id?: string
@@ -219,10 +243,6 @@ export type Database = {
           order_index?: number
           rest_seconds?: number | null
           routine_id?: string
-          target_reps_max?: number | null
-          target_reps_min?: number
-          target_sets?: number
-          target_weight?: number | null
         }
         Relationships: [
           {
@@ -571,9 +591,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const

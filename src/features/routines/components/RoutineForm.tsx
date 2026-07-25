@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, FlatList, View } from 'react-native';
+import { Alert, View } from 'react-native';
+import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -21,8 +22,11 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
   const setName = useRoutineDraftStore((state) => state.setName);
   const setNotes = useRoutineDraftStore((state) => state.setNotes);
   const removeExercise = useRoutineDraftStore((state) => state.removeExercise);
-  const moveExercise = useRoutineDraftStore((state) => state.moveExercise);
-  const updateTarget = useRoutineDraftStore((state) => state.updateTarget);
+  const reorderExercises = useRoutineDraftStore((state) => state.reorderExercises);
+  const addSet = useRoutineDraftStore((state) => state.addSet);
+  const removeSet = useRoutineDraftStore((state) => state.removeSet);
+  const updateSet = useRoutineDraftStore((state) => state.updateSet);
+  const updateRestSeconds = useRoutineDraftStore((state) => state.updateRestSeconds);
   const reset = useRoutineDraftStore((state) => state.reset);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -51,6 +55,25 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
     }
   }
 
+  function renderItem({ item, drag, isActive }: RenderItemParams<RoutineDraftExercise>) {
+    return (
+      <ScaleDecorator>
+        <View className="mb-sm">
+          <RoutineExerciseRow
+            exercise={item}
+            drag={drag}
+            isActive={isActive}
+            onRemoveExercise={() => removeExercise(item.exerciseId)}
+            onAddSet={() => addSet(item.exerciseId)}
+            onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+            onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
+            onUpdateRestSeconds={(restSeconds) => updateRestSeconds(item.exerciseId, restSeconds)}
+          />
+        </View>
+      </ScaleDecorator>
+    );
+  }
+
   return (
     <View className="flex-1 gap-md">
       <Input label="Name" value={name} onChangeText={setName} placeholder="z. B. Push Day" />
@@ -63,24 +86,15 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
         numberOfLines={3}
       />
 
-      <FlatList
-        className="flex-1"
-        data={exercises}
-        keyExtractor={(item) => item.exerciseId}
-        contentContainerClassName="gap-sm"
-        ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
-        renderItem={({ item, index }) => (
-          <RoutineExerciseRow
-            exercise={item}
-            isFirst={index === 0}
-            isLast={index === exercises.length - 1}
-            onMoveUp={() => moveExercise(item.exerciseId, 'up')}
-            onMoveDown={() => moveExercise(item.exerciseId, 'down')}
-            onRemove={() => removeExercise(item.exerciseId)}
-            onUpdateTarget={(patch) => updateTarget(item.exerciseId, patch)}
-          />
-        )}
-      />
+      <View className="flex-1">
+        <DraggableFlatList
+          data={exercises}
+          keyExtractor={(item) => item.exerciseId}
+          onDragEnd={({ data }) => reorderExercises(data)}
+          ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
+          renderItem={renderItem}
+        />
+      </View>
 
       <Button label="Übungen hinzufügen" variant="secondary" onPress={() => router.push('/exercise/picker')} />
 

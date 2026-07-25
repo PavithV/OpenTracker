@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Alert, FlatList, View } from 'react-native';
 
-import { getRoutineForEdit, getRoutines } from '@/features/routines/api/routines.api';
+import { archiveRoutine, getRoutineForEdit, getRoutines } from '@/features/routines/api/routines.api';
 import { RoutineCard } from '@/features/routines/components/RoutineCard';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
 import { useActiveWorkoutStore } from '@/features/training/store/active-workout.store';
@@ -14,6 +14,7 @@ import { useSessionStore } from '@/store/session.store';
 
 export default function TrainingScreen() {
   const session = useSessionStore((state) => state.session);
+  const queryClient = useQueryClient();
 
   const { data: routines, isLoading } = useQuery({
     queryKey: ['routines', 'list', session?.user.id],
@@ -24,6 +25,24 @@ export default function TrainingScreen() {
   function handleCreateRoutine() {
     useRoutineDraftStore.getState().reset();
     router.push('/routine/create');
+  }
+
+  function handleDeleteRoutine(routineId: string, routineName: string) {
+    Alert.alert('Routine löschen?', `„${routineName}" kann danach nicht mehr geöffnet werden.`, [
+      { text: 'Abbrechen', style: 'cancel' },
+      {
+        text: 'Löschen',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await archiveRoutine(routineId);
+            queryClient.invalidateQueries({ queryKey: ['routines', 'list', session?.user.id] });
+          } catch (err) {
+            Alert.alert('Löschen fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
+          }
+        },
+      },
+    ]);
   }
 
   async function handleStartRoutine(routineId: string) {
@@ -66,6 +85,7 @@ export default function TrainingScreen() {
               routine={item}
               onPress={() => router.push(`/routine/${item.id}/edit`)}
               onStart={() => handleStartRoutine(item.id)}
+              onDelete={() => handleDeleteRoutine(item.id, item.name)}
             />
           )}
         />

@@ -3,10 +3,12 @@ import '@/shared/theme/global.css';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { handleAuthDeepLink } from '@/features/auth/utils/deep-link';
 import { queryClient } from '@/shared/lib/query-client';
 import { supabase } from '@/shared/lib/supabase';
 import { useSessionStore } from '@/store/session.store';
@@ -14,8 +16,12 @@ import { useSessionStore } from '@/store/session.store';
 export default function RootLayout() {
   const session = useSessionStore((state) => state.session);
   const isInitializing = useSessionStore((state) => state.isInitializing);
+  const isPasswordRecovery = useSessionStore((state) => state.isPasswordRecovery);
   const setSession = useSessionStore((state) => state.setSession);
   const finishInitializing = useSessionStore((state) => state.finishInitializing);
+  const setPasswordRecovery = useSessionStore((state) => state.setPasswordRecovery);
+
+  const deepLinkUrl = Linking.useLinkingURL();
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -37,6 +43,19 @@ export default function RootLayout() {
     return () => listener.subscription.unsubscribe();
   }, [setSession, finishInitializing]);
 
+  useEffect(() => {
+    if (!deepLinkUrl) return;
+    handleAuthDeepLink(deepLinkUrl)
+      .then(({ isPasswordRecovery: isRecovery }) => {
+        if (isRecovery) setPasswordRecovery(true);
+      })
+      .catch(() => {
+        // Ignoring: deep links unrelated to auth (or already-consumed/expired
+        // recovery tokens) simply shouldn't establish a session — the user stays
+        // on whichever screen the plain session-gate below already routes to.
+      });
+  }, [deepLinkUrl, setPasswordRecovery]);
+
   if (isInitializing || !fontsLoaded) {
     return null;
   }
@@ -46,11 +65,15 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Protected guard={!session}>
+            <Stack.Protected guard={!session && !isPasswordRecovery}>
               <Stack.Screen name="(auth)" />
             </Stack.Protected>
 
-            <Stack.Protected guard={!!session}>
+            <Stack.Protected guard={isPasswordRecovery}>
+              <Stack.Screen name="reset-password" />
+            </Stack.Protected>
+
+            <Stack.Protected guard={!!session && !isPasswordRecovery}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="workout/active" options={{ presentation: 'modal' }} />
               <Stack.Screen name="workout/[id]" />

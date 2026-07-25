@@ -3,6 +3,13 @@ import { supabase } from '@/shared/lib/supabase';
 import type { WorkoutDetail } from '../types/workout-detail.types';
 import type { WorkoutHistoryItem } from '../types/workout-history.types';
 
+// Hard delete -- unlike routines, `workouts` has no archived_at/soft-delete column. Cascades to
+// workout_exercises -> sets via their `on delete cascade` FKs (0001_init.sql).
+export async function deleteWorkout(workoutId: string): Promise<void> {
+  const { error } = await supabase.from('workouts').delete().eq('id', workoutId);
+  if (error) throw error;
+}
+
 // Flat queries joined in JS -- same pattern as getWorkoutDetail below. Needed so each Home card
 // can show its exercise thumbnails/names/set counts (previously just an aggregate count via a
 // workout_exercises(count) embed), matching the Hevy reference screenshots.
@@ -100,8 +107,8 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
   const exerciseIds = workoutExercises.map((row) => row.exercise_id);
   const { data: exerciseDetails, error: namesError } =
     exerciseIds.length > 0
-      ? await supabase.from('exercises').select('id, name, image_url').in('id', exerciseIds)
-      : { data: [] as { id: string; name: string; image_url: string | null }[], error: null };
+      ? await supabase.from('exercises').select('id, name, image_url, target_muscle').in('id', exerciseIds)
+      : { data: [] as { id: string; name: string; image_url: string | null; target_muscle: string | null }[], error: null };
   if (namesError) throw namesError;
 
   const exerciseById = new Map(exerciseDetails.map((exercise) => [exercise.id, exercise]));
@@ -118,6 +125,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       exerciseId: workoutExercise.exercise_id,
       name: exerciseById.get(workoutExercise.exercise_id)?.name ?? '',
       imageUrl: exerciseById.get(workoutExercise.exercise_id)?.image_url ?? null,
+      targetMuscle: exerciseById.get(workoutExercise.exercise_id)?.target_muscle ?? null,
       notes: workoutExercise.notes,
       sets: sets
         .filter((set) => set.workout_exercise_id === workoutExercise.id)

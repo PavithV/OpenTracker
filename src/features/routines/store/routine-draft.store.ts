@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 
-import type { RoutineDraftExercise } from '../types/routine.types';
+import type { RoutineDraftExercise, RoutineDraftSet } from '../types/routine.types';
+
+function generateLocalId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 interface RoutineDraftState {
   name: string;
@@ -9,13 +13,13 @@ interface RoutineDraftState {
   hydratedRoutineId: string | null;
   setName: (name: string) => void;
   setNotes: (notes: string) => void;
-  addExercises: (exercises: { id: string; name: string }[]) => void;
+  addExercises: (exercises: { id: string; name: string; imageUrl: string | null }[]) => void;
   removeExercise: (exerciseId: string) => void;
-  moveExercise: (exerciseId: string, direction: 'up' | 'down') => void;
-  updateTarget: (
-    exerciseId: string,
-    patch: Partial<Omit<RoutineDraftExercise, 'exerciseId' | 'name'>>,
-  ) => void;
+  reorderExercises: (exercises: RoutineDraftExercise[]) => void;
+  addSet: (exerciseId: string) => void;
+  removeSet: (exerciseId: string, setId: string) => void;
+  updateSet: (exerciseId: string, setId: string, patch: Partial<Pick<RoutineDraftSet, 'targetWeight' | 'targetReps'>>) => void;
+  updateRestSeconds: (exerciseId: string, restSeconds: number | null) => void;
   reset: () => void;
   hydrate: (routineId: string, data: { name: string; notes: string; exercises: RoutineDraftExercise[] }) => void;
 }
@@ -37,10 +41,8 @@ export const useRoutineDraftStore = create<RoutineDraftState>((set) => ({
         .map((exercise) => ({
           exerciseId: exercise.id,
           name: exercise.name,
-          targetSets: 3,
-          targetRepsMin: 8,
-          targetRepsMax: null,
-          targetWeight: null,
+          imageUrl: exercise.imageUrl,
+          sets: [{ id: generateLocalId(), targetWeight: null, targetReps: null }],
           restSeconds: null,
         }));
       return { exercises: [...state.exercises, ...toAdd] };
@@ -49,21 +51,42 @@ export const useRoutineDraftStore = create<RoutineDraftState>((set) => ({
   removeExercise: (exerciseId) =>
     set((state) => ({ exercises: state.exercises.filter((exercise) => exercise.exerciseId !== exerciseId) })),
 
-  moveExercise: (exerciseId, direction) =>
-    set((state) => {
-      const index = state.exercises.findIndex((exercise) => exercise.exerciseId === exerciseId);
-      const swapWith = direction === 'up' ? index - 1 : index + 1;
-      if (index === -1 || swapWith < 0 || swapWith >= state.exercises.length) return state;
+  reorderExercises: (exercises) => set({ exercises }),
 
-      const next = [...state.exercises];
-      [next[index], next[swapWith]] = [next[swapWith], next[index]];
-      return { exercises: next };
-    }),
-
-  updateTarget: (exerciseId, patch) =>
+  addSet: (exerciseId) =>
     set((state) => ({
       exercises: state.exercises.map((exercise) =>
-        exercise.exerciseId === exerciseId ? { ...exercise, ...patch } : exercise,
+        exercise.exerciseId === exerciseId
+          ? { ...exercise, sets: [...exercise.sets, { id: generateLocalId(), targetWeight: null, targetReps: null }] }
+          : exercise,
+      ),
+    })),
+
+  removeSet: (exerciseId, setId) =>
+    set((state) => ({
+      exercises: state.exercises.map((exercise) =>
+        exercise.exerciseId === exerciseId
+          ? { ...exercise, sets: exercise.sets.filter((set) => set.id !== setId) }
+          : exercise,
+      ),
+    })),
+
+  updateSet: (exerciseId, setId, patch) =>
+    set((state) => ({
+      exercises: state.exercises.map((exercise) =>
+        exercise.exerciseId === exerciseId
+          ? {
+              ...exercise,
+              sets: exercise.sets.map((set) => (set.id === setId ? { ...set, ...patch } : set)),
+            }
+          : exercise,
+      ),
+    })),
+
+  updateRestSeconds: (exerciseId, restSeconds) =>
+    set((state) => ({
+      exercises: state.exercises.map((exercise) =>
+        exercise.exerciseId === exerciseId ? { ...exercise, restSeconds } : exercise,
       ),
     })),
 

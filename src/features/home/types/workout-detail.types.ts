@@ -11,6 +11,7 @@ export interface WorkoutDetailExercise {
   exerciseId: string;
   name: string;
   imageUrl: string | null;
+  targetMuscle: string | null;
   notes: string | null;
   sets: WorkoutDetailSet[];
 }

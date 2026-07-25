@@ -1,10 +1,14 @@
+export interface RoutineDraftSet {
+  id: string; // local id (draft-only) or DB uuid (after hydrate) -- React keys + update targeting
+  targetWeight: number | null;
+  targetReps: number | null;
+}
+
 export interface RoutineDraftExercise {
   exerciseId: string;
   name: string;
-  targetSets: number;
-  targetRepsMin: number;
-  targetRepsMax: number | null;
-  targetWeight: number | null;
+  imageUrl: string | null;
+  sets: RoutineDraftSet[];
   restSeconds: number | null;
 }
 

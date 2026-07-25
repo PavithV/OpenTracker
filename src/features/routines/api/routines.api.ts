@@ -4,6 +4,14 @@ import type { RoutineDraftExercise, RoutineListItem } from '../types/routine.typ
 
 const ROUTINE_PREVIEW_EXERCISE_COUNT = 3;
 
+export async function archiveRoutine(routineId: string): Promise<void> {
+  const { error } = await supabase
+    .from('routines')
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', routineId);
+  if (error) throw error;
+}
+
 // Flat queries joined in JS rather than a nested routines -> routine_exercises -> exercises embed --
 // same reasoning as getRoutineForEdit below (the generated Database type marks the
 // routine_exercises -> exercises FK isOneToOne: false, which makes multi-level embed-shape
@@ -50,6 +58,9 @@ export async function getRoutines(userId: string): Promise<RoutineListItem[]> {
   });
 }
 
+// Two-level insert (routine_exercises, then routine_exercise_sets) rather than a nested
+// PostgREST embed insert -- keeps the "flat queries joined in JS" convention used everywhere
+// else in this codebase instead of relying on multi-level embed-shape inference.
 async function insertRoutineExercises(routineId: string, exercises: RoutineDraftExercise[]): Promise<void> {
   if (exercises.length === 0) return;
 
@@ -57,15 +68,28 @@ async function insertRoutineExercises(routineId: string, exercises: RoutineDraft
     routine_id: routineId,
     exercise_id: exercise.exerciseId,
     order_index: index,
-    target_sets: exercise.targetSets,
-    target_reps_min: exercise.targetRepsMin,
-    target_reps_max: exercise.targetRepsMax,
-    target_weight: exercise.targetWeight,
     rest_seconds: exercise.restSeconds,
   }));
 
-  const { error } = await supabase.from('routine_exercises').insert(rows);
+  const { data: insertedRoutineExercises, error } = await supabase
+    .from('routine_exercises')
+    .insert(rows)
+    .select('id')
+    .order('order_index');
   if (error) throw error;
+
+  const setRows = exercises.flatMap((exercise, index) =>
+    exercise.sets.map((set, setIndex) => ({
+      routine_exercise_id: insertedRoutineExercises[index].id,
+      set_number: setIndex + 1,
+      target_weight: set.targetWeight,
+      target_reps: set.targetReps,
+    })),
+  );
+  if (setRows.length === 0) return;
+
+  const { error: setsError } = await supabase.from('routine_exercise_sets').insert(setRows);
+  if (setsError) throw setsError;
 }
 
 export async function createRoutine(
@@ -115,31 +139,42 @@ export async function getRoutineForEdit(
 
   const { data: routineExercises, error: exercisesError } = await supabase
     .from('routine_exercises')
-    .select('exercise_id, target_sets, target_reps_min, target_reps_max, target_weight, rest_seconds')
+    .select('id, exercise_id, rest_seconds')
     .eq('routine_id', routineId)
     .order('order_index');
   if (exercisesError) throw exercisesError;
 
+  const routineExerciseIds = routineExercises.map((row) => row.id);
+  const { data: routineExerciseSets, error: setsError } =
+    routineExerciseIds.length > 0
+      ? await supabase
+          .from('routine_exercise_sets')
+          .select('id, routine_exercise_id, target_weight, target_reps')
+          .in('routine_exercise_id', routineExerciseIds)
+          .order('set_number')
+      : { data: [] as { id: string; routine_exercise_id: string; target_weight: number | null; target_reps: number | null }[], error: null };
+  if (setsError) throw setsError;
+
   const exerciseIds = routineExercises.map((row) => row.exercise_id);
-  const { data: exerciseNames, error: namesError } =
+  const { data: exerciseDetails, error: namesError } =
     exerciseIds.length > 0
-      ? await supabase.from('exercises').select('id, name').in('id', exerciseIds)
-      : { data: [] as { id: string; name: string }[], error: null };
+      ? await supabase.from('exercises').select('id, name, image_url').in('id', exerciseIds)
+      : { data: [] as { id: string; name: string; image_url: string | null }[], error: null };
   if (namesError) throw namesError;
 
-  const nameById = new Map(exerciseNames.map((exercise) => [exercise.id, exercise.name]));
+  const exerciseById = new Map(exerciseDetails.map((exercise) => [exercise.id, exercise]));
 
   return {
     name: routine.name,
     notes: routine.notes ?? '',
     exercises: routineExercises.map((row) => ({
       exerciseId: row.exercise_id,
-      name: nameById.get(row.exercise_id) ?? '',
-      targetSets: row.target_sets,
-      targetRepsMin: row.target_reps_min,
-      targetRepsMax: row.target_reps_max,
-      targetWeight: row.target_weight,
+      name: exerciseById.get(row.exercise_id)?.name ?? '',
+      imageUrl: exerciseById.get(row.exercise_id)?.image_url ?? null,
       restSeconds: row.rest_seconds,
+      sets: routineExerciseSets
+        .filter((set) => set.routine_exercise_id === row.id)
+        .map((set) => ({ id: set.id, targetWeight: set.target_weight, targetReps: set.target_reps })),
     })),
   };
 }

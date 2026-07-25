@@ -1,22 +1,22 @@
-import { Link, router } from 'expo-router';
+import * as Linking from 'expo-linking';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 
-import { signInWithEmail } from '@/features/auth/api/auth.api';
-import { signInSchema } from '@/features/auth/types/auth.schema';
+import { requestPasswordReset } from '@/features/auth/api/auth.api';
+import { requestPasswordResetSchema } from '@/features/auth/types/auth.schema';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 
-export default function SignInScreen() {
+export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit() {
-    const result = signInSchema.safeParse({ email, password });
+    const result = requestPasswordResetSchema.safeParse({ email });
     if (!result.success) {
       setError(result.error.issues[0]?.message ?? 'Ungültige Eingabe');
       return;
@@ -25,10 +25,16 @@ export default function SignInScreen() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await signInWithEmail(result.data.email, result.data.password);
-      router.replace('/(tabs)/home');
+      await requestPasswordReset(result.data.email, Linking.createURL('reset-password'));
+      // Same message regardless of whether the address has an account —
+      // otherwise this screen could be used to check which emails are registered.
+      Alert.alert(
+        'E-Mail unterwegs',
+        'Falls ein Konto mit dieser Adresse existiert, haben wir dir einen Link zum Zurücksetzen deines Passworts geschickt.',
+      );
+      router.replace('/(auth)/sign-in');
     } catch (err) {
-      Alert.alert('Anmeldung fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
+      Alert.alert('Fehler', err instanceof Error ? err.message : 'Unbekannter Fehler');
     } finally {
       setIsSubmitting(false);
     }
@@ -38,8 +44,10 @@ export default function SignInScreen() {
     <Screen>
       <View className="flex-1 justify-center gap-lg">
         <View className="gap-xs">
-          <Typography variant="title">Willkommen zurück</Typography>
-          <Typography variant="subtitle">Melde dich an, um dein Training fortzusetzen.</Typography>
+          <Typography variant="title">Passwort vergessen</Typography>
+          <Typography variant="subtitle">
+            Gib deine E-Mail-Adresse ein — wir schicken dir einen Link zum Zurücksetzen.
+          </Typography>
         </View>
 
         <View className="gap-md">
@@ -51,27 +59,13 @@ export default function SignInScreen() {
             keyboardType="email-address"
             autoComplete="email"
           />
-          <Input
-            label="Passwort"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="password"
-          />
           {error ? (
             <Typography variant="subtitle" color="danger">
               {error}
             </Typography>
           ) : null}
-          <Button label="Anmelden" onPress={handleSubmit} loading={isSubmitting} />
-          <Link href="/(auth)/forgot-password" className="text-center text-sm text-primary">
-            Passwort vergessen?
-          </Link>
+          <Button label="Link senden" onPress={handleSubmit} loading={isSubmitting} />
         </View>
-
-        <Link href="/(auth)/sign-up" className="text-center text-sm text-primary">
-          Noch kein Konto? Jetzt registrieren
-        </Link>
       </View>
     </Screen>
   );

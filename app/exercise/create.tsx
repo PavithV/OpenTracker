@@ -29,7 +29,7 @@ export default function CreateCustomExerciseScreen() {
           if (target === 'workout') {
             addExercisesToWorkoutDraft([{ id: created.id, name: created.name }]);
           } else {
-            addExercisesToRoutineDraft([{ id: created.id, name: created.name }]);
+            addExercisesToRoutineDraft([{ id: created.id, name: created.name, imageUrl: created.imageUrl }]);
           }
           router.back();
         }}

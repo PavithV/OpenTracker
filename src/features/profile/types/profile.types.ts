@@ -9,7 +9,9 @@ export interface ProfileStats {
   totalVolume: number;
 }
 
-export interface MuscleSplitEntry {
-  muscle: string;
-  volume: number;
+export interface ProfileWorkoutPoint {
+  startedAt: string;
+  durationSeconds: number;
+  totalVolume: number;
+  totalReps: number;
 }

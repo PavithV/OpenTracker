@@ -2,6 +2,8 @@
 
 Analyse von `MVP.md` gegen den Anspruch aus `PROJECT_OVERVIEW.md` (Clean Architecture, langfristig erweiterbar, skalierbar) und gegen das tatsächliche Schema von `exercises-dataset-main/data/exercises.schema.json`.
 
+**Hinweis (2026-07-24):** Dies ist die ursprüngliche, vor Implementierungsbeginn geschriebene Konzept-Review. Ein vollständiger Abgleich dieser damaligen Einschätzung gegen den heutigen, fertig implementierten Code-Stand (welche Lücken wurden geschlossen, welche sind weiterhin offen) findet sich in `PRODUCT_AUDIT.md`, Abschnitt 8.
+
 ## Schwachstellen im aktuellen MVP-Scope
 
 | Bereich | Schwachstelle |

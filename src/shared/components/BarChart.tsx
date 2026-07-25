@@ -15,7 +15,12 @@ export interface BarChartEntry {
 const BAR_WIDTH = 300;
 const BAR_HEIGHT = 8;
 
-export function BarChart({ data }: { data: BarChartEntry[] }) {
+interface BarChartProps {
+  data: BarChartEntry[];
+  formatValue?: (value: number) => string;
+}
+
+export function BarChart({ data, formatValue = (value) => `${Math.round(value)} kg` }: BarChartProps) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const trackColor = colors.border[scheme];
 
@@ -28,7 +33,7 @@ export function BarChart({ data }: { data: BarChartEntry[] }) {
         <View key={entry.label} className="gap-xs">
           <View className="flex-row justify-between">
             <Typography variant="label">{entry.label}</Typography>
-            <Typography variant="caption">{Math.round(entry.value)} kg</Typography>
+            <Typography variant="caption">{formatValue(entry.value)}</Typography>
           </View>
           <Svg width="100%" height={BAR_HEIGHT} viewBox={`0 0 ${BAR_WIDTH} ${BAR_HEIGHT}`} preserveAspectRatio="none">
             <Rect x={0} y={0} width={BAR_WIDTH} height={BAR_HEIGHT} rx={BAR_HEIGHT / 2} fill={trackColor} />

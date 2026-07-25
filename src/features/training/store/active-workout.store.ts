@@ -9,14 +9,14 @@ function generateLocalId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-// Deliberately narrower than routines/types RoutineDraftExercise (no targetRepsMin/Max -- unused
-// here) so this store isn't coupled to the routines feature's exact shape, just this.
+// Deliberately narrower than routines/types RoutineDraftExercise (no targetReps -- unused here,
+// the active workout only pre-fills weight, not reps, see startFromRoutine below) so this store
+// isn't coupled to the routines feature's exact shape, just this.
 interface RoutineExerciseSeed {
   exerciseId: string;
   name: string;
-  targetSets: number;
-  targetWeight: number | null;
   restSeconds: number | null;
+  sets: { targetWeight: number | null }[];
 }
 
 interface ActiveWorkoutState {
@@ -107,9 +107,9 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
                   name: exercise.name,
                   notes: '',
                   restSeconds: exercise.restSeconds,
-                  sets: Array.from({ length: exercise.targetSets }, () => ({
+                  sets: exercise.sets.map((seedSet) => ({
                     id: generateLocalId(),
-                    weight: exercise.targetWeight,
+                    weight: seedSet.targetWeight,
                     reps: null,
                     completed: false,
                   })),

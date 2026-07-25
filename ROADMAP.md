@@ -51,3 +51,9 @@
 - Workout Sharing
 - Freunde
 - Leaderboards
+
+---
+
+## Vollständiges Produkt-/UX-/Architektur-Audit (2026-07-24)
+
+Nach Abschluss von Phase 4 und dem Nocturne-Redesign wurde eine vollständige Analyse der App aus Produkt-, UX-, UI-, Architektur-, Performance-, Datenbank- und Sicherheitssicht durchgeführt, inkl. über 100 neuer Feature-Ideen und einer priorisierten Top-50-Roadmap. Vollständiger Inhalt in `PRODUCT_AUDIT.md` — dieses Dokument (`ROADMAP.md`) bleibt die grobe Phasen-Einteilung, `PRODUCT_AUDIT.md`s "Priorisierte Gesamt-Roadmap" ist die konkrete, sofort umsetzbare Punkteliste für die nächsten Schritte nach Phase 4.

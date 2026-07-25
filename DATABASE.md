@@ -2,6 +2,8 @@
 
 Überarbeitetes, skalierbares Schema (PostgreSQL / Supabase). Kernänderungen gegenüber dem ersten Entwurf: UUID-Primärschlüssel statt String-IDs, `profiles` statt eigener `users`-Tabelle (Supabase verwaltet `auth.users`), vollständiges Exercise-Schema passend zu `exercises-dataset-main/data/exercises.schema.json`, Satz-Typen, zeitbasierte Sätze, Routinen-Sollwerte, Soft-Deletes, eigene `personal_records`-Tabelle, RLS pro Tabelle.
 
+**Stand: nach Migration `0005_add_routine_exercise_sets.sql`.** Für eine vollständige DB-/Sicherheitsanalyse (fehlende Indizes, fehlende Wertebereichs-Constraints, Security-Advisor-Befunde) siehe `PRODUCT_AUDIT.md`, Abschnitte 6 und 7.
+
 ## profiles (1:1 zu auth.users)
 
 - `id` uuid PK → `auth.users.id`
@@ -42,11 +44,17 @@
 - `routine_id` uuid → `routines.id`
 - `exercise_id` uuid → `exercises.id`
 - `order_index` int
-- `target_sets` int
-- `target_reps_min` int
-- `target_reps_max` int NULL
-- `target_weight` numeric NULL
 - `rest_seconds` int NULL
+
+Die früheren Aggregat-Spalten (`target_sets`, `target_reps_min`, `target_reps_max`, `target_weight`) wurden in Migration `0005_add_routine_exercise_sets.sql` entfernt und durch die untenstehende `routine_exercise_sets`-Tabelle ersetzt (echtes Pro-Satz-Zielmodell statt eines Aggregats).
+
+## routine_exercise_sets
+
+- `id` uuid PK
+- `routine_exercise_id` uuid → `routine_exercises.id` (`on delete cascade`)
+- `set_number` int
+- `target_weight` numeric NULL
+- `target_reps` int NULL
 
 ## workouts
 
@@ -109,8 +117,11 @@ Jede nutzerbezogene Tabelle (`routines`, `workouts`, `sets` via Join über `work
 - `workouts(user_id, started_at desc)`
 - `sets(workout_exercise_id)`
 - `routine_exercises(routine_id, order_index)`
+- `routine_exercise_sets(routine_exercise_id, set_number)`
 - `exercises(category)`
 - GIN-Index auf `exercises(secondary_muscles)`
+
+**Bekannte Lücke (siehe `PRODUCT_AUDIT.md`, Abschnitt 6.1):** `workout_exercises` hat aktuell außer dem Primärschlüssel keinen Index — weder auf `workout_id` noch auf `exercise_id`, obwohl beide Spalten in mehreren Kern-Queries (`getWorkoutDetail`, `getWorkoutHistory`, `getProfileWorkoutSeries`, `getExerciseHistory`) gefiltert werden. Noch nicht behoben.
 
 ## Berechnungslogik
 

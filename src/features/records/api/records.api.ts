@@ -3,7 +3,7 @@ import { supabase } from '@/shared/lib/supabase';
 import type { ExerciseRecordSummary } from '../types/record.types';
 
 // Flat queries joined in JS -- same pattern as elsewhere (getWorkoutDetail, getExerciseHistory,
-// getMuscleSplit). One row per exercise, combining whichever of the two record types
+// computeWorkoutMuscleSplit). One row per exercise, combining whichever of the two record types
 // (max_weight, estimated_1rm) exist for it -- an exercise can have only one of the two if its
 // sets were never logged with both weight and reps (see 0003_add_estimated_1rm_personal_record.sql).
 export async function getPersonalRecords(userId: string): Promise<ExerciseRecordSummary[]> {

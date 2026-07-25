@@ -99,7 +99,7 @@ export default function ExercisePickerScreen() {
   function handleConfirmSelection() {
     const selected = (exercises ?? [])
       .filter((exercise) => selectedIds.has(exercise.id))
-      .map((exercise) => ({ id: exercise.id, name: exercise.name }));
+      .map((exercise) => ({ id: exercise.id, name: exercise.name, imageUrl: exercise.imageUrl }));
     if (target === 'workout') {
       addExercisesToWorkoutDraft(selected);
     } else {
@@ -157,7 +157,7 @@ export default function ExercisePickerScreen() {
           description={
             hasActiveFilter
               ? 'Versuch es mit anderen Filtern oder einem anderen Suchbegriff.'
-              : 'Führe `npm run db:seed` aus, um das Exercise-Dataset in Supabase zu importieren.'
+              : 'Die Übungsdatenbank ist momentan nicht verfügbar. Versuch es später noch einmal oder erstell dir in der Zwischenzeit eine eigene Übung.'
           }
         />
       ) : (

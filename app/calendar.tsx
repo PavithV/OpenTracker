@@ -13,28 +13,10 @@ import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
+import { GERMAN_MONTHS } from '@/shared/utils/format';
 import { useSessionStore } from '@/store/session.store';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-
-// dayjs läuft in dieser App ohne 'de'-Locale (nirgends per `dayjs.locale('de')` konfiguriert --
-// alle bestehenden `.format(...)`-Aufrufe verwenden rein numerische Formate wie 'DD.MM.YYYY',
-// die davon unabhängig sind). Ein eigenes globales Locale-Setup wäre Scope-Creep für diesen
-// Screen -- daher hier ein lokales Array statt `.format('MMMM')`.
-const GERMAN_MONTHS = [
-  'Januar',
-  'Februar',
-  'März',
-  'April',
-  'Mai',
-  'Juni',
-  'Juli',
-  'August',
-  'September',
-  'Oktober',
-  'November',
-  'Dezember',
-];
 
 export default function CalendarScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
