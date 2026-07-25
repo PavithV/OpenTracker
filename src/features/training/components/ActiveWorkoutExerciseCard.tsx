@@ -59,65 +59,68 @@ export function ActiveWorkoutExerciseCard({
           {exercise.name}
         </Typography>
 
-        {isCompact ? null : (
+        <View style={isCompact ? { opacity: 0 } : undefined} pointerEvents={isCompact ? 'none' : 'auto'}>
           <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
             <Trash size={ICON_SIZE.md} color={colors.danger} />
           </Pressable>
-        )}
+        </View>
       </View>
 
-      {isCompact ? null : (
-        <>
-          <View className="mt-sm gap-xs">
-            {exercise.sets.map((set, index) => (
-              <View key={set.id} className="flex-row items-center gap-sm">
-                <Typography variant="caption" className="w-8">
-                  {index + 1}
-                </Typography>
-                <View className="w-20">
-                  <Input
-                    placeholder="kg"
-                    keyboardType="numeric"
-                    value={set.weight === null ? '' : String(set.weight)}
-                    onChangeText={(text) => onUpdateSet(set.id, { weight: toNumberOrNull(text) })}
-                  />
-                </View>
-                <View className="w-20">
-                  <Input
-                    placeholder="Wdh"
-                    keyboardType="numeric"
-                    value={set.reps === null ? '' : String(set.reps)}
-                    onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
-                  />
-                </View>
-                <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
-                  <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
-                </Pressable>
-                <Pressable onPress={() => onToggleSetCompleted(set.id)} hitSlop={8} className="active:opacity-60">
-                  {set.completed ? (
-                    <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />
-                  ) : (
-                    <Circle size={ICON_SIZE.md} color={secondaryColor} />
-                  )}
-                </Pressable>
-                <Pressable onPress={() => onRemoveSet(set.id)} hitSlop={8} className="active:opacity-60">
-                  <Trash size={ICON_SIZE.sm} color={secondaryColor} />
-                </Pressable>
+      {/* Stays mounted (never conditionally removed) so the Card's height never changes while a
+          drag is active -- react-native-draggable-flatlist caches each row's measured layout to
+          compute drag offsets, and a height change on every row at the exact moment a drag
+          starts/ends desyncs those cached positions, causing rows to overlap. Opacity + disabled
+          pointer events achieve the same "name + image only" look without touching layout. */}
+      <View style={isCompact ? { opacity: 0 } : undefined} pointerEvents={isCompact ? 'none' : 'auto'}>
+        <View className="mt-sm gap-xs">
+          {exercise.sets.map((set, index) => (
+            <View key={set.id} className="flex-row items-center gap-sm">
+              <Typography variant="caption" className="w-8">
+                {index + 1}
+              </Typography>
+              <View className="w-20">
+                <Input
+                  placeholder="kg"
+                  keyboardType="numeric"
+                  value={set.weight === null ? '' : String(set.weight)}
+                  onChangeText={(text) => onUpdateSet(set.id, { weight: toNumberOrNull(text) })}
+                />
               </View>
-            ))}
-          </View>
+              <View className="w-20">
+                <Input
+                  placeholder="Wdh"
+                  keyboardType="numeric"
+                  value={set.reps === null ? '' : String(set.reps)}
+                  onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
+                />
+              </View>
+              <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
+                <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
+              </Pressable>
+              <Pressable onPress={() => onToggleSetCompleted(set.id)} hitSlop={8} className="active:opacity-60">
+                {set.completed ? (
+                  <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />
+                ) : (
+                  <Circle size={ICON_SIZE.md} color={secondaryColor} />
+                )}
+              </Pressable>
+              <Pressable onPress={() => onRemoveSet(set.id)} hitSlop={8} className="active:opacity-60">
+                <Trash size={ICON_SIZE.sm} color={secondaryColor} />
+              </Pressable>
+            </View>
+          ))}
+        </View>
 
-          <Button label="Satz hinzufügen" variant="ghost" size="sm" onPress={onAddSet} />
+        <Button label="Satz hinzufügen" variant="ghost" size="sm" onPress={onAddSet} />
 
-          <Input
-            placeholder="Notizen zu dieser Übung…"
-            value={exercise.notes}
-            onChangeText={onUpdateNotes}
-            multiline
-            numberOfLines={2}
-          />
-        </>
-      )}
+        <Input
+          placeholder="Notizen zu dieser Übung…"
+          value={exercise.notes}
+          onChangeText={onUpdateNotes}
+          multiline
+          numberOfLines={2}
+        />
+      </View>
     </Card>
   );
 }

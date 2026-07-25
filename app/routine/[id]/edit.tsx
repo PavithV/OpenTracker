@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, Alert } from 'react-native';
@@ -11,6 +11,7 @@ import { Typography } from '@/shared/components/Typography';
 
 export default function EditRoutineScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const hydratedRoutineId = useRoutineDraftStore((state) => state.hydratedRoutineId);
   const hydrate = useRoutineDraftStore((state) => state.hydrate);
 
@@ -51,7 +52,12 @@ export default function EditRoutineScreen() {
       <Typography variant="title" className="py-md">
         Routine bearbeiten
       </Typography>
-      <RoutineForm onSave={(name, notes, exercises) => updateRoutine(id, name, notes, exercises)} />
+      <RoutineForm
+        onSave={async (name, notes, exercises) => {
+          await updateRoutine(id, name, notes, exercises);
+          queryClient.invalidateQueries({ queryKey: ['routines', 'list'] });
+        }}
+      />
     </Screen>
   );
 }
