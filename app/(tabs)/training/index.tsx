@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Alert, FlatList, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { archiveRoutine, getRoutineForEdit, getRoutines } from '@/features/routines/api/routines.api';
 import { RoutineCard } from '@/features/routines/components/RoutineCard';
@@ -11,11 +12,13 @@ import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
 import { useSessionStore } from '@/store/session.store';
 
 export default function TrainingScreen() {
   const session = useSessionStore((state) => state.session);
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
 
   const { data: routines, isLoading } = useQuery({
     queryKey: ['routines', 'list', session?.user.id],
@@ -66,38 +69,42 @@ export default function TrainingScreen() {
 
   return (
     <Screen edges={['top', 'left', 'right']}>
-      <View className="py-md">
-        <Typography variant="title">Training</Typography>
+      {/* The tab bar floats (`position: 'absolute'`, required for its blur background -- see
+          app/(tabs)/_layout.tsx), so it no longer reserves its own layout space here. */}
+      <View style={{ flex: 1, paddingBottom: TAB_BAR_CLEARANCE_BASE + insets.bottom }}>
+        <View className="py-md">
+          <Typography variant="title">Training</Typography>
+        </View>
+
+        {!isLoading && routines?.length === 0 ? (
+          <EmptyState
+            title="Noch keine Routinen"
+            description="Erstelle deine erste Routine, um sie hier zu sehen."
+          />
+        ) : (
+          <FlatList
+            className="flex-1"
+            data={routines ?? []}
+            keyExtractor={(item) => item.id}
+            contentContainerClassName="gap-sm"
+            renderItem={({ item }) => (
+              <RoutineCard
+                routine={item}
+                onPress={() => router.push(`/routine/${item.id}/edit`)}
+                onStart={() => handleStartRoutine(item.id)}
+                onDelete={() => handleDeleteRoutine(item.id, item.name)}
+              />
+            )}
+          />
+        )}
+
+        <View className="gap-md py-md">
+          <Button label="Leeres Workout starten" onPress={() => router.push('/workout/active')} />
+          <Button label="Routine erstellen" variant="secondary" onPress={handleCreateRoutine} />
+        </View>
+
+        <ActiveWorkoutMiniBar />
       </View>
-
-      {!isLoading && routines?.length === 0 ? (
-        <EmptyState
-          title="Noch keine Routinen"
-          description="Erstelle deine erste Routine, um sie hier zu sehen."
-        />
-      ) : (
-        <FlatList
-          className="flex-1"
-          data={routines ?? []}
-          keyExtractor={(item) => item.id}
-          contentContainerClassName="gap-sm"
-          renderItem={({ item }) => (
-            <RoutineCard
-              routine={item}
-              onPress={() => router.push(`/routine/${item.id}/edit`)}
-              onStart={() => handleStartRoutine(item.id)}
-              onDelete={() => handleDeleteRoutine(item.id, item.name)}
-            />
-          )}
-        />
-      )}
-
-      <View className="gap-md py-md">
-        <Button label="Leeres Workout starten" onPress={() => router.push('/workout/active')} />
-        <Button label="Routine erstellen" variant="secondary" onPress={handleCreateRoutine} />
-      </View>
-
-      <ActiveWorkoutMiniBar />
     </Screen>
   );
 }

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { signOut } from '@/features/auth/api/auth.api';
 import { getProfile, getProfileStats } from '@/features/profile/api/profile.api';
@@ -11,6 +12,7 @@ import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
 import { useSessionStore } from '@/store/session.store';
 
 // "Jordan Diaz" -> "JD"; falls back to the first two letters of the email's local part when
@@ -28,6 +30,7 @@ function getInitials(displayName: string | null | undefined, email: string | und
 
 export default function ProfileScreen() {
   const session = useSessionStore((state) => state.session);
+  const insets = useSafeAreaInsets();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', session?.user.id],
@@ -43,37 +46,41 @@ export default function ProfileScreen() {
 
   return (
     <Screen edges={['top', 'left', 'right']}>
-      <ScrollView className="flex-1" contentContainerClassName="gap-lg py-md">
-        <Typography variant="title">Profil</Typography>
+      {/* The tab bar floats (`position: 'absolute'`, required for its blur background -- see
+          app/(tabs)/_layout.tsx), so it no longer reserves its own layout space here. */}
+      <View style={{ flex: 1, paddingBottom: TAB_BAR_CLEARANCE_BASE + insets.bottom }}>
+        <ScrollView className="flex-1" contentContainerClassName="gap-lg py-md">
+          <Typography variant="title">Profil</Typography>
 
-        <Card>
-          <View className="flex-row items-center gap-md">
-            <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
-              <Typography variant="cardTitle" color="accent">
-                {getInitials(profile?.displayName, session?.user.email)}
-              </Typography>
+          <Card>
+            <View className="flex-row items-center gap-md">
+              <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
+                <Typography variant="cardTitle" color="accent">
+                  {getInitials(profile?.displayName, session?.user.email)}
+                </Typography>
+              </View>
+              <View>
+                <Typography variant="cardTitle">{profile?.displayName ?? session?.user.email}</Typography>
+                <Typography variant="subtitle">{session?.user.email}</Typography>
+              </View>
             </View>
-            <View>
-              <Typography variant="cardTitle">{profile?.displayName ?? session?.user.email}</Typography>
-              <Typography variant="subtitle">{session?.user.email}</Typography>
-            </View>
+          </Card>
+
+          {stats ? <ProfileStatsCard stats={stats} /> : null}
+
+          {session ? <ProfileVolumeChart userId={session.user.id} /> : null}
+
+          <View className="gap-sm">
+            <Button label="Rekorde ansehen" variant="secondary" onPress={() => router.push('/records')} />
+
+            <Button label="Workout-Erinnerungen" variant="secondary" onPress={() => router.push('/reminders')} />
+
+            <Button label="Abmelden" variant="ghost" color="danger" onPress={() => signOut()} />
           </View>
-        </Card>
+        </ScrollView>
 
-        {stats ? <ProfileStatsCard stats={stats} /> : null}
-
-        {session ? <ProfileVolumeChart userId={session.user.id} /> : null}
-
-        <View className="gap-sm">
-          <Button label="Rekorde ansehen" variant="secondary" onPress={() => router.push('/records')} />
-
-          <Button label="Workout-Erinnerungen" variant="secondary" onPress={() => router.push('/reminders')} />
-
-          <Button label="Abmelden" variant="ghost" color="danger" onPress={() => signOut()} />
-        </View>
-      </ScrollView>
-
-      <ActiveWorkoutMiniBar />
+        <ActiveWorkoutMiniBar />
+      </View>
     </Screen>
   );
 }

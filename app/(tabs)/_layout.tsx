@@ -17,13 +17,13 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.textTertiary[scheme],
         // Mockup's bottom tab bar is a `backdrop-filter: blur(20px) saturate(180%)` glass
         // surface -- `tabBarBackground` renders the blur behind a transparent bar instead of the
-        // previous solid `backgroundColor`. Not `position: 'absolute'`: that would let content
-        // scroll under the (translucent) bar for a true overlay effect, but every tab screen's
-        // `Screen` already assumes the tab bar reserves its own layout space (`edges` excludes
-        // `'bottom'` specifically because "the tab bar is the bottom buffer") -- keeping normal
-        // flow avoids reworking that convention across every screen for this redesign.
+        // previous solid `backgroundColor`. `position: 'absolute'` is required here (see Expo
+        // Router's Tabs docs: "When using BlurView, make sure to set position: 'absolute' in
+        // tabBarStyle as well") -- omitting it crashed the app on load. Pulling the bar out of
+        // layout flow means each tab screen now pads its own bottom content by
+        // `TAB_BAR_CLEARANCE_BASE` (+ safe-area inset) so nothing renders underneath it.
         tabBarStyle: {
-          position: 'relative',
+          position: 'absolute',
           backgroundColor: 'transparent',
           borderTopColor: colors.border[scheme],
         },
