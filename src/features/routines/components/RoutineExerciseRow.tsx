@@ -1,6 +1,5 @@
 import { DotsSixVertical, Trash } from 'phosphor-react-native';
-import { Image, Pressable, useColorScheme, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { Image, type LayoutChangeEvent, Pressable, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -15,6 +14,7 @@ interface RoutineExerciseRowProps {
   exercise: RoutineDraftExercise;
   drag: () => void;
   isCompact: boolean;
+  onContentHeightChange: (height: number) => void;
   onRemoveExercise: () => void;
   onAddSet: () => void;
   onRemoveSet: (setId: string) => void;
@@ -30,6 +30,7 @@ export function RoutineExerciseRow({
   exercise,
   drag,
   isCompact,
+  onContentHeightChange,
   onRemoveExercise,
   onAddSet,
   onRemoveSet,
@@ -64,7 +65,7 @@ export function RoutineExerciseRow({
       </View>
 
       {!isCompact && (
-        <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)}>
+        <View onLayout={(e: LayoutChangeEvent) => onContentHeightChange(e.nativeEvent.layout.height)}>
           <View className="mt-md gap-sm">
             <View className="flex-row items-center gap-sm">
               <Typography variant="caption" className="w-10">
@@ -122,7 +123,7 @@ export function RoutineExerciseRow({
               onChangeText={(text) => onUpdateRestSeconds(toNumberOrNull(text))}
             />
           </View>
-        </Animated.View>
+        </View>
       )}
     </Card>
   );

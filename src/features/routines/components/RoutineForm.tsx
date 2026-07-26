@@ -1,8 +1,7 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, View } from 'react-native';
 import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import Animated, { LinearTransition } from 'react-native-reanimated';
 
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -34,6 +33,8 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeRowOffset, setActiveRowOffset] = useState(0);
+  const contentHeights = useRef<Map<string, number>>(new Map());
 
   async function handleSave() {
     if (name.trim().length === 0) {
@@ -60,26 +61,27 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
 
   function renderItem({ item, drag, getIndex }: RenderItemParams<RoutineDraftExercise>) {
     const rowIndex = getIndex();
-    // Every row except the one being dragged compacts. The resulting height change is animated
-    // via `layout` below (and via entering/exiting inside RoutineExerciseRow), so rows -- including
-    // the dragged one -- glide to their new resting position instead of snapping there.
+    // Every row except the one being dragged compacts, instantly. Rows above the dragged one
+    // shrinking would normally shove its native position upward mid-gesture (Yoga reflow) -- the
+    // `activeRowOffset` transform below cancels that out exactly, in the same commit, so the
+    // dragged card doesn't move at all instead of trying to animate the jump away.
     const isCompact = isDragging && activeIndex !== null && rowIndex !== undefined && rowIndex !== activeIndex;
+    const isActiveRow = isDragging && rowIndex !== undefined && rowIndex === activeIndex;
     return (
       <ScaleDecorator>
-        <Animated.View layout={LinearTransition.duration(200)}>
-          <View className="mb-sm">
-            <RoutineExerciseRow
-              exercise={item}
-              drag={drag}
-              isCompact={isCompact}
-              onRemoveExercise={() => removeExercise(item.exerciseId)}
-              onAddSet={() => addSet(item.exerciseId)}
-              onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
-              onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
-              onUpdateRestSeconds={(restSeconds) => updateRestSeconds(item.exerciseId, restSeconds)}
-            />
-          </View>
-        </Animated.View>
+        <View className="mb-sm" style={isActiveRow ? { transform: [{ translateY: activeRowOffset }] } : undefined}>
+          <RoutineExerciseRow
+            exercise={item}
+            drag={drag}
+            isCompact={isCompact}
+            onContentHeightChange={(height) => contentHeights.current.set(item.exerciseId, height)}
+            onRemoveExercise={() => removeExercise(item.exerciseId)}
+            onAddSet={() => addSet(item.exerciseId)}
+            onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+            onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
+            onUpdateRestSeconds={(restSeconds) => updateRestSeconds(item.exerciseId, restSeconds)}
+          />
+        </View>
       </ScaleDecorator>
     );
   }
@@ -101,12 +103,18 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
           data={exercises}
           keyExtractor={(item) => item.exerciseId}
           onDragBegin={(index) => {
+            let offset = 0;
+            for (let i = 0; i < index; i++) {
+              offset += contentHeights.current.get(exercises[i].exerciseId) ?? 0;
+            }
             setIsDragging(true);
             setActiveIndex(index);
+            setActiveRowOffset(offset);
           }}
           onDragEnd={({ data }) => {
             setIsDragging(false);
             setActiveIndex(null);
+            setActiveRowOffset(0);
             reorderExercises(data);
           }}
           ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
