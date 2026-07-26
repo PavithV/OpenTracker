@@ -4,6 +4,7 @@ import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, us
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as Linking from 'expo-linking';
+import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,6 +13,8 @@ import { handleAuthDeepLink } from '@/features/auth/utils/deep-link';
 import { queryClient } from '@/shared/lib/query-client';
 import { supabase } from '@/shared/lib/supabase';
 import { useSessionStore } from '@/store/session.store';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const session = useSessionStore((state) => state.session);
@@ -56,7 +59,13 @@ export default function RootLayout() {
       });
   }, [deepLinkUrl, setPasswordRecovery]);
 
-  if (isInitializing || !fontsLoaded) {
+  const isReady = !isInitializing && fontsLoaded;
+
+  useEffect(() => {
+    if (isReady) SplashScreen.hideAsync();
+  }, [isReady]);
+
+  if (!isReady) {
     return null;
   }
 
