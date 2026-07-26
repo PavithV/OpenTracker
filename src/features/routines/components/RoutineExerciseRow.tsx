@@ -1,5 +1,5 @@
 import { DotsSixVertical, Trash } from 'phosphor-react-native';
-import { Image, type LayoutChangeEvent, Pressable, useColorScheme, View } from 'react-native';
+import { Image, Pressable, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -14,7 +14,7 @@ interface RoutineExerciseRowProps {
   exercise: RoutineDraftExercise;
   drag: () => void;
   isCompact: boolean;
-  onContentHeightChange: (height: number) => void;
+  isActiveDrag: boolean;
   onRemoveExercise: () => void;
   onAddSet: () => void;
   onRemoveSet: (setId: string) => void;
@@ -30,7 +30,7 @@ export function RoutineExerciseRow({
   exercise,
   drag,
   isCompact,
-  onContentHeightChange,
+  isActiveDrag,
   onRemoveExercise,
   onAddSet,
   onRemoveSet,
@@ -58,14 +58,19 @@ export function RoutineExerciseRow({
         </Typography>
 
         {!isCompact && (
-          <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
-            <Trash size={ICON_SIZE.md} color={colors.danger} />
-          </Pressable>
+          <View
+            style={isActiveDrag ? { opacity: 0 } : undefined}
+            pointerEvents={isActiveDrag ? 'none' : 'auto'}
+          >
+            <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
+              <Trash size={ICON_SIZE.md} color={colors.danger} />
+            </Pressable>
+          </View>
         )}
       </View>
 
       {!isCompact && (
-        <View onLayout={(e: LayoutChangeEvent) => onContentHeightChange(e.nativeEvent.layout.height)}>
+        <View style={isActiveDrag ? { opacity: 0 } : undefined} pointerEvents={isActiveDrag ? 'none' : 'auto'}>
           <View className="mt-md gap-sm">
             <View className="flex-row items-center gap-sm">
               <Typography variant="caption" className="w-10">

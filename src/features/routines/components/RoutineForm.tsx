@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 
@@ -33,8 +33,6 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [activeRowOffset, setActiveRowOffset] = useState(0);
-  const contentHeights = useRef<Map<string, number>>(new Map());
 
   async function handleSave() {
     if (name.trim().length === 0) {
@@ -61,20 +59,22 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
 
   function renderItem({ item, drag, getIndex }: RenderItemParams<RoutineDraftExercise>) {
     const rowIndex = getIndex();
-    // Every row except the one being dragged compacts, instantly. Rows above the dragged one
-    // shrinking would normally shove its native position upward mid-gesture (Yoga reflow) -- the
-    // `activeRowOffset` transform below cancels that out exactly, in the same commit, so the
-    // dragged card doesn't move at all instead of trying to animate the jump away.
-    const isCompact = isDragging && activeIndex !== null && rowIndex !== undefined && rowIndex !== activeIndex;
     const isActiveRow = isDragging && rowIndex !== undefined && rowIndex === activeIndex;
+    // Every row except the one being dragged compacts for real (its measured height shrinks --
+    // react-native-draggable-flatlist re-measures non-active rows live via onLayout, so this is
+    // safe). The active row's own measured height must never change mid-gesture -- the library
+    // freezes it once at drag start to compute how far other rows shift when swapped with it --
+    // so it stays visually "only name + image" via opacity/pointerEvents in RoutineExerciseRow
+    // instead (isActiveDrag below), never via unmounting.
+    const isCompact = isDragging && !isActiveRow;
     return (
       <ScaleDecorator>
-        <View className="mb-sm" style={isActiveRow ? { transform: [{ translateY: activeRowOffset }] } : undefined}>
+        <View className="mb-sm">
           <RoutineExerciseRow
             exercise={item}
             drag={drag}
             isCompact={isCompact}
-            onContentHeightChange={(height) => contentHeights.current.set(item.exerciseId, height)}
+            isActiveDrag={isActiveRow}
             onRemoveExercise={() => removeExercise(item.exerciseId)}
             onAddSet={() => addSet(item.exerciseId)}
             onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
@@ -103,18 +103,12 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
           data={exercises}
           keyExtractor={(item) => item.exerciseId}
           onDragBegin={(index) => {
-            let offset = 0;
-            for (let i = 0; i < index; i++) {
-              offset += contentHeights.current.get(exercises[i].exerciseId) ?? 0;
-            }
             setIsDragging(true);
             setActiveIndex(index);
-            setActiveRowOffset(offset);
           }}
           onDragEnd={({ data }) => {
             setIsDragging(false);
             setActiveIndex(null);
-            setActiveRowOffset(0);
             reorderExercises(data);
           }}
           ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
