@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Alert, FlatList, View } from 'react-native';
+import { WarningCircle } from 'phosphor-react-native';
+import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { archiveRoutine, getRoutineForEdit, getRoutines } from '@/features/routines/api/routines.api';
@@ -13,6 +14,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { useSessionStore } from '@/store/session.store';
 
 export default function TrainingScreen() {
@@ -20,7 +22,7 @@ export default function TrainingScreen() {
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 
-  const { data: routines, isLoading } = useQuery({
+  const { data: routines, isLoading, error, refetch } = useQuery({
     queryKey: ['routines', 'list', session?.user.id],
     queryFn: () => getRoutines(session!.user.id),
     enabled: !!session,
@@ -76,7 +78,16 @@ export default function TrainingScreen() {
           <Typography variant="title">Training</Typography>
         </View>
 
-        {!isLoading && routines?.length === 0 ? (
+        {isLoading ? (
+          <ActivityIndicator className="mt-md" />
+        ) : error ? (
+          <EmptyState
+            icon={WarningCircle}
+            title="Etwas ist schiefgelaufen"
+            description={getErrorMessage(error)}
+            action={{ label: 'Erneut versuchen', onPress: () => refetch() }}
+          />
+        ) : routines?.length === 0 ? (
           <EmptyState
             title="Noch keine Routinen"
             description="Erstelle deine erste Routine, um sie hier zu sehen."

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Calendar, ClockCounterClockwise } from 'phosphor-react-native';
-import { FlatList, Pressable, useColorScheme, View } from 'react-native';
+import { Calendar, ClockCounterClockwise, WarningCircle } from 'phosphor-react-native';
+import { ActivityIndicator, FlatList, Pressable, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getWorkoutHistory } from '@/features/home/api/workouts.api';
@@ -12,6 +12,7 @@ import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE, TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { useSessionStore } from '@/store/session.store';
 
 export default function HomeScreen() {
@@ -19,7 +20,7 @@ export default function HomeScreen() {
   const session = useSessionStore((state) => state.session);
   const insets = useSafeAreaInsets();
 
-  const { data: workouts, isLoading } = useQuery({
+  const { data: workouts, isLoading, error, refetch } = useQuery({
     queryKey: ['workouts', 'history', session?.user.id],
     queryFn: () => getWorkoutHistory(session!.user.id),
     enabled: !!session,
@@ -41,7 +42,16 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {!isLoading && workouts?.length === 0 ? (
+        {isLoading ? (
+          <ActivityIndicator className="mt-md" />
+        ) : error ? (
+          <EmptyState
+            icon={WarningCircle}
+            title="Etwas ist schiefgelaufen"
+            description={getErrorMessage(error)}
+            action={{ label: 'Erneut versuchen', onPress: () => refetch() }}
+          />
+        ) : workouts?.length === 0 ? (
           <EmptyState
             icon={ClockCounterClockwise}
             title="Noch keine Workouts"

@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import { router } from 'expo-router';
-import { CaretLeft, CaretRight, ClockCounterClockwise } from 'phosphor-react-native';
+import { CaretLeft, CaretRight, ClockCounterClockwise, WarningCircle } from 'phosphor-react-native';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 
 import { getWorkoutHistory } from '@/features/home/api/workouts.api';
 import { WorkoutHistoryCard } from '@/features/home/components/WorkoutHistoryCard';
@@ -14,6 +14,7 @@ import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { GERMAN_MONTHS } from '@/shared/utils/format';
 import { useSessionStore } from '@/store/session.store';
 
@@ -37,7 +38,7 @@ export default function CalendarScreen() {
   const [monthRef, setMonthRef] = useState(() => dayjs().startOf('month'));
   const [selectedDate, setSelectedDate] = useState<string | null>(() => dayjs().format('YYYY-MM-DD'));
 
-  const { data: workouts } = useQuery({
+  const { data: workouts, isLoading, error, refetch } = useQuery({
     queryKey: ['workouts', 'history', session?.user.id],
     queryFn: () => getWorkoutHistory(session!.user.id),
     enabled: !!session,
@@ -115,7 +116,17 @@ export default function CalendarScreen() {
         ))}
 
         <View className="mt-md">
-          {selectedWorkouts.length === 0 ? (
+          {isLoading ? (
+            <ActivityIndicator />
+          ) : error ? (
+            <EmptyState
+              compact
+              icon={WarningCircle}
+              title="Etwas ist schiefgelaufen"
+              description={getErrorMessage(error)}
+              action={{ label: 'Erneut versuchen', onPress: () => refetch() }}
+            />
+          ) : selectedWorkouts.length === 0 ? (
             <EmptyState
               compact
               icon={ClockCounterClockwise}

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Trophy } from 'phosphor-react-native';
+import { Trophy, WarningCircle } from 'phosphor-react-native';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 
 import { getPersonalRecords } from '@/features/records/api/records.api';
@@ -8,12 +8,13 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ListItem } from '@/shared/components/ListItem';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { useSessionStore } from '@/store/session.store';
 
 export default function RecordsScreen() {
   const session = useSessionStore((state) => state.session);
 
-  const { data: records, isLoading } = useQuery({
+  const { data: records, isLoading, error, refetch } = useQuery({
     queryKey: ['records', session?.user.id],
     queryFn: () => getPersonalRecords(session!.user.id),
     enabled: !!session,
@@ -27,6 +28,13 @@ export default function RecordsScreen() {
 
       {isLoading ? (
         <ActivityIndicator className="mt-md" />
+      ) : error ? (
+        <EmptyState
+          icon={WarningCircle}
+          title="Etwas ist schiefgelaufen"
+          description={getErrorMessage(error)}
+          action={{ label: 'Erneut versuchen', onPress: () => refetch() }}
+        />
       ) : records?.length === 0 ? (
         <EmptyState
           icon={Trophy}

@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, MagnifyingGlass, Star } from 'phosphor-react-native';
+import { Check, MagnifyingGlass, Star, WarningCircle } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Image, Pressable, ScrollView, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, ScrollView, useColorScheme, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -27,6 +27,7 @@ import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { capitalize } from '@/shared/utils/format';
 import { useSessionStore } from '@/store/session.store';
 
@@ -55,7 +56,7 @@ export default function ExercisePickerScreen() {
   const addExercisesToRoutineDraft = useRoutineDraftStore((state) => state.addExercises);
   const addExercisesToWorkoutDraft = useActiveWorkoutStore((state) => state.addExercises);
 
-  const { data: exercises, isLoading } = useQuery({
+  const { data: exercises, isLoading, error, refetch } = useQuery({
     queryKey: ['exercises', 'picker', debouncedSearch, category, equipment],
     queryFn: () =>
       getExercises({ search: debouncedSearch || undefined, category: category ?? undefined, equipment: equipment ?? undefined }),
@@ -156,7 +157,16 @@ export default function ExercisePickerScreen() {
         />
       </View>
 
-      {!isLoading && visibleExercises.length === 0 ? (
+      {isLoading ? (
+        <ActivityIndicator className="mt-md" />
+      ) : error ? (
+        <EmptyState
+          icon={WarningCircle}
+          title="Etwas ist schiefgelaufen"
+          description={getErrorMessage(error)}
+          action={{ label: 'Erneut versuchen', onPress: () => refetch() }}
+        />
+      ) : visibleExercises.length === 0 ? (
         <EmptyState
           icon={MagnifyingGlass}
           title="Keine Übungen gefunden"

@@ -88,9 +88,23 @@ Die App verwendete bis dahin nachweislich Expos unbearbeitetes Scaffold-Template
 
 **Verifikation:** `tsc`/`lint`/`expo export --platform ios` **und** `--platform android` (Adaptive-Icon-Config ist android-spezifisch) sauber. **Wichtige Einschränkung:** Diese App lief bisher ausschließlich über Expo Go — Expo Go zeigt immer sein eigenes Icon, unabhängig von `app.json`. Icon und nativer Splash Screen werden daher erst in einem echten nativen Build sichtbar (`expo prebuild` + Xcode/Android Studio, oder der noch ausstehende EAS-Build aus `LAUNCH_PLAN.md` §4.3) — Bundling-Erfolg bestätigt nur, dass die Konfiguration korrekt ist, nicht das visuelle Ergebnis auf einem Gerät. Das generierte Icon wurde dem Nutzer vor dem Verbauen zur Freigabe gezeigt und bestätigt („Ship it").
 
+## Error-/Loading-States (Launch-Blocker #3) — ✅ abgeschlossen
+
+Betroffen waren Home, Training, Profil, Records, Kalender und Übungspicker: jeder `useQuery`-Aufruf dort prüfte bisher nie `error`, und die meisten zeigten während des Ladens einfach eine leere `FlatList` statt eines Spinners — ein Fetch-Fehler war dadurch von "wirklich keine Daten" nicht zu unterscheiden (Audit Kritisch #6, Hoch #13).
+
+**Ansatz — bestehende Bausteine erweitert statt neue erfunden:**
+- `src/shared/components/EmptyState.tsx` bekam ein neues, optionales `action`-Prop (`{ label, onPress }`), gerendert als bereits vorhandener `Button` (`variant="secondary" size="sm"`) unterhalb der Beschreibung. Kein separates `ErrorCard`-Bauteil — ein Fehlerzustand ist strukturell dieselbe Icon/Titel/Beschreibung-Form wie ein Leerzustand, nur mit Retry-Button und anderem Icon/Text.
+- Neue `getErrorMessage(err: unknown): string` in `src/shared/utils/errors.ts` (die im Audit als 10-/13-fach dupliziert dokumentierte `err instanceof Error ? err.message : 'Unbekannter Fehler'`-Zeile) — genutzt für die neuen Fehlerzustände. **Bewusst nicht** die 13 bestehenden Alert.alert-Stellen darauf umgestellt (Top-50-Punkt #33, eigener, separater Backlog-Punkt, nicht Teil von Blocker #3).
+- Ladezustand: überall dieselbe bereits etablierte `<ActivityIndicator className="mt-md" />`-Konvention (bisher nur in `records.tsx` vorhanden) wiederverwendet, keine neue Skeleton-Lösung eingeführt.
+- Fehlerzustand: `<EmptyState icon={WarningCircle} title="Etwas ist schiefgelaufen" description={getErrorMessage(error)} action={{label:'Erneut versuchen', onPress: () => refetch()}} />`, an allen sechs Stellen identisch.
+
+**Screen-spezifische Details:** Home/Training/Records/Picker folgen alle demselben dreistufigen `isLoading ? Spinner : error ? ErrorState : leer ? EmptyState : Liste`-Muster. Profil kombiniert seine zwei Queries (`profile`+`stats`) zu einem gemeinsamen `isLoading`/`error`, gated aber nur der datengetriebene Kartenblock (Avatar-Karte + Stats-Karte) — Erscheinungsbild-Umschalter, Diagramm (eigene, unabhängige Query) und die Aktions-Buttons (inkl. Abmelden/Konto löschen) bleiben bewusst immer erreichbar, auch bei einem Fetch-Fehler. Kalender behebt zusätzlich die im Audit explizit genannte Lücke "Leerzustand ununterscheidbar von 'lädt noch'" (`workouts`-Query hatte bisher gar kein `isLoading` destrukturiert).
+
+**Verifikation:** `tsc`/`lint`/`expo export --platform ios` sauber.
+
 ## Nächster Schritt
 
-**Alle 7 Punkte der Phase-4-Bestandsaufnahme sind erledigt**, dazu Nocturne- und iOS-Redesign sowie Launch-Blocker #1 (Teil A) und #2. Nächster sinnvoller Schritt laut `LAUNCH_PLAN.md` §3: Launch-Blocker #3 (Error-/Loading-States für Home/Training/Profil/Records/Kalender/Picker) — oder, unabhängig vom Code, die Web-Seite aus Blocker #1 sowie die Google-Play-Konto-Anlage/Tester-Rekrutierung (§4.2, zeitlich der langsamste Teil, sollte so früh wie möglich parallel starten). Danach der Reihe nach Blocker #4–#10.
+**Alle 7 Punkte der Phase-4-Bestandsaufnahme sind erledigt**, dazu Nocturne- und iOS-Redesign sowie Launch-Blocker #1 (Teil A), #2 und #3. Nächster sinnvoller Schritt laut `LAUNCH_PLAN.md` §3: Launch-Blocker #4 (Leaked-Password-Protection in Supabase aktivieren, 1 Toggle) und #5 (Migration für fehlende `workout_exercises`-Indizes + Wertebereichs-Constraints) — oder, unabhängig vom Code, die Web-Seite aus Blocker #1 sowie die Google-Play-Konto-Anlage/Tester-Rekrutierung (§4.2, zeitlich der langsamste Teil, sollte so früh wie möglich parallel starten — Store-Listing-Text-Entwurf liegt bereits vor, siehe Session-Notiz). Danach der Reihe nach Blocker #6–#10.
 
 Weiterhin unverändert offen: die vollständige On-Device-Funktions-/Visualprüfung (siehe vorherige Sessions) — Kernfunktionalität und beide Redesigns sind nach wie vor nur gegen `tsc`/`lint`/Bundling bzw. per SQL-Simulation geprüft, nie vollständig auf einem echten Gerät durchgespielt.
 

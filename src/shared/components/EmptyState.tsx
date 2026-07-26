@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { Text, useColorScheme, View } from 'react-native';
 
+import { Button } from '@/shared/components/Button';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
 
@@ -11,9 +12,12 @@ interface EmptyStateProps {
   // Top-aligned instead of centered in the full remaining space -- for empty states that sit
   // below other content (e.g. calendar day selection) rather than owning the whole screen.
   compact?: boolean;
+  // Optional retry affordance -- reused for query-error states (e.g. "Erneut versuchen" ->
+  // refetch()) alongside genuine empty states, so a fetch failure doesn't read as silent "no data".
+  action?: { label: string; onPress: () => void };
 }
 
-export function EmptyState({ title, description, icon: Icon, compact = false }: EmptyStateProps) {
+export function EmptyState({ title, description, icon: Icon, compact = false, action }: EmptyStateProps) {
   const scheme = useColorScheme();
   const iconColor = scheme === 'dark' ? colors.textTertiary.dark : colors.textTertiary.light;
 
@@ -27,6 +31,11 @@ export function EmptyState({ title, description, icon: Icon, compact = false }: 
         <Text className="text-center text-sm font-sans text-text-secondary-light dark:text-text-secondary-dark">
           {description}
         </Text>
+      ) : null}
+      {action ? (
+        <View className="mt-xs">
+          <Button label={action.label} onPress={action.onPress} variant="secondary" size="sm" />
+        </View>
       ) : null}
     </View>
   );

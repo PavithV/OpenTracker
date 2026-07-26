@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Alert, ScrollView, View } from 'react-native';
+import { WarningCircle } from 'phosphor-react-native';
+import { ActivityIndicator, Alert, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteAccount, signOut } from '@/features/auth/api/auth.api';
@@ -11,9 +12,11 @@ import { ProfileVolumeChart } from '@/features/profile/components/ProfileVolumeC
 import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorkoutMiniBar';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
+import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
+import { getErrorMessage } from '@/shared/utils/errors';
 import { useSessionStore } from '@/store/session.store';
 import { type ThemePreference, useThemeStore } from '@/store/theme.store';
 
@@ -42,17 +45,30 @@ export default function ProfileScreen() {
   const themePreference = useThemeStore((state) => state.preference);
   const setThemePreference = useThemeStore((state) => state.setPreference);
 
-  const { data: profile } = useQuery({
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    error: profileError,
+    refetch: refetchProfile,
+  } = useQuery({
     queryKey: ['profile', session?.user.id],
     queryFn: () => getProfile(session!.user.id),
     enabled: !!session,
   });
 
-  const { data: stats } = useQuery({
+  const {
+    data: stats,
+    isLoading: isStatsLoading,
+    error: statsError,
+    refetch: refetchStats,
+  } = useQuery({
     queryKey: ['profile', 'stats', session?.user.id],
     queryFn: () => getProfileStats(session!.user.id),
     enabled: !!session,
   });
+
+  const isLoading = isProfileLoading || isStatsLoading;
+  const error = profileError ?? statsError;
 
   function handleDeleteAccount() {
     Alert.alert(
@@ -83,21 +99,40 @@ export default function ProfileScreen() {
         <ScrollView className="flex-1" contentContainerClassName="gap-lg py-md">
           <Typography variant="title">Profil</Typography>
 
-          <Card>
-            <View className="flex-row items-center gap-md">
-              <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
-                <Typography variant="cardTitle" color="accent">
-                  {getInitials(profile?.displayName, session?.user.email)}
-                </Typography>
-              </View>
-              <View>
-                <Typography variant="cardTitle">{profile?.displayName ?? session?.user.email}</Typography>
-                <Typography variant="subtitle">{session?.user.email}</Typography>
-              </View>
-            </View>
-          </Card>
+          {isLoading ? (
+            <ActivityIndicator className="mt-md" />
+          ) : error ? (
+            <EmptyState
+              icon={WarningCircle}
+              title="Etwas ist schiefgelaufen"
+              description={getErrorMessage(error)}
+              action={{
+                label: 'Erneut versuchen',
+                onPress: () => {
+                  refetchProfile();
+                  refetchStats();
+                },
+              }}
+            />
+          ) : (
+            <>
+              <Card>
+                <View className="flex-row items-center gap-md">
+                  <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
+                    <Typography variant="cardTitle" color="accent">
+                      {getInitials(profile?.displayName, session?.user.email)}
+                    </Typography>
+                  </View>
+                  <View>
+                    <Typography variant="cardTitle">{profile?.displayName ?? session?.user.email}</Typography>
+                    <Typography variant="subtitle">{session?.user.email}</Typography>
+                  </View>
+                </View>
+              </Card>
 
-          {stats ? <ProfileStatsCard stats={stats} /> : null}
+              {stats ? <ProfileStatsCard stats={stats} /> : null}
+            </>
+          )}
 
           {session ? <ProfileVolumeChart userId={session.user.id} /> : null}
 
