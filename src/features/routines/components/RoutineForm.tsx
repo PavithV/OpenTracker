@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
-import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import { Alert, FlatList, View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -31,8 +30,16 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  function moveExercise(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= exercises.length) {
+      return;
+    }
+    const reordered = [...exercises];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+    reorderExercises(reordered);
+  }
 
   async function handleSave() {
     if (name.trim().length === 0) {
@@ -57,35 +64,6 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
     }
   }
 
-  function renderItem({ item, drag, getIndex }: RenderItemParams<RoutineDraftExercise>) {
-    const rowIndex = getIndex();
-    const isActiveRow = isDragging && rowIndex !== undefined && rowIndex === activeIndex;
-    // Every row except the one being dragged compacts for real (its measured height shrinks --
-    // react-native-draggable-flatlist re-measures non-active rows live via onLayout, so this is
-    // safe). The active row's own measured height must never change mid-gesture -- the library
-    // freezes it once at drag start to compute how far other rows shift when swapped with it --
-    // so it stays visually "only name + image" via opacity/pointerEvents in RoutineExerciseRow
-    // instead (isActiveDrag below), never via unmounting.
-    const isCompact = isDragging && !isActiveRow;
-    return (
-      <ScaleDecorator>
-        <View className="mb-sm">
-          <RoutineExerciseRow
-            exercise={item}
-            drag={drag}
-            isCompact={isCompact}
-            isActiveDrag={isActiveRow}
-            onRemoveExercise={() => removeExercise(item.exerciseId)}
-            onAddSet={() => addSet(item.exerciseId)}
-            onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
-            onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
-            onUpdateRestSeconds={(restSeconds) => updateRestSeconds(item.exerciseId, restSeconds)}
-          />
-        </View>
-      </ScaleDecorator>
-    );
-  }
-
   return (
     <View className="flex-1 gap-md">
       <Input label="Name" value={name} onChangeText={setName} placeholder="z. B. Push Day" />
@@ -99,20 +77,26 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
       />
 
       <View className="flex-1">
-        <DraggableFlatList
+        <FlatList
           data={exercises}
           keyExtractor={(item) => item.exerciseId}
-          onDragBegin={(index) => {
-            setIsDragging(true);
-            setActiveIndex(index);
-          }}
-          onDragEnd={({ data }) => {
-            setIsDragging(false);
-            setActiveIndex(null);
-            reorderExercises(data);
-          }}
           ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
-          renderItem={renderItem}
+          renderItem={({ item, index }) => (
+            <View className="mb-sm">
+              <RoutineExerciseRow
+                exercise={item}
+                canMoveUp={index > 0}
+                canMoveDown={index < exercises.length - 1}
+                onMoveUp={() => moveExercise(index, -1)}
+                onMoveDown={() => moveExercise(index, 1)}
+                onRemoveExercise={() => removeExercise(item.exerciseId)}
+                onAddSet={() => addSet(item.exerciseId)}
+                onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+                onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
+                onUpdateRestSeconds={(restSeconds) => updateRestSeconds(item.exerciseId, restSeconds)}
+              />
+            </View>
+          )}
         />
       </View>
 
