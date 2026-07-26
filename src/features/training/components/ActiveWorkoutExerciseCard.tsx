@@ -100,7 +100,7 @@ export function ActiveWorkoutExerciseCard({
               <Pressable
                 onPress={() => onToggleSetCompleted(set.id)}
                 hitSlop={4}
-                className={`h-11 w-11 items-center justify-center rounded-full active:opacity-60 ${
+                className={`h-11 flex-1 items-center justify-center rounded-lg active:opacity-60 ${
                   set.completed ? 'bg-primary/15' : ''
                 }`}
               >

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { router } from 'expo-router';
 import { CaretLeft, CaretRight, ClockCounterClockwise } from 'phosphor-react-native';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 
 import { getWorkoutHistory } from '@/features/home/api/workouts.api';
 import { WorkoutHistoryCard } from '@/features/home/components/WorkoutHistoryCard';
@@ -17,6 +18,18 @@ import { GERMAN_MONTHS } from '@/shared/utils/format';
 import { useSessionStore } from '@/store/session.store';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+// buildMonthGrid() always returns a flat array padded to a multiple of 7 -- chunk it into weeks
+// for row-by-row rendering instead of a FlatList (nesting a FlatList inside this screen's
+// ScrollView would trigger RN's "VirtualizedLists should never be nested" warning for no benefit,
+// since the grid was already non-scrolling).
+function chunkIntoWeeks(cells: (Dayjs | null)[]): (Dayjs | null)[][] {
+  const weeks: (Dayjs | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7));
+  }
+  return weeks;
+}
 
 export default function CalendarScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
@@ -32,91 +45,94 @@ export default function CalendarScreen() {
 
   const workoutsByDate = useMemo(() => groupWorkoutsByDate(workouts ?? []), [workouts]);
   const grid = useMemo(() => buildMonthGrid(monthRef), [monthRef]);
+  const weeks = useMemo(() => chunkIntoWeeks(grid), [grid]);
   const selectedWorkouts = selectedDate ? (workoutsByDate.get(selectedDate) ?? []) : [];
   const today = dayjs().format('YYYY-MM-DD');
 
   return (
     <Screen>
-      <View className="py-md">
-        <Typography variant="title">Kalender</Typography>
-      </View>
+      <ScrollView contentContainerClassName="pb-md" showsVerticalScrollIndicator={false}>
+        <View className="py-md">
+          <Typography variant="title">Kalender</Typography>
+        </View>
 
-      <View className="flex-row items-center justify-between pb-sm">
-        <Pressable onPress={() => setMonthRef((prev) => prev.subtract(1, 'month'))} hitSlop={8}>
-          <CaretLeft size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
-        </Pressable>
-        <Typography variant="cardTitle">
-          {GERMAN_MONTHS[monthRef.month()]} {monthRef.year()}
-        </Typography>
-        <Pressable onPress={() => setMonthRef((prev) => prev.add(1, 'month'))} hitSlop={8}>
-          <CaretRight size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
-        </Pressable>
-      </View>
+        <View className="flex-row items-center justify-between pb-sm">
+          <Pressable onPress={() => setMonthRef((prev) => prev.subtract(1, 'month'))} hitSlop={8}>
+            <CaretLeft size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
+          </Pressable>
+          <Typography variant="cardTitle">
+            {GERMAN_MONTHS[monthRef.month()]} {monthRef.year()}
+          </Typography>
+          <Pressable onPress={() => setMonthRef((prev) => prev.add(1, 'month'))} hitSlop={8}>
+            <CaretRight size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
+          </Pressable>
+        </View>
 
-      <View className="flex-row">
-        {WEEKDAY_LABELS.map((label) => (
-          <View key={label} className="flex-1 items-center">
-            <Typography variant="caption">{label}</Typography>
+        <View className="flex-row">
+          {WEEKDAY_LABELS.map((label) => (
+            <View key={label} className="flex-1 items-center">
+              <Typography variant="caption">{label}</Typography>
+            </View>
+          ))}
+        </View>
+
+        {weeks.map((week, weekIndex) => (
+          <View key={weekIndex} className="flex-row">
+            {week.map((day, dayIndex) => {
+              if (!day) return <View key={dayIndex} className="flex-1 py-sm" />;
+              const dateKey = day.format('YYYY-MM-DD');
+              const hasWorkout = workoutsByDate.has(dateKey);
+              const isSelected = dateKey === selectedDate;
+              const isToday = dateKey === today;
+              return (
+                <Pressable
+                  key={dateKey}
+                  onPress={() => setSelectedDate(dateKey)}
+                  className={`flex-1 items-center justify-center gap-xs rounded-md border py-sm ${
+                    isSelected ? 'border-primary bg-primary/15' : 'border-transparent'
+                  }`}
+                >
+                  <Text
+                    className={`text-base font-sans ${
+                      isSelected || isToday
+                        ? 'font-sans-medium text-primary'
+                        : 'text-text-primary-light dark:text-text-primary-dark'
+                    }`}
+                  >
+                    {day.date()}
+                  </Text>
+                  {hasWorkout ? (
+                    <View className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  ) : (
+                    <View className="h-1.5 w-1.5" />
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
         ))}
-      </View>
 
-      <FlatList
-        data={grid}
-        keyExtractor={(_, index) => String(index)}
-        numColumns={7}
-        scrollEnabled={false}
-        renderItem={({ item: day }) => {
-          if (!day) return <View className="flex-1 py-sm" />;
-          const dateKey = day.format('YYYY-MM-DD');
-          const hasWorkout = workoutsByDate.has(dateKey);
-          const isSelected = dateKey === selectedDate;
-          const isToday = dateKey === today;
-          return (
-            <Pressable
-              onPress={() => setSelectedDate(dateKey)}
-              className={`flex-1 items-center justify-center gap-xs rounded-md border py-sm ${
-                isSelected ? 'border-primary bg-primary/15' : 'border-transparent'
-              }`}
-            >
-              <Text
-                className={`text-base font-sans ${
-                  isSelected || isToday
-                    ? 'font-sans-medium text-primary'
-                    : 'text-text-primary-light dark:text-text-primary-dark'
-                }`}
-              >
-                {day.date()}
-              </Text>
-              {hasWorkout ? <View className="h-1.5 w-1.5 rounded-full bg-primary" /> : <View className="h-1.5 w-1.5" />}
-            </Pressable>
-          );
-        }}
-      />
-
-      <View className="mt-md flex-1">
-        {selectedWorkouts.length === 0 ? (
-          <EmptyState
-            compact
-            icon={ClockCounterClockwise}
-            title="Keine Workouts"
-            description={
-              selectedDate
-                ? `Kein Workout am ${dayjs(selectedDate).format('DD.MM.YYYY')}.`
-                : 'Wähle einen Tag im Kalender aus.'
-            }
-          />
-        ) : (
-          <FlatList
-            data={selectedWorkouts}
-            keyExtractor={(item) => item.id}
-            contentContainerClassName="gap-sm pb-md"
-            renderItem={({ item }) => (
-              <WorkoutHistoryCard workout={item} onPress={() => router.push(`/workout/${item.id}`)} />
-            )}
-          />
-        )}
-      </View>
+        <View className="mt-md">
+          {selectedWorkouts.length === 0 ? (
+            <EmptyState
+              compact
+              icon={ClockCounterClockwise}
+              title="Keine Workouts"
+              description={
+                selectedDate
+                  ? `Kein Workout am ${dayjs(selectedDate).format('DD.MM.YYYY')}.`
+                  : 'Wähle einen Tag im Kalender aus.'
+              }
+            />
+          ) : (
+            <View className="gap-sm">
+              {selectedWorkouts.map((item) => (
+                <WorkoutHistoryCard key={item.id} workout={item} onPress={() => router.push(`/workout/${item.id}`)} />
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </Screen>
   );
 }
