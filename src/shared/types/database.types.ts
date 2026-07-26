@@ -1,6 +1,6 @@
 /**
  * Generated from the live Supabase project (project_ref rlcrhsubxcsjbqpgrwvs) after
- * supabase/migrations/0005_add_routine_exercise_sets.sql was applied. Regenerate with:
+ * supabase/migrations/0006_add_delete_account.sql was applied. Regenerate with:
  *   npx supabase gen types typescript --project-id rlcrhsubxcsjbqpgrwvs > src/shared/types/database.types.ts
  */
 export type Json =
@@ -444,6 +444,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_account: { Args: never; Returns: undefined }
       finish_workout: {
         Args: { p_workout_id: string }
         Returns: {
@@ -591,3 +592,9 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

@@ -30,6 +30,12 @@ export async function signOut() {
   if (error) throw error;
 }
 
+export async function deleteAccount() {
+  const { error } = await supabase.rpc('delete_account');
+  if (error) throw error;
+  await supabase.auth.signOut();
+}
+
 export async function requestPasswordReset(email: string, redirectTo: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) throw error;

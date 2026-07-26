@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { signOut } from '@/features/auth/api/auth.api';
+import { deleteAccount, signOut } from '@/features/auth/api/auth.api';
 import { FilterChip } from '@/features/exercises/components/FilterChip';
 import { getProfile, getProfileStats } from '@/features/profile/api/profile.api';
 import { ProfileStatsCard } from '@/features/profile/components/ProfileStatsCard';
@@ -54,6 +54,27 @@ export default function ProfileScreen() {
     enabled: !!session,
   });
 
+  function handleDeleteAccount() {
+    Alert.alert(
+      'Konto löschen?',
+      'Dein Konto und alle zugehörigen Daten werden unwiderruflich gelöscht.',
+      [
+        { text: 'Abbrechen', style: 'cancel' },
+        {
+          text: 'Löschen',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAccount();
+            } catch (err) {
+              Alert.alert('Löschen fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
+            }
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <Screen edges={['top', 'left', 'right']}>
       {/* The tab bar floats (`position: 'absolute'`, required for its blur background -- see
@@ -102,6 +123,8 @@ export default function ProfileScreen() {
             <Button label="Workout-Erinnerungen" variant="secondary" onPress={() => router.push('/reminders')} />
 
             <Button label="Abmelden" variant="ghost" color="danger" onPress={() => signOut()} />
+
+            <Button label="Konto löschen" variant="ghost" color="danger" onPress={handleDeleteAccount} />
           </View>
         </ScrollView>
 
