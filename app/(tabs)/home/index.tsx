@@ -36,6 +36,8 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push('/calendar')}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Kalender öffnen"
             className="h-9 w-9 items-center justify-center rounded-lg bg-surface-raised-light active:opacity-70 dark:bg-surface-raised-dark"
           >
             <Calendar size={ICON_SIZE.md} color={colors.textSecondary[scheme]} />

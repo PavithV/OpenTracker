@@ -82,6 +82,9 @@ export function Button({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       className={`items-center justify-center ${radiusClasses[size]} ${sizeClasses[size]} ${variantClasses[variant]} ${
         isDisabled ? 'opacity-50' : ''
       }`}

@@ -58,13 +58,23 @@ export default function CalendarScreen() {
         </View>
 
         <View className="flex-row items-center justify-between pb-sm">
-          <Pressable onPress={() => setMonthRef((prev) => prev.subtract(1, 'month'))} hitSlop={8}>
+          <Pressable
+            onPress={() => setMonthRef((prev) => prev.subtract(1, 'month'))}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Vorheriger Monat"
+          >
             <CaretLeft size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
           </Pressable>
           <Typography variant="cardTitle">
             {GERMAN_MONTHS[monthRef.month()]} {monthRef.year()}
           </Typography>
-          <Pressable onPress={() => setMonthRef((prev) => prev.add(1, 'month'))} hitSlop={8}>
+          <Pressable
+            onPress={() => setMonthRef((prev) => prev.add(1, 'month'))}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Nächster Monat"
+          >
             <CaretRight size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
           </Pressable>
         </View>
@@ -89,6 +99,13 @@ export default function CalendarScreen() {
                 <Pressable
                   key={dateKey}
                   onPress={() => setSelectedDate(dateKey)}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    hasWorkout
+                      ? `${day.date()}. ${GERMAN_MONTHS[day.month()]}, Workout vorhanden`
+                      : `${day.date()}. ${GERMAN_MONTHS[day.month()]}`
+                  }
+                  accessibilityState={{ selected: isSelected }}
                   className={`flex-1 items-center justify-center gap-xs rounded-md border py-sm ${
                     isSelected
                       ? 'border-primary-light bg-primary-light/15 dark:border-primary-dark dark:bg-primary-dark/15'

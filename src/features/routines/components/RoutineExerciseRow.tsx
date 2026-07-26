@@ -50,6 +50,9 @@ export function RoutineExerciseRow({
             onPress={onMoveUp}
             disabled={!canMoveUp}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Übung nach oben verschieben"
+            accessibilityState={{ disabled: !canMoveUp }}
             className={canMoveUp ? 'active:opacity-60' : 'opacity-30'}
           >
             <CaretUp size={ICON_SIZE.sm} color={secondaryColor} />
@@ -58,6 +61,9 @@ export function RoutineExerciseRow({
             onPress={onMoveDown}
             disabled={!canMoveDown}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Übung nach unten verschieben"
+            accessibilityState={{ disabled: !canMoveDown }}
             className={canMoveDown ? 'active:opacity-60' : 'opacity-30'}
           >
             <CaretDown size={ICON_SIZE.sm} color={secondaryColor} />
@@ -78,7 +84,13 @@ export function RoutineExerciseRow({
           {exercise.name}
         </Typography>
 
-        <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
+        <Pressable
+          onPress={onRemoveExercise}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Übung entfernen"
+          className="active:opacity-60"
+        >
           <Trash size={ICON_SIZE.md} color={colors.danger} />
         </Pressable>
       </View>
@@ -122,6 +134,9 @@ export function RoutineExerciseRow({
               onPress={() => onRemoveSet(set.id)}
               disabled={exercise.sets.length === 1}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Satz entfernen"
+              accessibilityState={{ disabled: exercise.sets.length === 1 }}
               className={`w-8 items-center ${exercise.sets.length === 1 ? 'opacity-30' : 'active:opacity-60'}`}
             >
               <Trash size={ICON_SIZE.sm} color={colors.danger} />

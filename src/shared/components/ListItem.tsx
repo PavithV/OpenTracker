@@ -25,7 +25,7 @@ export function ListItem({ title, description, leading, trailing, onPress }: Lis
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} className="active:opacity-60">
+      <Pressable onPress={onPress} accessibilityRole="button" className="active:opacity-60">
         {content}
       </Pressable>
     );

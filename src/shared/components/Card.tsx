@@ -22,7 +22,7 @@ export function Card({ children, variant = 'default', onPress }: CardProps) {
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} className={`${className} active:opacity-70`}>
+      <Pressable onPress={onPress} accessibilityRole="button" className={`${className} active:opacity-70`}>
         {children}
       </Pressable>
     );

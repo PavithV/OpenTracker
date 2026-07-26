@@ -52,7 +52,13 @@ export function ActiveWorkoutMiniBar() {
             {currentExerciseName ? <Typography variant="subtitle">{currentExerciseName}</Typography> : null}
           </View>
 
-          <Pressable onPress={handleDiscard} hitSlop={8} className="active:opacity-60">
+          <Pressable
+            onPress={handleDiscard}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Workout verwerfen"
+            className="active:opacity-60"
+          >
             <Trash size={ICON_SIZE.md} color={colors.danger} />
           </Pressable>
         </View>

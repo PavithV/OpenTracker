@@ -45,7 +45,14 @@ export function ActiveWorkoutExerciseCard({
   return (
     <Card>
       <View className="flex-row items-center gap-sm">
-        <Pressable onLongPress={drag} hitSlop={8} className="active:opacity-60">
+        <Pressable
+          onLongPress={drag}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Übung verschieben"
+          accessibilityHint="Lange drücken und ziehen, um die Reihenfolge zu ändern"
+          className="active:opacity-60"
+        >
           <DotsSixVertical size={ICON_SIZE.md} color={secondaryColor} />
         </Pressable>
 
@@ -64,7 +71,13 @@ export function ActiveWorkoutExerciseCard({
         </Typography>
 
         <View style={isCompact ? { opacity: 0 } : undefined} pointerEvents={isCompact ? 'none' : 'auto'}>
-          <Pressable onPress={onRemoveExercise} hitSlop={8} className="active:opacity-60">
+          <Pressable
+            onPress={onRemoveExercise}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Übung entfernen"
+            className="active:opacity-60"
+          >
             <Trash size={ICON_SIZE.md} color={colors.danger} />
           </Pressable>
         </View>
@@ -98,12 +111,21 @@ export function ActiveWorkoutExerciseCard({
                   onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
                 />
               </View>
-              <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
+              <Pressable
+                onPress={() => onOpenPlateCalculator(set.weight)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Plattenrechner öffnen"
+                className="active:opacity-60"
+              >
                 <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
               </Pressable>
               <Pressable
                 onPress={() => onToggleSetCompleted(set.id)}
                 hitSlop={4}
+                accessibilityRole="checkbox"
+                accessibilityLabel="Satz als erledigt markieren"
+                accessibilityState={{ checked: set.completed }}
                 className={`h-11 flex-1 items-center justify-center rounded-lg active:opacity-60 ${
                   set.completed ? 'bg-primary-light/15 dark:bg-primary-dark/15' : ''
                 }`}
@@ -114,7 +136,13 @@ export function ActiveWorkoutExerciseCard({
                   <Circle size={ICON_SIZE.md} color={secondaryColor} />
                 )}
               </Pressable>
-              <Pressable onPress={() => onRemoveSet(set.id)} hitSlop={8} className="active:opacity-60">
+              <Pressable
+                onPress={() => onRemoveSet(set.id)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Satz entfernen"
+                className="active:opacity-60"
+              >
                 <Trash size={ICON_SIZE.sm} color={secondaryColor} />
               </Pressable>
             </View>

@@ -143,7 +143,14 @@ export default function ExerciseDetailScreen() {
         <Typography variant="title" className="flex-1" numberOfLines={2}>
           {exercise.name}
         </Typography>
-        <Pressable onPress={handleToggleFavorite} hitSlop={8} className="active:opacity-60">
+        <Pressable
+          onPress={handleToggleFavorite}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={isFavorited ? 'Von Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+          accessibilityState={{ selected: isFavorited }}
+          className="active:opacity-60"
+        >
           <Star
             size={ICON_SIZE.lg}
             color={isFavorited ? colors.warning : colors.textTertiary[scheme]}

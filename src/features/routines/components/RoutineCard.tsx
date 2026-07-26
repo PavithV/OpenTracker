@@ -25,7 +25,13 @@ export function RoutineCard({ routine, onPress, onStart, onDelete }: RoutineCard
           {routine.exercisePreview ? <Typography variant="subtitle">{routine.exercisePreview}</Typography> : null}
         </View>
         <Button label="Start" size="sm" onPress={onStart} />
-        <Pressable onPress={onDelete} hitSlop={8} className="active:opacity-60">
+        <Pressable
+          onPress={onDelete}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`${routine.name} löschen`}
+          className="active:opacity-60"
+        >
           <Trash size={ICON_SIZE.md} color={colors.danger} />
         </Pressable>
       </View>

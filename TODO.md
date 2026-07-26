@@ -112,9 +112,23 @@ Neue Migration `supabase/migrations/0007_add_workout_exercises_indexes_and_value
 
 **Verifikation:** Pre-Check-Query (0/0 Treffer), `get_advisors` (beide Kategorien), `tsc --noEmit` sauber.
 
+## Accessibility-Labels für Icon-only-Buttons (Launch-Blocker #6) — ✅ abgeschlossen
+
+Bestätigt per Grep vor dem Start: **null** Treffer für `accessibilityLabel`/`accessibilityRole`/`accessibilityHint`/`accessible` in der gesamten Codebase — jeder Icon-only-Button war für Screenreader-Nutzer unbeschriftet (Audit Kritisch, 2.1/2.3).
+
+**Systemischer Fix zuerst**: `Button.tsx` (`accessibilityRole="button"` + `accessibilityLabel={label}` + `accessibilityState={{disabled, busy}}` — `label` existiert an jedem Call-Site schon), `Card.tsx`/`ListItem.tsx` (`accessibilityRole="button"` auf dem `Pressable`-Zweig — keine eigene Label-Prop nötig, beide umschließen bereits sichtbaren `Typography`-Text), `FilterChip.tsx` (`accessibilityRole="button"` + `accessibilityState={{selected}}`, `selected` existierte schon als Prop).
+
+**18 einzelne Icon-only-`Pressable`-Stellen** (kein `TouchableOpacity` irgendwo im Projekt) über 9 Dateien bekamen `accessibilityLabel`/`accessibilityRole="button"` direkt: Kalender-Einstieg im Home-Tab, Favoriten-Stern (Übungsdetail + Picker, dynamisches Label je nach Zustand + `accessibilityState={{selected}}`), Kalender-Vor/Zurück-Pfeile, Übungsdetail-Sprung im Picker, Workout-verwerfen im Mini-Bar, fünf Stellen in `ActiveWorkoutExerciseCard.tsx` (Drag-Handle, Übung/Satz entfernen, Plattenrechner, Satz-erledigt-Checkbox — Letztere bewusst `accessibilityRole="checkbox"` statt `"button"`, da semantisch treffender), Routine löschen (Name dynamisch im Label), sowie vier Stellen in `RoutineExerciseRow.tsx` (Hoch/Runter mit `accessibilityState={{disabled}}`, Übung/Satz entfernen).
+
+**Kalender-Tage-Grid** zusätzlich einbezogen (nicht streng "icon-only", aber Zustand nur visuell kodiert): `accessibilityState={{selected: isSelected}}` + Label inkl. "Workout vorhanden" wenn zutreffend.
+
+**Bewusst nicht behoben** (Nutzer-Entscheidung): Der Drag-Handle in `ActiveWorkoutExerciseCard.tsx` (Long-Press-Drag via `react-native-draggable-flatlist`, aktives Workout) bekam nur Label + Hint — echte Screenreader-Bedienbarkeit für Long-Press-Drag ist damit *nicht* hergestellt (nur eine Beschriftung dessen, was er tut). Eine echte Lösung hätte wie beim Routinen-Editor (`RoutineExerciseRow.tsx`, dort bereits in einer früheren Session auf Hoch/Runter-Buttons umgestellt) die Interaktion selbst ersetzen müssen — bewusst nicht in diesem Durchgang gemacht, da niemand die Interaktion im aktiven Workout ändern wollte. Bleibt als bekannte Lücke für Audit-Punkt #105 (eigenständiges Barrierefreiheits-Projekt) dokumentiert. Tab-Bar ebenfalls nicht angefasst — hat bereits `title` pro Screen, woraus Expo Router/`@react-navigation/bottom-tabs` selbst ein brauchbares Accessibility-Label ableitet.
+
+**Verifikation:** `tsc`/`lint`/`expo export --platform ios` sauber.
+
 ## Nächster Schritt
 
-**Alle 7 Punkte der Phase-4-Bestandsaufnahme sind erledigt**, dazu Nocturne- und iOS-Redesign sowie Launch-Blocker #1 (Teil A), #2, #3 und #5. **#4 bleibt bewusst offen** (Pro-Plan-Voraussetzung, siehe oben) — bei einem künftigen Supabase-Upgrade einfach den Dashboard-Toggle setzen, kein weiterer Recherche-Aufwand nötig. Nächster sinnvoller Schritt laut `LAUNCH_PLAN.md` §3: Launch-Blocker #6 (Accessibility-Labels für alle Icon-only-Buttons) — oder, unabhängig vom Code, die Web-Seite aus Blocker #1 sowie die Google-Play-Konto-Anlage/Tester-Rekrutierung (§4.2, zeitlich der langsamste Teil, sollte so früh wie möglich parallel starten — Store-Listing-Text-Entwurf liegt bereits vor, siehe Session-Notiz). Danach der Reihe nach Blocker #7–#10.
+**Alle 7 Punkte der Phase-4-Bestandsaufnahme sind erledigt**, dazu Nocturne- und iOS-Redesign sowie Launch-Blocker #1 (Teil A), #2, #3, #5 und #6. **#4 bleibt bewusst offen** (Pro-Plan-Voraussetzung, siehe oben) — bei einem künftigen Supabase-Upgrade einfach den Dashboard-Toggle setzen, kein weiterer Recherche-Aufwand nötig. Nächster sinnvoller Schritt laut `LAUNCH_PLAN.md` §3: Launch-Blocker #7 (Toast-Feedback + Undo nach Löschen + Abmelde-Bestätigung) — oder, unabhängig vom Code, die Web-Seite aus Blocker #1 sowie die Google-Play-Konto-Anlage/Tester-Rekrutierung (§4.2, zeitlich der langsamste Teil, sollte so früh wie möglich parallel starten — Store-Listing-Text-Entwurf liegt bereits vor, siehe Session-Notiz). Danach der Reihe nach Blocker #8–#10.
 
 Weiterhin unverändert offen: die vollständige On-Device-Funktions-/Visualprüfung (siehe vorherige Sessions) — Kernfunktionalität und beide Redesigns sind nach wie vor nur gegen `tsc`/`lint`/Bundling bzw. per SQL-Simulation geprüft, nie vollständig auf einem echten Gerät durchgespielt.
 

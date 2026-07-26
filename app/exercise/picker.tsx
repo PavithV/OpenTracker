@@ -186,7 +186,12 @@ export default function ExercisePickerScreen() {
               title={item.name}
               description={capitalize(item.targetMuscle)}
               leading={
-                <Pressable onPress={() => router.push(`/exercise/${item.id}`)} hitSlop={8}>
+                <Pressable
+                  onPress={() => router.push(`/exercise/${item.id}`)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Details zu ${item.name} anzeigen`}
+                >
                   {item.imageUrl ? (
                     <Image source={{ uri: item.imageUrl }} className="h-12 w-12 rounded-full" />
                   ) : (
@@ -200,7 +205,18 @@ export default function ExercisePickerScreen() {
               }
               trailing={
                 <View className="flex-row items-center gap-sm">
-                  <Pressable onPress={() => handleToggleFavorite(item.id)} hitSlop={8} className="active:opacity-60">
+                  <Pressable
+                    onPress={() => handleToggleFavorite(item.id)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      favoriteIds?.has(item.id)
+                        ? `${item.name} von Favoriten entfernen`
+                        : `${item.name} zu Favoriten hinzufügen`
+                    }
+                    accessibilityState={{ selected: favoriteIds?.has(item.id) ?? false }}
+                    className="active:opacity-60"
+                  >
                     <Star
                       size={ICON_SIZE.md}
                       color={favoriteIds?.has(item.id) ? colors.warning : colors.textTertiary[scheme]}
