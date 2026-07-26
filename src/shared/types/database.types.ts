@@ -1,6 +1,7 @@
 /**
  * Generated from the live Supabase project (project_ref rlcrhsubxcsjbqpgrwvs) after
- * supabase/migrations/0006_add_delete_account.sql was applied. Regenerate with:
+ * supabase/migrations/0007_add_workout_exercises_indexes_and_value_constraints.sql was applied
+ * (no shape change -- indexes/constraints aren't reflected in generated types). Regenerate with:
  *   npx supabase gen types typescript --project-id rlcrhsubxcsjbqpgrwvs > src/shared/types/database.types.ts
  */
 export type Json =
