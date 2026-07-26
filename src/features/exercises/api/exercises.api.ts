@@ -5,6 +5,7 @@ import type {
   ExerciseDetail,
   ExerciseFilters,
   ExerciseHistoryEntry,
+  ExerciseHistorySet,
   ExerciseListItem,
   ExercisePersonalRecords,
 } from '../types/exercise.types';
@@ -151,6 +152,66 @@ export async function getExerciseHistory(userId: string, exerciseId: string): Pr
       };
     })
     .filter((entry): entry is ExerciseHistoryEntry => entry !== null);
+}
+
+// Batched version of getExerciseHistory for the active-workout screen's "last time" reference --
+// one query set for every exercise in the workout instead of N calls to the single-exercise
+// version above, following the same flat-queries-joined-in-JS convention. For each exercise, only
+// its most recent completed workout's sets are needed (not the full history).
+export async function getPreviousSetsByExercise(
+  userId: string,
+  exerciseIds: string[],
+): Promise<Map<string, ExerciseHistorySet[]>> {
+  if (exerciseIds.length === 0) return new Map();
+
+  const { data: workouts, error: workoutsError } = await supabase
+    .from('workouts')
+    .select('id')
+    .eq('user_id', userId)
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false });
+  if (workoutsError) throw workoutsError;
+  if (workouts.length === 0) return new Map();
+
+  const workoutRankById = new Map(workouts.map((workout, index) => [workout.id, index]));
+  const workoutIds = workouts.map((workout) => workout.id);
+
+  const { data: workoutExercises, error: exercisesError } = await supabase
+    .from('workout_exercises')
+    .select('id, workout_id, exercise_id')
+    .in('exercise_id', exerciseIds)
+    .in('workout_id', workoutIds);
+  if (exercisesError) throw exercisesError;
+
+  // Most recent (lowest rank) workout_exercises row per exercise_id.
+  const mostRecentByExerciseId = new Map<string, { workoutExerciseId: string; rank: number }>();
+  for (const row of workoutExercises) {
+    const rank = workoutRankById.get(row.workout_id)!;
+    const current = mostRecentByExerciseId.get(row.exercise_id);
+    if (!current || rank < current.rank) {
+      mostRecentByExerciseId.set(row.exercise_id, { workoutExerciseId: row.id, rank });
+    }
+  }
+  if (mostRecentByExerciseId.size === 0) return new Map();
+
+  const workoutExerciseIds = Array.from(mostRecentByExerciseId.values()).map((entry) => entry.workoutExerciseId);
+  const { data: sets, error: setsError } = await supabase
+    .from('sets')
+    .select('id, workout_exercise_id, set_number, weight, reps')
+    .in('workout_exercise_id', workoutExerciseIds)
+    .order('set_number');
+  if (setsError) throw setsError;
+
+  const result = new Map<string, ExerciseHistorySet[]>();
+  for (const [exerciseId, { workoutExerciseId }] of mostRecentByExerciseId) {
+    result.set(
+      exerciseId,
+      sets
+        .filter((set) => set.workout_exercise_id === workoutExerciseId)
+        .map((set) => ({ id: set.id, setNumber: set.set_number, weight: set.weight, reps: set.reps })),
+    );
+  }
+  return result;
 }
 
 export async function getFavoriteExerciseIds(userId: string): Promise<Set<string>> {

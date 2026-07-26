@@ -1,6 +1,7 @@
 import { Barbell, CaretDown, CaretUp, Check, CircleIcon as Circle, Trash } from 'phosphor-react-native';
 import { Image, Pressable, useColorScheme, View } from 'react-native';
 
+import type { ExerciseHistorySet } from '@/features/exercises/types/exercise.types';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
@@ -12,6 +13,9 @@ import type { ActiveWorkoutExercise, WorkoutSetEntry } from '../types/active-wor
 
 interface ActiveWorkoutExerciseCardProps {
   exercise: ActiveWorkoutExercise;
+  // Last completed session's sets for this exercise, for the "last time: 60 kg x 8" reference --
+  // matched to the current row by set position (setNumber), not array index, in case of gaps.
+  previousSets?: ExerciseHistorySet[];
   canMoveUp: boolean;
   canMoveDown: boolean;
   onMoveUp: () => void;
@@ -31,6 +35,7 @@ function toNumberOrNull(text: string): number | null {
 
 export function ActiveWorkoutExerciseCard({
   exercise,
+  previousSets,
   canMoveUp,
   canMoveDown,
   onMoveUp,
@@ -100,63 +105,74 @@ export function ActiveWorkoutExerciseCard({
       </View>
 
       <View className="mt-sm gap-xs">
-        {exercise.sets.map((set, index) => (
-          <View key={set.id} className="flex-row items-center gap-sm">
-            <Typography variant="caption" className="w-8">
-              {index + 1}
-            </Typography>
-            <View className="w-20">
-              <Input
-                placeholder="kg"
-                keyboardType="numeric"
-                value={set.weight === null ? '' : String(set.weight)}
-                onChangeText={(text) => onUpdateSet(set.id, { weight: toNumberOrNull(text) })}
-              />
+        {exercise.sets.map((set, index) => {
+          const previousSet = previousSets?.find((entry) => entry.setNumber === index + 1);
+          return (
+            <View key={set.id} className="gap-xs">
+              <View className="flex-row items-center gap-sm">
+                <Typography variant="caption" className="w-8">
+                  {index + 1}
+                </Typography>
+                <View className="w-20">
+                  <Input
+                    placeholder="kg"
+                    keyboardType="numeric"
+                    value={set.weight === null ? '' : String(set.weight)}
+                    onChangeText={(text) => onUpdateSet(set.id, { weight: toNumberOrNull(text) })}
+                  />
+                </View>
+                <View className="w-20">
+                  <Input
+                    placeholder="Wdh"
+                    keyboardType="numeric"
+                    value={set.reps === null ? '' : String(set.reps)}
+                    onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
+                  />
+                </View>
+                <Pressable
+                  onPress={() => onOpenPlateCalculator(set.weight)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Plattenrechner öffnen"
+                  className="active:opacity-60"
+                >
+                  <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
+                </Pressable>
+                <Pressable
+                  onPress={() => onToggleSetCompleted(set.id)}
+                  hitSlop={4}
+                  accessibilityRole="checkbox"
+                  accessibilityLabel="Satz als erledigt markieren"
+                  accessibilityState={{ checked: set.completed }}
+                  className={`h-11 flex-1 items-center justify-center rounded-lg active:opacity-60 ${
+                    set.completed ? 'bg-primary-light/15 dark:bg-primary-dark/15' : ''
+                  }`}
+                >
+                  {set.completed ? (
+                    <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />
+                  ) : (
+                    <Circle size={ICON_SIZE.md} color={secondaryColor} />
+                  )}
+                </Pressable>
+                <Pressable
+                  onPress={() => onRemoveSet(set.id)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Satz entfernen"
+                  className="active:opacity-60"
+                >
+                  <Trash size={ICON_SIZE.sm} color={secondaryColor} />
+                </Pressable>
+              </View>
+              {previousSet && (previousSet.weight !== null || previousSet.reps !== null) ? (
+                <Typography variant="caption" className="pl-lg">
+                  Letztes Mal: {previousSet.weight !== null ? `${previousSet.weight} kg` : '–'}
+                  {previousSet.reps !== null ? ` × ${previousSet.reps}` : ''}
+                </Typography>
+              ) : null}
             </View>
-            <View className="w-20">
-              <Input
-                placeholder="Wdh"
-                keyboardType="numeric"
-                value={set.reps === null ? '' : String(set.reps)}
-                onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
-              />
-            </View>
-            <Pressable
-              onPress={() => onOpenPlateCalculator(set.weight)}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="Plattenrechner öffnen"
-              className="active:opacity-60"
-            >
-              <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
-            </Pressable>
-            <Pressable
-              onPress={() => onToggleSetCompleted(set.id)}
-              hitSlop={4}
-              accessibilityRole="checkbox"
-              accessibilityLabel="Satz als erledigt markieren"
-              accessibilityState={{ checked: set.completed }}
-              className={`h-11 flex-1 items-center justify-center rounded-lg active:opacity-60 ${
-                set.completed ? 'bg-primary-light/15 dark:bg-primary-dark/15' : ''
-              }`}
-            >
-              {set.completed ? (
-                <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />
-              ) : (
-                <Circle size={ICON_SIZE.md} color={secondaryColor} />
-              )}
-            </Pressable>
-            <Pressable
-              onPress={() => onRemoveSet(set.id)}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="Satz entfernen"
-              className="active:opacity-60"
-            >
-              <Trash size={ICON_SIZE.sm} color={secondaryColor} />
-            </Pressable>
-          </View>
-        ))}
+          );
+        })}
       </View>
 
       <Button label="Satz hinzufügen" variant="ghost" size="sm" onPress={onAddSet} />

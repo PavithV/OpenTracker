@@ -1,7 +1,9 @@
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, View } from 'react-native';
 
+import { getPreviousSetsByExercise } from '@/features/exercises/api/exercises.api';
 import { finishActiveWorkout } from '@/features/training/api/workouts.api';
 import { ActiveWorkoutExerciseCard } from '@/features/training/components/ActiveWorkoutExerciseCard';
 import {
@@ -75,6 +77,13 @@ export default function ActiveWorkoutScreen() {
   const remainingRestSeconds = useRemainingSeconds(restEndsAt, clearRestTimer);
   const totalVolume = computeTotalVolume(exercises);
   const completedSets = computeCompletedSetCount(exercises);
+
+  const exerciseIds = exercises.map((exercise) => exercise.exerciseId);
+  const { data: previousSetsByExercise } = useQuery({
+    queryKey: ['exercises', 'previous-sets', session?.user.id, exerciseIds],
+    queryFn: () => getPreviousSetsByExercise(session!.user.id, exerciseIds),
+    enabled: !!session && exerciseIds.length > 0,
+  });
 
   function moveExercise(index: number, direction: -1 | 1) {
     const targetIndex = index + direction;
@@ -179,6 +188,7 @@ export default function ActiveWorkoutScreen() {
             <View className="mb-sm">
               <ActiveWorkoutExerciseCard
                 exercise={item}
+                previousSets={previousSetsByExercise?.get(item.exerciseId)}
                 canMoveUp={index > 0}
                 canMoveDown={index < exercises.length - 1}
                 onMoveUp={() => moveExercise(index, -1)}
