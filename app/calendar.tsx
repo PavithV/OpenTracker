@@ -97,6 +97,7 @@ export default function CalendarScreen() {
       <View className="mt-md flex-1">
         {selectedWorkouts.length === 0 ? (
           <EmptyState
+            compact
             icon={ClockCounterClockwise}
             title="Keine Workouts"
             description={

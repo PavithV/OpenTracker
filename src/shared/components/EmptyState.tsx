@@ -8,14 +8,19 @@ interface EmptyStateProps {
   title: string;
   description?: string;
   icon?: ComponentType<{ size?: number; color?: string }>;
+  // Top-aligned instead of centered in the full remaining space -- for empty states that sit
+  // below other content (e.g. calendar day selection) rather than owning the whole screen.
+  compact?: boolean;
 }
 
-export function EmptyState({ title, description, icon: Icon }: EmptyStateProps) {
+export function EmptyState({ title, description, icon: Icon, compact = false }: EmptyStateProps) {
   const scheme = useColorScheme();
   const iconColor = scheme === 'dark' ? colors.textTertiary.dark : colors.textTertiary.light;
 
   return (
-    <View className="flex-1 items-center justify-center gap-xs px-lg">
+    <View
+      className={compact ? 'items-center gap-xs px-lg' : 'flex-1 items-center justify-center gap-xs px-lg'}
+    >
       {Icon ? <Icon size={ICON_SIZE.lg + 8} color={iconColor} /> : null}
       <Text className="text-lg font-sans-medium text-text-primary-light dark:text-text-primary-dark">{title}</Text>
       {description ? (

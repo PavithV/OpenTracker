@@ -97,7 +97,13 @@ export function ActiveWorkoutExerciseCard({
               <Pressable onPress={() => onOpenPlateCalculator(set.weight)} hitSlop={8} className="active:opacity-60">
                 <Barbell size={ICON_SIZE.sm} color={secondaryColor} />
               </Pressable>
-              <Pressable onPress={() => onToggleSetCompleted(set.id)} hitSlop={8} className="active:opacity-60">
+              <Pressable
+                onPress={() => onToggleSetCompleted(set.id)}
+                hitSlop={4}
+                className={`h-11 w-11 items-center justify-center rounded-full active:opacity-60 ${
+                  set.completed ? 'bg-primary/15' : ''
+                }`}
+              >
                 {set.completed ? (
                   <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />
                 ) : (

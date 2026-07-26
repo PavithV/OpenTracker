@@ -15,6 +15,7 @@ import {
 } from '@/features/exercises/api/exercises.api';
 import { ExerciseDetailTabs, type ExerciseDetailTab } from '@/features/exercises/components/ExerciseDetailTabs';
 import { ExerciseHistoryEntryCard } from '@/features/exercises/components/ExerciseHistoryEntryCard';
+import { FilterChip } from '@/features/exercises/components/FilterChip';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { LineChart } from '@/shared/components/LineChart';
 import { Screen } from '@/shared/components/Screen';
@@ -31,12 +32,27 @@ function pickInstructions(instructions: Record<string, string>): string | null {
   return instructions[INSTRUCTIONS_FALLBACK_LANGUAGE] ?? Object.values(instructions)[0] ?? null;
 }
 
+type ExerciseChartMetric = 'maxWeight' | 'sessionVolume' | 'setVolume';
+
+const CHART_METRIC_OPTIONS: { value: ExerciseChartMetric; label: string }[] = [
+  { value: 'maxWeight', label: 'Gewicht' },
+  { value: 'sessionVolume', label: 'Sitzungsvolumen' },
+  { value: 'setVolume', label: 'Satzvolumen' },
+];
+
+const CHART_METRIC_TITLES: Record<ExerciseChartMetric, string> = {
+  maxWeight: 'Gewichtsverlauf',
+  sessionVolume: 'Sitzungsvolumen',
+  setVolume: 'Satzvolumen',
+};
+
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const session = useSessionStore((state) => state.session);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<ExerciseDetailTab>('summary');
+  const [chartMetric, setChartMetric] = useState<ExerciseChartMetric>('maxWeight');
 
   const { data: exercise, isLoading: isExerciseLoading } = useQuery({
     queryKey: ['exercises', 'detail', id],
@@ -79,18 +95,36 @@ export default function ExerciseDetailScreen() {
   });
 
   // getExerciseHistory returns newest-first (for the history list); the chart reads left-to-right
-  // chronologically, so reverse. Per-workout value mirrors finish_workout's own max_weight
-  // definition (heaviest completed set of this exercise in that workout).
+  // chronologically, so reverse. maxWeight/sessionVolume stay one point per workout (maxWeight
+  // mirrors finish_workout's own max_weight definition); setVolume flattens every set across every
+  // workout into one chronological point-per-set sequence instead of collapsing back to
+  // one-point-per-workout, since it's specifically about set-to-set variation within a session.
+  // LineChart only ever labels the first/last point, so the longer flattened sequence stays readable.
   const chartData = useMemo(() => {
     if (!history) return [];
-    return [...history]
-      .reverse()
+    const chronological = [...history].reverse();
+
+    if (chartMetric === 'setVolume') {
+      return chronological.flatMap((entry) =>
+        entry.sets
+          .filter((set) => set.weight !== null && set.reps !== null)
+          .map((set) => ({
+            label: dayjs(entry.startedAt).format('DD.MM.'),
+            value: (set.weight ?? 0) * (set.reps ?? 0),
+          })),
+      );
+    }
+
+    return chronological
       .filter((entry) => entry.sets.some((set) => set.weight !== null))
       .map((entry) => ({
         label: dayjs(entry.startedAt).format('DD.MM.'),
-        value: Math.max(...entry.sets.map((set) => set.weight ?? 0)),
+        value:
+          chartMetric === 'sessionVolume'
+            ? entry.sets.reduce((sum, set) => sum + (set.weight ?? 0) * (set.reps ?? 0), 0)
+            : Math.max(...entry.sets.map((set) => set.weight ?? 0)),
       }));
-  }, [history]);
+  }, [history, chartMetric]);
 
   if (isExerciseLoading || !exercise) {
     return (
@@ -161,10 +195,24 @@ export default function ExerciseDetailScreen() {
             </View>
           ) : null}
 
-          {chartData.length > 0 ? (
+          {history && history.length > 0 ? (
             <View className="gap-xs">
-              <Typography variant="label">Gewichtsverlauf</Typography>
-              <LineChart data={chartData} />
+              <View className="flex-row flex-wrap gap-xs">
+                {CHART_METRIC_OPTIONS.map((option) => (
+                  <FilterChip
+                    key={option.value}
+                    label={option.label}
+                    selected={chartMetric === option.value}
+                    onPress={() => setChartMetric(option.value)}
+                  />
+                ))}
+              </View>
+              <Typography variant="label">{CHART_METRIC_TITLES[chartMetric]}</Typography>
+              {chartData.length > 0 ? (
+                <LineChart data={chartData} />
+              ) : (
+                <Typography variant="caption">Keine Daten für diese Ansicht.</Typography>
+              )}
             </View>
           ) : null}
 
