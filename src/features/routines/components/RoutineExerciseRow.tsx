@@ -1,5 +1,6 @@
 import { DotsSixVertical, Trash } from 'phosphor-react-native';
 import { Image, Pressable, useColorScheme, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -62,15 +63,8 @@ export function RoutineExerciseRow({
         )}
       </View>
 
-      {/* isCompact only ever applies to rows OTHER than the one currently being dragged (see
-          RoutineForm's `isDragging && !isActive`) -- react-native-draggable-flatlist snapshots the
-          dragged row's own height once when the drag starts and reuses that fixed number for the
-          whole gesture, so resizing *that* row mid-drag desyncs its cached offsets and makes rows
-          overlap. Every other row's size is read live via onLayout with no such snapshot, so it's
-          safe to actually collapse them (not just hide via opacity) to match the reference design's
-          compact list while reordering. */}
       {!isCompact && (
-        <>
+        <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)}>
           <View className="mt-md gap-sm">
             <View className="flex-row items-center gap-sm">
               <Typography variant="caption" className="w-10">
@@ -128,7 +122,7 @@ export function RoutineExerciseRow({
               onChangeText={(text) => onUpdateRestSeconds(toNumberOrNull(text))}
             />
           </View>
-        </>
+        </Animated.View>
       )}
     </Card>
   );

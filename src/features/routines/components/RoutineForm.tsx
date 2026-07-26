@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -59,26 +60,26 @@ export function RoutineForm({ onSave }: RoutineFormProps) {
 
   function renderItem({ item, drag, getIndex }: RenderItemParams<RoutineDraftExercise>) {
     const rowIndex = getIndex();
-    // Only rows strictly BELOW the dragged item compact. Compacting rows ABOVE it would shrink
-    // their height and shove the dragged row's own resting layout position upward mid-gesture --
-    // react-native-draggable-flatlist renders the active row via a translateY *delta* from its
-    // resting position, so that shift isn't compensated for and the card visibly jumps. Rows
-    // above never change size here, so that jump can't happen regardless of which row is dragged.
-    const isCompact = isDragging && activeIndex !== null && rowIndex !== undefined && rowIndex > activeIndex;
+    // Every row except the one being dragged compacts. The resulting height change is animated
+    // via `layout` below (and via entering/exiting inside RoutineExerciseRow), so rows -- including
+    // the dragged one -- glide to their new resting position instead of snapping there.
+    const isCompact = isDragging && activeIndex !== null && rowIndex !== undefined && rowIndex !== activeIndex;
     return (
       <ScaleDecorator>
-        <View className="mb-sm">
-          <RoutineExerciseRow
-            exercise={item}
-            drag={drag}
-            isCompact={isCompact}
-            onRemoveExercise={() => removeExercise(item.exerciseId)}
-            onAddSet={() => addSet(item.exerciseId)}
-            onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
-            onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
-            onUpdateRestSeconds={(restSeconds) => updateRestSeconds(item.exerciseId, restSeconds)}
-          />
-        </View>
+        <Animated.View layout={LinearTransition.duration(200)}>
+          <View className="mb-sm">
+            <RoutineExerciseRow
+              exercise={item}
+              drag={drag}
+              isCompact={isCompact}
+              onRemoveExercise={() => removeExercise(item.exerciseId)}
+              onAddSet={() => addSet(item.exerciseId)}
+              onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+              onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
+              onUpdateRestSeconds={(restSeconds) => updateRestSeconds(item.exerciseId, restSeconds)}
+            />
+          </View>
+        </Animated.View>
       </ScaleDecorator>
     );
   }
