@@ -27,8 +27,12 @@ export default function HomeScreen() {
     <Screen edges={['top', 'left', 'right']}>
       <View className="flex-row items-center justify-between py-md">
         <Typography variant="title">Home</Typography>
-        <Pressable onPress={() => router.push('/calendar')} hitSlop={8}>
-          <Calendar size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
+        <Pressable
+          onPress={() => router.push('/calendar')}
+          hitSlop={8}
+          className="h-9 w-9 items-center justify-center rounded-lg bg-surface-raised-light active:opacity-70 dark:bg-surface-raised-dark"
+        >
+          <Calendar size={ICON_SIZE.md} color={colors.textSecondary[scheme]} />
         </Pressable>
       </View>
 

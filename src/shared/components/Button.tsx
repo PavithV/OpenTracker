@@ -4,34 +4,42 @@ import { colors } from '@/shared/theme/colors';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 type Size = 'sm' | 'md' | 'lg';
+type Color = 'default' | 'danger';
 
 interface ButtonProps {
   label: string;
   onPress: () => void;
   variant?: Variant;
   size?: Size;
+  color?: Color;
   disabled?: boolean;
   loading?: boolean;
 }
 
-// Nocturne buttons are outlined, never solid-filled ("the primary is an accent outline, never a
-// fill") -- press tints come from the accent/text ramp via Tailwind's color-opacity modifiers,
-// matching styles.css's color-mix(accent 22%)/color-mix(text 14%) active states. `destructive`
-// has no Nocturne equivalent (the system defines no danger role) -- kept as a solid danger fill
-// so destructive actions stay visually distinct from the calmer outlined actions everywhere else.
+// iOS-redesign buttons are filled, reversing Nocturne's "outline, never a fill" rule: `primary`
+// is a solid accent fill with a white label (mockup: "Start"/"Start Empty Workout"), `secondary`
+// is a filled neutral surface instead of an outline (mockup: "Records"/"Reminders" rows).
+// `destructive` stays a solid danger fill (unchanged -- had no Nocturne equivalent either).
 const variantClasses: Record<Variant, string> = {
-  primary: 'border border-primary bg-transparent active:bg-primary/20',
-  secondary:
-    'border border-border-light dark:border-border-dark bg-transparent active:bg-text-primary-light/10 dark:active:bg-text-primary-dark/10',
-  ghost: 'bg-transparent active:bg-primary/15',
+  primary: 'bg-primary-light dark:bg-primary-dark active:opacity-80',
+  secondary: 'bg-surface-raised-light dark:bg-surface-raised-dark active:opacity-70',
+  ghost: 'bg-transparent active:bg-primary-light/15 dark:active:bg-primary-dark/15',
   destructive: 'bg-danger active:opacity-90',
 };
 
 const labelClasses: Record<Variant, string> = {
-  primary: 'text-primary',
+  primary: 'text-white',
   secondary: 'text-text-primary-light dark:text-text-primary-dark',
-  ghost: 'text-primary',
+  ghost: 'text-primary-light dark:text-primary-dark',
   destructive: 'text-danger-foreground',
+};
+
+// `sm` renders as a pill (mockup's compact "Start" chip on RoutineCard); `md`/`lg` render as a
+// large rounded block (mockup's full-width "Start Empty Workout"/"Workout beenden").
+const radiusClasses: Record<Size, string> = {
+  sm: 'rounded-full',
+  md: 'rounded-xl',
+  lg: 'rounded-xl',
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -47,27 +55,45 @@ const labelSizeClasses: Record<Size, string> = {
 };
 
 const spinnerColor: Record<Variant, string> = {
-  primary: colors.primary.DEFAULT,
+  primary: '#FFFFFF',
   secondary: colors.primary.DEFAULT,
   ghost: colors.primary.DEFAULT,
   destructive: '#FFFFFF',
 };
 
-export function Button({ label, onPress, variant = 'primary', size = 'md', disabled, loading }: ButtonProps) {
+// `ghost` + `color="danger"` covers the mockup's text-only "Sign Out" row -- a separate variant
+// isn't needed since it only ever swaps the label/press-tint color, not the (transparent) fill.
+const dangerLabelClass = 'text-danger';
+const dangerSpinnerColor = colors.danger;
+
+export function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  size = 'md',
+  color = 'default',
+  disabled,
+  loading,
+}: ButtonProps) {
   const isDisabled = disabled || loading;
+  const isDanger = color === 'danger' && variant === 'ghost';
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      className={`items-center justify-center rounded-md ${sizeClasses[size]} ${variantClasses[variant]} ${
+      className={`items-center justify-center ${radiusClasses[size]} ${sizeClasses[size]} ${variantClasses[variant]} ${
         isDisabled ? 'opacity-50' : ''
       }`}
     >
       {loading ? (
-        <ActivityIndicator color={spinnerColor[variant]} />
+        <ActivityIndicator color={isDanger ? dangerSpinnerColor : spinnerColor[variant]} />
       ) : (
-        <Text className={`font-sans-medium ${labelSizeClasses[size]} ${labelClasses[variant]}`}>{label}</Text>
+        <Text
+          className={`font-sans-medium ${labelSizeClasses[size]} ${isDanger ? dangerLabelClass : labelClasses[variant]}`}
+        >
+          {label}
+        </Text>
       )}
     </Pressable>
   );

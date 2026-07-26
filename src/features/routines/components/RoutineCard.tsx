@@ -19,17 +19,15 @@ interface RoutineCardProps {
 export function RoutineCard({ routine, onPress, onStart, onDelete }: RoutineCardProps) {
   return (
     <Card onPress={onPress}>
-      <View className="flex-row items-start gap-sm">
+      <View className="flex-row items-center gap-sm">
         <View className="flex-1">
           <Typography variant="cardTitle">{routine.name}</Typography>
           {routine.exercisePreview ? <Typography variant="subtitle">{routine.exercisePreview}</Typography> : null}
         </View>
+        <Button label="Start" size="sm" onPress={onStart} />
         <Pressable onPress={onDelete} hitSlop={8} className="active:opacity-60">
           <Trash size={ICON_SIZE.md} color={colors.danger} />
         </Pressable>
-      </View>
-      <View className="pt-sm">
-        <Button label="Routine starten" onPress={onStart} />
       </View>
     </Card>
   );

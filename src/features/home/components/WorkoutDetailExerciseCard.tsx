@@ -24,7 +24,11 @@ export function WorkoutDetailExerciseCard({
         {exercise.imageUrl ? (
           <Image source={{ uri: exercise.imageUrl }} className="h-12 w-12 rounded-full" />
         ) : (
-          <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
+          <View className="h-12 w-12 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
+            <Typography variant="label" color="accent">
+              {exercise.name.charAt(0).toUpperCase()}
+            </Typography>
+          </View>
         )}
         <Typography variant="cardTitle" className="flex-1">
           {exercise.name}

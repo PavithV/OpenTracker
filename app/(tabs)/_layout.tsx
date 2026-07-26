@@ -1,6 +1,7 @@
+import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Barbell, House, User } from 'phosphor-react-native';
-import { useColorScheme } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 
 import { colors } from '@/shared/theme/colors';
 
@@ -12,12 +13,23 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary.DEFAULT,
-        tabBarInactiveTintColor: colors.textSecondary[scheme],
+        tabBarActiveTintColor: colors.primary[scheme],
+        tabBarInactiveTintColor: colors.textTertiary[scheme],
+        // Mockup's bottom tab bar is a `backdrop-filter: blur(20px) saturate(180%)` glass
+        // surface -- `tabBarBackground` renders the blur behind a transparent bar instead of the
+        // previous solid `backgroundColor`. Not `position: 'absolute'`: that would let content
+        // scroll under the (translucent) bar for a true overlay effect, but every tab screen's
+        // `Screen` already assumes the tab bar reserves its own layout space (`edges` excludes
+        // `'bottom'` specifically because "the tab bar is the bottom buffer") -- keeping normal
+        // flow avoids reworking that convention across every screen for this redesign.
         tabBarStyle: {
-          backgroundColor: colors.surface[scheme],
+          position: 'relative',
+          backgroundColor: 'transparent',
           borderTopColor: colors.border[scheme],
         },
+        tabBarBackground: () => (
+          <BlurView intensity={80} tint={scheme} style={StyleSheet.absoluteFill} />
+        ),
       }}
     >
       <Tabs.Screen

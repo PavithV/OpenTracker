@@ -80,7 +80,7 @@ export default function SignUpScreen() {
           <Button label="Registrieren" onPress={handleSubmit} loading={isSubmitting} />
         </View>
 
-        <Link href="/(auth)/sign-in" className="text-center text-sm text-primary">
+        <Link href="/(auth)/sign-in" className="text-center text-sm text-primary-light dark:text-primary-dark">
           Bereits ein Konto? Jetzt anmelden
         </Link>
       </View>

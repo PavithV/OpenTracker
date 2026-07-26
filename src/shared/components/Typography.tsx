@@ -1,18 +1,18 @@
 import { Text, type TextProps } from 'react-native';
 
 type Variant = 'title' | 'cardTitle' | 'subtitle' | 'body' | 'label' | 'caption';
-type Color = 'default' | 'muted' | 'tertiary' | 'danger';
+type Color = 'default' | 'muted' | 'tertiary' | 'danger' | 'accent';
 
 interface TypographyProps extends TextProps {
   variant?: Variant;
   color?: Color;
 }
 
-// Nocturne caps every weight at 500 ("Don't bolden headings past their 500 weight -- hierarchy
-// here is size and space") -- title/cardTitle/label use font-sans-medium (Inter_500Medium),
-// nothing here goes to sans-semibold/sans-bold.
+// iOS-redesign large titles are bold (mockup: 34px/700) -- unlike Nocturne, which capped every
+// weight at 500. Only `title` goes up to font-sans-bold (Inter_700Bold); cardTitle/label stay at
+// font-sans-medium since the mockup's card/row text never goes past that weight either.
 const variantClasses: Record<Variant, string> = {
-  title: 'text-2xl font-sans-medium tracking-tight',
+  title: 'text-[34px] font-sans-bold tracking-tight',
   cardTitle: 'text-lg font-sans-medium',
   subtitle: 'text-sm font-sans',
   body: 'text-base font-sans',
@@ -34,6 +34,7 @@ const colorClasses: Record<Color, string> = {
   muted: 'text-text-secondary-light dark:text-text-secondary-dark',
   tertiary: 'text-text-tertiary-light dark:text-text-tertiary-dark',
   danger: 'text-danger',
+  accent: 'text-primary-light dark:text-primary-dark',
 };
 
 export function Typography({ variant = 'body', color, className, children, ...props }: TypographyProps) {

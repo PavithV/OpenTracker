@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
-import { X } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 
 import { finishActiveWorkout } from '@/features/training/api/workouts.api';
@@ -18,8 +17,6 @@ import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
-import { colors } from '@/shared/theme/colors';
-import { ICON_SIZE } from '@/shared/theme/icons';
 import { useSessionStore } from '@/store/session.store';
 
 // Mirrors useElapsedSeconds but counts down from an absolute end-timestamp and calls onComplete
@@ -47,7 +44,6 @@ function useRemainingSeconds(endsAt: string | null, onComplete: () => void): num
 }
 
 export default function ActiveWorkoutScreen() {
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const session = useSessionStore((state) => state.session);
   const hasHydrated = useActiveWorkoutHydrated();
   const startedAt = useActiveWorkoutStore((state) => state.startedAt);
@@ -124,11 +120,22 @@ export default function ActiveWorkoutScreen() {
   return (
     <Screen>
       <View className="flex-row items-center justify-between py-md">
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <X size={ICON_SIZE.lg} color={colors.textPrimary[scheme]} />
+        <Pressable onPress={() => router.back()} hitSlop={8} className="active:opacity-60">
+          <Typography variant="body" color="muted">
+            Abbrechen
+          </Typography>
         </Pressable>
-        <Typography variant="title">{formatElapsed(elapsedSeconds)}</Typography>
-        <View style={{ width: ICON_SIZE.lg }} />
+        <Typography variant="cardTitle">{formatElapsed(elapsedSeconds)}</Typography>
+        <Pressable
+          onPress={handleFinishWorkout}
+          disabled={isFinishing}
+          hitSlop={8}
+          className={isFinishing ? 'opacity-50' : 'active:opacity-60'}
+        >
+          <Typography variant="body" color="accent" className="font-sans-medium">
+            Beenden
+          </Typography>
+        </Pressable>
       </View>
 
       <View className="flex-row justify-around pb-md">
@@ -196,7 +203,6 @@ export default function ActiveWorkoutScreen() {
         variant="secondary"
         onPress={() => router.push('/exercise/picker?target=workout')}
       />
-      <Button label="Workout beenden" onPress={handleFinishWorkout} loading={isFinishing} />
     </Screen>
   );
 }

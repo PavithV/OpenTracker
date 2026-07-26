@@ -89,20 +89,22 @@ export default function CalendarScreen() {
                   key={dateKey}
                   onPress={() => setSelectedDate(dateKey)}
                   className={`flex-1 items-center justify-center gap-xs rounded-md border py-sm ${
-                    isSelected ? 'border-primary bg-primary/15' : 'border-transparent'
+                    isSelected
+                      ? 'border-primary-light bg-primary-light/15 dark:border-primary-dark dark:bg-primary-dark/15'
+                      : 'border-transparent'
                   }`}
                 >
                   <Text
                     className={`text-base font-sans ${
                       isSelected || isToday
-                        ? 'font-sans-medium text-primary'
+                        ? 'font-sans-medium text-primary-light dark:text-primary-dark'
                         : 'text-text-primary-light dark:text-text-primary-dark'
                     }`}
                   >
                     {day.date()}
                   </Text>
                   {hasWorkout ? (
-                    <View className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    <View className="h-1.5 w-1.5 rounded-full bg-primary-light dark:bg-primary-dark" />
                   ) : (
                     <View className="h-1.5 w-1.5" />
                   )}

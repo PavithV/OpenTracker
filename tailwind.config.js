@@ -5,31 +5,37 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
-      // Nocturne design system (see ARCHITECTURE.md "Design System") -- a single dark palette.
-      // `light`/`dark` keys are kept equal rather than removed: it preserves every existing
-      // `dark:`-prefixed className across the app unchanged (they resolve identically now)
-      // instead of a mechanical rewrite of every screen for a purely cosmetic rename.
+      // iOS-redesign design system (see ARCHITECTURE.md "Design System") -- real light+dark
+      // palettes, translated from the oklch tokens in the imported Claude Design mockup
+      // (`OpenTracker Redesign.dc.html`, `renderVals()`'s `theme` object) to plain hex/rgba since
+      // RN's style processor doesn't parse `oklch()`. Replaces Nocturne's single dark palette.
       colors: {
-        background: { light: '#161826', dark: '#161826' },
+        background: { light: '#F7F7F8', dark: '#101114' },
         surface: {
-          light: '#232532',
-          dark: '#232532',
-          raised: { light: '#3f424d', dark: '#3f424d' },
+          light: '#FFFFFF',
+          dark: '#1C1D22',
+          raised: { light: '#F0F0F3', dark: '#222329' },
         },
-        border: { light: 'rgba(233, 233, 237, 0.16)', dark: 'rgba(233, 233, 237, 0.16)' },
+        border: { light: 'rgba(0, 0, 0, 0.08)', dark: '#3A3B42' },
         text: {
-          primary: { light: '#e9e9ed', dark: '#e9e9ed' },
-          secondary: { light: 'rgba(233, 233, 237, 0.62)', dark: 'rgba(233, 233, 237, 0.62)' },
-          tertiary: { light: 'rgba(233, 233, 237, 0.45)', dark: 'rgba(233, 233, 237, 0.45)' },
+          primary: { light: '#17181B', dark: '#F5F5F7' },
+          secondary: { light: 'rgba(23, 24, 27, 0.55)', dark: 'rgba(245, 245, 247, 0.72)' },
+          tertiary: { light: 'rgba(23, 24, 27, 0.38)', dark: 'rgba(245, 245, 247, 0.55)' },
         },
         primary: {
-          DEFAULT: '#9184d9',
-          light: '#b5abfc',
-          dark: '#796cbf',
+          DEFAULT: '#4F6FE0',
+          light: '#3E5FDB',
+          dark: '#6E8FF2',
+          soft: { light: '#E8ECFB', dark: '#242C46' },
         },
         success: { DEFAULT: '#2ECC71', foreground: '#161826' },
         warning: { DEFAULT: '#F5A623', foreground: '#161826' },
-        danger: { DEFAULT: '#E74C3C', foreground: '#FFFFFF' },
+        danger: {
+          DEFAULT: '#DC4B3E',
+          light: '#DC4B3E',
+          dark: '#E8695C',
+          foreground: '#FFFFFF',
+        },
       },
       // Nocturne is deliberately dense (readme: "density 0.7x... this system is dense on
       // purpose"). Its own --space-* tokens (2.8/5.6/8.4/11.2/16.8/22.4px) were tuned for

@@ -180,7 +180,11 @@ export default function ExercisePickerScreen() {
                   {item.imageUrl ? (
                     <Image source={{ uri: item.imageUrl }} className="h-12 w-12 rounded-full" />
                   ) : (
-                    <View className="h-12 w-12 rounded-full bg-surface-light dark:bg-surface-dark" />
+                    <View className="h-12 w-12 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
+                      <Typography variant="label" color="accent">
+                        {item.name.charAt(0).toUpperCase()}
+                      </Typography>
+                    </View>
                   )}
                 </Pressable>
               }

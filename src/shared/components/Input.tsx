@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Text, TextInput, View, type TextInputProps } from 'react-native';
+import { Text, TextInput, useColorScheme, View, type TextInputProps } from 'react-native';
 
 import { colors } from '@/shared/theme/colors';
 
@@ -11,11 +11,12 @@ interface InputProps extends TextInputProps {
 export const Input = forwardRef<TextInput, InputProps>(
   ({ label, error, className, onFocus, onBlur, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
+    const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
 
     const borderClass = error
       ? 'border-danger'
       : isFocused
-        ? 'border-primary'
+        ? 'border-primary-light dark:border-primary-dark'
         : 'border-border-light dark:border-border-dark';
 
     return (
@@ -27,7 +28,7 @@ export const Input = forwardRef<TextInput, InputProps>(
         ) : null}
         <TextInput
           ref={ref}
-          placeholderTextColor={colors.textTertiary.dark}
+          placeholderTextColor={colors.textTertiary[scheme]}
           onFocus={(event) => {
             setIsFocused(true);
             onFocus?.(event);
@@ -36,7 +37,7 @@ export const Input = forwardRef<TextInput, InputProps>(
             setIsFocused(false);
             onBlur?.(event);
           }}
-          className={`rounded-md border px-md py-md font-sans text-base text-text-primary-light dark:text-text-primary-dark ${borderClass} bg-surface-light dark:bg-surface-dark ${className ?? ''}`}
+          className={`rounded-lg border px-md py-md font-sans text-base text-text-primary-light dark:text-text-primary-dark ${borderClass} bg-surface-light dark:bg-surface-dark ${className ?? ''}`}
           {...props}
         />
         {error ? <Text className="text-sm font-sans text-danger">{error}</Text> : null}

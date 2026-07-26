@@ -64,12 +64,12 @@ export default function SignInScreen() {
             </Typography>
           ) : null}
           <Button label="Anmelden" onPress={handleSubmit} loading={isSubmitting} />
-          <Link href="/(auth)/forgot-password" className="text-center text-sm text-primary">
+          <Link href="/(auth)/forgot-password" className="text-center text-sm text-primary-light dark:text-primary-dark">
             Passwort vergessen?
           </Link>
         </View>
 
-        <Link href="/(auth)/sign-up" className="text-center text-sm text-primary">
+        <Link href="/(auth)/sign-up" className="text-center text-sm text-primary-light dark:text-primary-dark">
           Noch kein Konto? Jetzt registrieren
         </Link>
       </View>

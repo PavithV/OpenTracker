@@ -25,7 +25,7 @@ export function ExerciseDetailTabs({ active, onChange }: ExerciseDetailTabsProps
           key={tab}
           onPress={() => onChange(tab)}
           className={`flex-1 items-center border-b-2 py-sm ${
-            active === tab ? 'border-primary' : 'border-transparent'
+            active === tab ? 'border-primary-light dark:border-primary-dark' : 'border-transparent'
           }`}
         >
           <Typography variant="label" color={active === tab ? 'default' : 'muted'}>
