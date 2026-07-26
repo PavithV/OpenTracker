@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
-import DraggableFlatList, { type RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import { Alert, FlatList, Pressable, View } from 'react-native';
 
 import { finishActiveWorkout } from '@/features/training/api/workouts.api';
 import { ActiveWorkoutExerciseCard } from '@/features/training/components/ActiveWorkoutExerciseCard';
@@ -67,7 +66,6 @@ export default function ActiveWorkoutScreen() {
   const reset = useActiveWorkoutStore((state) => state.reset);
 
   const [isFinishing, setIsFinishing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     if (hasHydrated) start();
@@ -77,6 +75,16 @@ export default function ActiveWorkoutScreen() {
   const remainingRestSeconds = useRemainingSeconds(restEndsAt, clearRestTimer);
   const totalVolume = computeTotalVolume(exercises);
   const completedSets = computeCompletedSetCount(exercises);
+
+  function moveExercise(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= exercises.length) {
+      return;
+    }
+    const reordered = [...exercises];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+    reorderExercises(reordered);
+  }
 
   // Only the false->true transition should start a rest timer -- un-completing a set (tapping it
   // again) must not also fire one.
@@ -163,37 +171,32 @@ export default function ActiveWorkoutScreen() {
       <Input value={notes} onChangeText={setNotes} placeholder="Notizen zum Workout…" multiline numberOfLines={2} />
 
       <View className="mt-sm flex-1">
-        <DraggableFlatList
+        <FlatList
           data={exercises}
           keyExtractor={(item) => item.exerciseId}
-          onDragBegin={() => setIsDragging(true)}
-          onDragEnd={({ data }) => {
-            setIsDragging(false);
-            reorderExercises(data);
-          }}
           ListEmptyComponent={<Typography variant="subtitle">Noch keine Übungen hinzugefügt.</Typography>}
-          renderItem={({ item, drag }: RenderItemParams<ActiveWorkoutExercise>) => (
-            <ScaleDecorator>
-              <View className="mb-sm">
-                <ActiveWorkoutExerciseCard
-                  exercise={item}
-                  drag={drag}
-                  isCompact={isDragging}
-                  onRemoveExercise={() => removeExercise(item.exerciseId)}
-                  onAddSet={() => addSet(item.exerciseId)}
-                  onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
-                  onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
-                  onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
-                  onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
-                  onOpenPlateCalculator={(weight) =>
-                    router.push({
-                      pathname: '/plate-calculator',
-                      params: { weight: weight !== null ? String(weight) : undefined },
-                    })
-                  }
-                />
-              </View>
-            </ScaleDecorator>
+          renderItem={({ item, index }) => (
+            <View className="mb-sm">
+              <ActiveWorkoutExerciseCard
+                exercise={item}
+                canMoveUp={index > 0}
+                canMoveDown={index < exercises.length - 1}
+                onMoveUp={() => moveExercise(index, -1)}
+                onMoveDown={() => moveExercise(index, 1)}
+                onRemoveExercise={() => removeExercise(item.exerciseId)}
+                onAddSet={() => addSet(item.exerciseId)}
+                onUpdateSet={(setId, patch) => updateSet(item.exerciseId, setId, patch)}
+                onToggleSetCompleted={(setId) => handleToggleSetCompleted(item, setId)}
+                onRemoveSet={(setId) => removeSet(item.exerciseId, setId)}
+                onUpdateNotes={(notesValue) => updateExerciseNotes(item.exerciseId, notesValue)}
+                onOpenPlateCalculator={(weight) =>
+                  router.push({
+                    pathname: '/plate-calculator',
+                    params: { weight: weight !== null ? String(weight) : undefined },
+                  })
+                }
+              />
+            </View>
           )}
         />
       </View>

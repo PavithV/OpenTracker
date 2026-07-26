@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { handleAuthDeepLink } from '@/features/auth/utils/deep-link';
+import { Toast } from '@/shared/components/Toast';
 import { queryClient } from '@/shared/lib/query-client';
 import { supabase } from '@/shared/lib/supabase';
 import { useSessionStore } from '@/store/session.store';
@@ -97,6 +98,8 @@ export default function RootLayout() {
               <Stack.Screen name="reminders" />
             </Stack.Protected>
           </Stack>
+
+          <Toast />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

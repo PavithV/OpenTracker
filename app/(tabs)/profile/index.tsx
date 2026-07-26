@@ -70,6 +70,23 @@ export default function ProfileScreen() {
   const isLoading = isProfileLoading || isStatsLoading;
   const error = profileError ?? statsError;
 
+  function handleSignOut() {
+    Alert.alert('Abmelden?', 'Du kannst dich jederzeit wieder anmelden.', [
+      { text: 'Abbrechen', style: 'cancel' },
+      {
+        text: 'Abmelden',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await signOut();
+          } catch (err) {
+            Alert.alert('Abmelden fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
+          }
+        },
+      },
+    ]);
+  }
+
   function handleDeleteAccount() {
     Alert.alert(
       'Konto löschen?',
@@ -157,7 +174,7 @@ export default function ProfileScreen() {
 
             <Button label="Workout-Erinnerungen" variant="secondary" onPress={() => router.push('/reminders')} />
 
-            <Button label="Abmelden" variant="ghost" color="danger" onPress={() => signOut()} />
+            <Button label="Abmelden" variant="ghost" color="danger" onPress={handleSignOut} />
 
             <Button label="Konto löschen" variant="ghost" color="danger" onPress={handleDeleteAccount} />
           </View>

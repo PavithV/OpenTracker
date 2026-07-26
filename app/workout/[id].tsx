@@ -7,11 +7,13 @@ import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 import { deleteWorkout, getWorkoutDetail } from '@/features/home/api/workouts.api';
 import { WorkoutDetailExerciseCard } from '@/features/home/components/WorkoutDetailExerciseCard';
 import { WorkoutMuscleSplitCard } from '@/features/home/components/WorkoutMuscleSplitCard';
+import type { WorkoutHistoryItem } from '@/features/home/types/workout-history.types';
 import { Button } from '@/shared/components/Button';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { formatDuration } from '@/shared/utils/format';
 import { useSessionStore } from '@/store/session.store';
+import { useToastStore } from '@/store/toast.store';
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,21 +32,42 @@ export default function WorkoutDetailScreen() {
     }
   }, [error]);
 
+  // Workouts have no soft-delete column (unlike routines' archived_at), so an undo-able delete
+  // means deferring the real DELETE rather than reversing it: hide the row optimistically and
+  // only actually call deleteWorkout() once the toast's undo window has elapsed. Undo just
+  // cancels the pending timer and refetches -- the row was never really gone server-side.
   function handleDelete() {
     Alert.alert('Workout löschen?', 'Dieses Workout kann danach nicht mehr wiederhergestellt werden.', [
       { text: 'Abbrechen', style: 'cancel' },
       {
         text: 'Löschen',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteWorkout(id);
-            queryClient.invalidateQueries({ queryKey: ['workouts', 'history', session?.user.id] });
-            queryClient.invalidateQueries({ queryKey: ['profile', 'stats', session?.user.id] });
-            router.back();
-          } catch (err) {
-            Alert.alert('Löschen fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
-          }
+        onPress: () => {
+          const historyKey = ['workouts', 'history', session?.user.id];
+          queryClient.setQueryData<WorkoutHistoryItem[]>(historyKey, (old) =>
+            old?.filter((item) => item.id !== id),
+          );
+          router.back();
+
+          const timeoutId = setTimeout(async () => {
+            try {
+              await deleteWorkout(id);
+              queryClient.invalidateQueries({ queryKey: ['profile', 'stats', session?.user.id] });
+            } catch {
+              // The optimistic removal already happened; resync with the server on failure
+              // rather than leaving the UI silently out of step with what's actually in the DB.
+              queryClient.invalidateQueries({ queryKey: historyKey });
+            }
+          }, 5000);
+
+          useToastStore.getState().show({
+            message: 'Workout gelöscht',
+            actionLabel: 'Rückgängig',
+            onAction: () => {
+              clearTimeout(timeoutId);
+              queryClient.invalidateQueries({ queryKey: historyKey });
+            },
+          });
         },
       },
     ]);

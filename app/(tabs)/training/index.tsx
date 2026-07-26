@@ -4,7 +4,7 @@ import { WarningCircle } from 'phosphor-react-native';
 import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { archiveRoutine, getRoutineForEdit, getRoutines } from '@/features/routines/api/routines.api';
+import { archiveRoutine, getRoutineForEdit, getRoutines, unarchiveRoutine } from '@/features/routines/api/routines.api';
 import { RoutineCard } from '@/features/routines/components/RoutineCard';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
 import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorkoutMiniBar';
@@ -16,6 +16,7 @@ import { Typography } from '@/shared/components/Typography';
 import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { useSessionStore } from '@/store/session.store';
+import { useToastStore } from '@/store/toast.store';
 
 export default function TrainingScreen() {
   const session = useSessionStore((state) => state.session);
@@ -43,6 +44,14 @@ export default function TrainingScreen() {
           try {
             await archiveRoutine(routineId);
             queryClient.invalidateQueries({ queryKey: ['routines', 'list', session?.user.id] });
+            useToastStore.getState().show({
+              message: 'Routine gelöscht',
+              actionLabel: 'Rückgängig',
+              onAction: async () => {
+                await unarchiveRoutine(routineId);
+                queryClient.invalidateQueries({ queryKey: ['routines', 'list', session?.user.id] });
+              },
+            });
           } catch (err) {
             Alert.alert('Löschen fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
           }

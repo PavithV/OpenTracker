@@ -12,6 +12,11 @@ export async function archiveRoutine(routineId: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function unarchiveRoutine(routineId: string): Promise<void> {
+  const { error } = await supabase.from('routines').update({ archived_at: null }).eq('id', routineId);
+  if (error) throw error;
+}
+
 // Flat queries joined in JS rather than a nested routines -> routine_exercises -> exercises embed --
 // same reasoning as getRoutineForEdit below (the generated Database type marks the
 // routine_exercises -> exercises FK isOneToOne: false, which makes multi-level embed-shape
