@@ -7,6 +7,8 @@ import { Card } from '@/shared/components/Card';
 import { Typography } from '@/shared/components/Typography';
 import { VerticalBarChart } from '@/shared/components/VerticalBarChart';
 import { formatDuration } from '@/shared/utils/format';
+import { kgToLb, type UnitPreference } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import { getProfileWorkoutSeries } from '../api/profile.api';
 import { bucketWorkoutSeries, getSinceIsoForPeriod, type ProfileMetric, type ProfilePeriod } from '../utils/chart-buckets';
@@ -23,13 +25,16 @@ const METRIC_OPTIONS: { value: ProfileMetric; label: string }[] = [
   { value: 'reps', label: 'Wiederholungen' },
 ];
 
-function formatTotal(total: number, metric: ProfileMetric): string {
+// Volume total keeps 0-decimal rounding (unlike formatWeight's 1-decimal lb default) -- this is a
+// compact chart-header label, not a precise readout.
+function formatTotal(total: number, metric: ProfileMetric, unit: UnitPreference): string {
   if (metric === 'duration') return formatDuration(total);
   if (metric === 'reps') return `${Math.round(total)} Wiederholungen`;
-  return `${Math.round(total)} kg`;
+  return `${Math.round(unit === 'lb' ? kgToLb(total) : total)} ${unit}`;
 }
 
 export function ProfileVolumeChart({ userId }: { userId: string }) {
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
   const [period, setPeriod] = useState<ProfilePeriod>('3m');
   const [metric, setMetric] = useState<ProfileMetric>('volume');
 
@@ -68,7 +73,7 @@ export function ProfileVolumeChart({ userId }: { userId: string }) {
       </View>
 
       <Typography variant="cardTitle" className="mt-md mb-sm">
-        {formatTotal(total, metric)} · {periodLabel}
+        {formatTotal(total, metric, unit)} · {periodLabel}
       </Typography>
 
       <VerticalBarChart data={buckets} />

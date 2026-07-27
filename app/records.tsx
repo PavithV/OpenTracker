@@ -9,10 +9,13 @@ import { ListItem } from '@/shared/components/ListItem';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { getErrorMessage } from '@/shared/utils/errors';
+import { formatWeight } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 export default function RecordsScreen() {
   const session = useSessionStore((state) => state.session);
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
 
   const { data: records, isLoading, error, refetch } = useQuery({
     queryKey: ['records', session?.user.id],
@@ -50,8 +53,8 @@ export default function RecordsScreen() {
             <ListItem
               title={item.exerciseName}
               description={[
-                item.maxWeight !== null ? `Bestes Gewicht: ${item.maxWeight} kg` : null,
-                item.estimated1Rm !== null ? `Geschätztes 1RM: ${item.estimated1Rm} kg` : null,
+                item.maxWeight !== null ? `Bestes Gewicht: ${formatWeight(item.maxWeight, unit)}` : null,
+                item.estimated1Rm !== null ? `Geschätztes 1RM: ${formatWeight(item.estimated1Rm, unit)}` : null,
               ]
                 .filter(Boolean)
                 .join(' · ')}

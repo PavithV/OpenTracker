@@ -23,7 +23,9 @@ import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
 import { capitalize } from '@/shared/utils/format';
+import { formatWeight } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 // Seeded dataset has no "de" key -- fall back to English, then whatever language is present.
 const INSTRUCTIONS_FALLBACK_LANGUAGE = 'en';
@@ -50,6 +52,7 @@ export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const session = useSessionStore((state) => state.session);
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<ExerciseDetailTab>('summary');
   const [chartMetric, setChartMetric] = useState<ExerciseChartMetric>('maxWeight');
@@ -184,7 +187,7 @@ export default function ExerciseDetailScreen() {
               {personalRecords.maxWeight ? (
                 <View className="flex-1 gap-xs rounded-lg border border-border-light p-md dark:border-border-dark">
                   <Typography variant="subtitle">Persönlicher Rekord</Typography>
-                  <Typography variant="cardTitle">{personalRecords.maxWeight.value} kg</Typography>
+                  <Typography variant="cardTitle">{formatWeight(personalRecords.maxWeight.value, unit)}</Typography>
                   <Typography variant="caption">
                     {dayjs(personalRecords.maxWeight.achievedAt).format('DD.MM.YYYY')}
                   </Typography>
@@ -193,7 +196,7 @@ export default function ExerciseDetailScreen() {
               {personalRecords.estimated1Rm ? (
                 <View className="flex-1 gap-xs rounded-lg border border-border-light p-md dark:border-border-dark">
                   <Typography variant="subtitle">Geschätztes 1RM</Typography>
-                  <Typography variant="cardTitle">{personalRecords.estimated1Rm.value} kg</Typography>
+                  <Typography variant="cardTitle">{formatWeight(personalRecords.estimated1Rm.value, unit)}</Typography>
                   <Typography variant="caption">
                     {dayjs(personalRecords.estimated1Rm.achievedAt).format('DD.MM.YYYY')}
                   </Typography>

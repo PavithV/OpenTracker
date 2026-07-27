@@ -5,6 +5,8 @@ import { Card } from '@/shared/components/Card';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
+import { formatWeight } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { WorkoutDetailExercise } from '../types/workout-detail.types';
 
@@ -17,6 +19,7 @@ export function WorkoutDetailExerciseCard({
 }) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const secondaryColor = colors.textTertiary[scheme];
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
 
   return (
     <Card onPress={onPress}>
@@ -42,7 +45,7 @@ export function WorkoutDetailExerciseCard({
               {index + 1}
             </Typography>
             <Typography variant="body" className="flex-1">
-              {set.weight ?? '–'} kg × {set.reps ?? '–'}
+              {set.weight !== null ? formatWeight(set.weight, unit) : '–'} × {set.reps ?? '–'}
             </Typography>
             {set.completed ? (
               <Check size={ICON_SIZE.md} color={colors.primary.DEFAULT} />

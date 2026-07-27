@@ -8,24 +8,32 @@ import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
-
-function toNumberOrNull(text: string): number | null {
-  if (text === '') return null;
-  const value = Number(text);
-  return Number.isNaN(value) ? null : value;
-}
+import { formatWeight, kgToLb, parseWeightInput } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 export default function PlateCalculatorScreen() {
   const { weight } = useLocalSearchParams<{ weight?: string }>();
-  const [targetWeightText, setTargetWeightText] = useState(weight ?? '');
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
+  // `weight` param is always canonical kg (callers, e.g. the active workout's "open plate
+  // calculator" button, pass the set's raw weight) -- convert it into the display unit once for
+  // the initial text, same as every other prefilled weight input in the app.
+  const [targetWeightText, setTargetWeightText] = useState(() => {
+    if (!weight) return '';
+    const kg = Number(weight);
+    return Number.isNaN(kg) ? '' : String(unit === 'lb' ? kgToLb(kg) : kg);
+  });
   const [barTypeId, setBarTypeId] = useState(BAR_TYPES[0].id);
 
   const barType = BAR_TYPES.find((bar) => bar.id === barTypeId) ?? BAR_TYPES[0];
-  const targetWeight = toNumberOrNull(targetWeightText);
+  // The algorithm and the per-plate breakdown always run in kg -- gym plates/bars are physical
+  // kg objects regardless of the user's preferred display unit (see units.ts's doc comment).
+  // Only the typed target and the final total are converted for entry/display.
+  const targetWeightKg = parseWeightInput(targetWeightText, unit);
 
   const loadout = useMemo(
-    () => (targetWeight !== null && targetWeight > 0 ? calculatePlateLoadout(targetWeight, barType.weightKg) : null),
-    [targetWeight, barType.weightKg],
+    () =>
+      targetWeightKg !== null && targetWeightKg > 0 ? calculatePlateLoadout(targetWeightKg, barType.weightKg) : null,
+    [targetWeightKg, barType.weightKg],
   );
 
   return (
@@ -35,7 +43,7 @@ export default function PlateCalculatorScreen() {
       </Typography>
 
       <Input
-        label="Zielgewicht (kg)"
+        label={`Zielgewicht (${unit})`}
         keyboardType="numeric"
         value={targetWeightText}
         onChangeText={setTargetWeightText}
@@ -77,8 +85,8 @@ export default function PlateCalculatorScreen() {
 
             <View className="mt-md border-t border-border-light pt-sm dark:border-border-dark">
               <Typography variant="body">
-                Ergibt {loadout.totalWeightKg} kg
-                {loadout.totalWeightKg !== targetWeight ? ` (Ziel: ${targetWeight} kg)` : ''}
+                Ergibt {formatWeight(loadout.totalWeightKg, unit)}
+                {loadout.totalWeightKg !== targetWeightKg ? ` (Ziel: ${formatWeight(targetWeightKg!, unit)})` : ''}
               </Typography>
             </View>
           </Card>

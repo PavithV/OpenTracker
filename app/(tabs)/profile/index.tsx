@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { WarningCircle } from 'phosphor-react-native';
+import { useEffect } from 'react';
 import { ActivityIndicator, Alert, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteAccount, signOut } from '@/features/auth/api/auth.api';
 import { FilterChip } from '@/features/exercises/components/FilterChip';
-import { getProfile, getProfileStats } from '@/features/profile/api/profile.api';
+import { getProfile, getProfileStats, updateProfile } from '@/features/profile/api/profile.api';
 import { ProfileStatsCard } from '@/features/profile/components/ProfileStatsCard';
 import { ProfileVolumeChart } from '@/features/profile/components/ProfileVolumeChart';
 import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorkoutMiniBar';
@@ -17,8 +18,10 @@ import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
 import { getErrorMessage } from '@/shared/utils/errors';
+import type { UnitPreference } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
 import { type ThemePreference, useThemeStore } from '@/store/theme.store';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 // "Jordan Diaz" -> "JD"; falls back to the first two letters of the email's local part when
 // there's no display name (mirrors the mockup's avatar-circle initials).
@@ -39,11 +42,18 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'dark', label: 'Dunkel' },
 ];
 
+const UNIT_OPTIONS: { value: UnitPreference; label: string }[] = [
+  { value: 'kg', label: 'kg' },
+  { value: 'lb', label: 'lb' },
+];
+
 export default function ProfileScreen() {
   const session = useSessionStore((state) => state.session);
   const insets = useSafeAreaInsets();
   const themePreference = useThemeStore((state) => state.preference);
   const setThemePreference = useThemeStore((state) => state.setPreference);
+  const unitPreference = useUnitPreferenceStore((state) => state.unitPreference);
+  const setUnitPreference = useUnitPreferenceStore((state) => state.setUnitPreference);
 
   const {
     data: profile,
@@ -55,6 +65,21 @@ export default function ProfileScreen() {
     queryFn: () => getProfile(session!.user.id),
     enabled: !!session,
   });
+
+  // Corrects the local, AsyncStorage-persisted unit preference from the DB value once loaded --
+  // covers drift from another device, since the toggle below otherwise only writes locally-first.
+  useEffect(() => {
+    if (profile) setUnitPreference(profile.unitPreference);
+  }, [profile, setUnitPreference]);
+
+  function handleUnitPreferenceChange(next: UnitPreference) {
+    const previous = unitPreference;
+    setUnitPreference(next);
+    updateProfile(session!.user.id, { unitPreference: next }).catch((err) => {
+      setUnitPreference(previous);
+      Alert.alert('Aktualisierung fehlgeschlagen', getErrorMessage(err));
+    });
+  }
 
   const {
     data: stats,
@@ -164,6 +189,22 @@ export default function ProfileScreen() {
                   label={option.label}
                   selected={themePreference === option.value}
                   onPress={() => setThemePreference(option.value)}
+                />
+              ))}
+            </View>
+          </Card>
+
+          <Card>
+            <Typography variant="label" className="mb-sm">
+              Einheiten
+            </Typography>
+            <View className="flex-row gap-xs">
+              {UNIT_OPTIONS.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  label={option.label}
+                  selected={unitPreference === option.value}
+                  onPress={() => handleUnitPreferenceChange(option.value)}
                 />
               ))}
             </View>

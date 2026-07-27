@@ -12,13 +12,16 @@ import { Button } from '@/shared/components/Button';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
 import { formatDuration } from '@/shared/utils/format';
+import { formatWeight } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
 import { useToastStore } from '@/store/toast.store';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const session = useSessionStore((state) => state.session);
   const queryClient = useQueryClient();
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
 
   const { data: workout, isLoading, error } = useQuery({
     queryKey: ['workouts', 'detail', id],
@@ -93,7 +96,7 @@ export default function WorkoutDetailScreen() {
             <Typography variant="subtitle">{dayjs(workout.startedAt).format('DD.MM.YYYY, HH:mm')}</Typography>
             <View className="mt-xs flex-row gap-lg">
               <Typography variant="subtitle">{formatDuration(workout.durationSeconds)}</Typography>
-              <Typography variant="subtitle">{workout.totalVolume} kg</Typography>
+              <Typography variant="subtitle">{formatWeight(workout.totalVolume, unit)}</Typography>
               <Typography variant="subtitle">
                 {workout.exercises.length} {workout.exercises.length === 1 ? 'Übung' : 'Übungen'}
               </Typography>

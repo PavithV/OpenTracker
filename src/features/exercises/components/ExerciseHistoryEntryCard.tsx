@@ -3,6 +3,8 @@ import { Image, View } from 'react-native';
 
 import { Card } from '@/shared/components/Card';
 import { Typography } from '@/shared/components/Typography';
+import { formatWeight } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { ExerciseHistoryEntry } from '../types/exercise.types';
 
@@ -15,6 +17,8 @@ export function ExerciseHistoryEntryCard({
   imageUrl: string | null;
   onPress?: () => void;
 }) {
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
+
   return (
     <Card onPress={onPress}>
       <View className="flex-row items-center gap-sm">
@@ -40,7 +44,7 @@ export function ExerciseHistoryEntryCard({
               {set.setNumber}
             </Typography>
             <Typography variant="body">
-              {set.weight ?? '–'} kg × {set.reps ?? '–'}
+              {set.weight !== null ? formatWeight(set.weight, unit) : '–'} × {set.reps ?? '–'}
             </Typography>
           </View>
         ))}

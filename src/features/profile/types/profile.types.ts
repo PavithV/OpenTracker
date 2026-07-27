@@ -1,6 +1,8 @@
+import type { UnitPreference } from '@/shared/utils/units';
+
 export interface Profile {
   displayName: string | null;
-  unitPreference: string;
+  unitPreference: UnitPreference;
 }
 
 export interface ProfileStats {

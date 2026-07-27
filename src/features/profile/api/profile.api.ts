@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
+import type { UnitPreference } from '@/shared/utils/units';
 
 import type { Profile, ProfileStats, ProfileWorkoutPoint } from '../types/profile.types';
 
@@ -10,7 +11,14 @@ export async function getProfile(userId: string): Promise<Profile> {
     .single();
   if (error) throw error;
 
-  return { displayName: data.display_name, unitPreference: data.unit_preference };
+  // `database.types.ts` widens the CHECK-constrained column to plain `string` -- the DB
+  // guarantees only 'kg'/'lb' can ever be stored, so this cast is safe at the fetch boundary.
+  return { displayName: data.display_name, unitPreference: data.unit_preference as UnitPreference };
+}
+
+export async function updateProfile(userId: string, updates: { unitPreference: UnitPreference }): Promise<void> {
+  const { error } = await supabase.from('profiles').update({ unit_preference: updates.unitPreference }).eq('id', userId);
+  if (error) throw error;
 }
 
 export async function getProfileStats(userId: string): Promise<ProfileStats> {

@@ -3,6 +3,8 @@ import { View } from 'react-native';
 import { Card } from '@/shared/components/Card';
 import { Typography } from '@/shared/components/Typography';
 import { formatDuration } from '@/shared/utils/format';
+import { formatWeight } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { ProfileStats } from '../types/profile.types';
 
@@ -20,6 +22,8 @@ function StatTile({ label, value }: { label: string; value: string }) {
 }
 
 export function ProfileStatsCard({ stats }: { stats: ProfileStats }) {
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
+
   return (
     <View className="flex-row gap-sm">
       <View className="flex-1">
@@ -29,7 +33,7 @@ export function ProfileStatsCard({ stats }: { stats: ProfileStats }) {
         <StatTile label="Trainingszeit" value={formatDuration(stats.totalDurationSeconds)} />
       </View>
       <View className="flex-1">
-        <StatTile label="Volumen" value={`${stats.totalVolume} kg`} />
+        <StatTile label="Volumen" value={formatWeight(stats.totalVolume, unit)} />
       </View>
     </View>
   );

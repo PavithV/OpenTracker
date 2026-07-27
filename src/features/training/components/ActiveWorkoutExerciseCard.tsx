@@ -8,6 +8,8 @@ import { Input } from '@/shared/components/Input';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
+import { formatWeight, kgToLb, parseWeightInput } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { ActiveWorkoutExercise, WorkoutSetEntry } from '../types/active-workout.types';
 
@@ -50,6 +52,7 @@ export function ActiveWorkoutExerciseCard({
 }: ActiveWorkoutExerciseCardProps) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const secondaryColor = colors.textSecondary[scheme];
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
 
   return (
     <Card>
@@ -115,10 +118,10 @@ export function ActiveWorkoutExerciseCard({
                 </Typography>
                 <View className="w-20">
                   <Input
-                    placeholder="kg"
+                    placeholder={unit}
                     keyboardType="numeric"
-                    value={set.weight === null ? '' : String(set.weight)}
-                    onChangeText={(text) => onUpdateSet(set.id, { weight: toNumberOrNull(text) })}
+                    value={set.weight === null ? '' : String(unit === 'lb' ? kgToLb(set.weight) : set.weight)}
+                    onChangeText={(text) => onUpdateSet(set.id, { weight: parseWeightInput(text, unit) })}
                   />
                 </View>
                 <View className="w-20">
@@ -166,7 +169,7 @@ export function ActiveWorkoutExerciseCard({
               </View>
               {previousSet && (previousSet.weight !== null || previousSet.reps !== null) ? (
                 <Typography variant="caption" className="pl-lg">
-                  Letztes Mal: {previousSet.weight !== null ? `${previousSet.weight} kg` : '–'}
+                  Letztes Mal: {previousSet.weight !== null ? formatWeight(previousSet.weight, unit) : '–'}
                   {previousSet.reps !== null ? ` × ${previousSet.reps}` : ''}
                 </Typography>
               ) : null}

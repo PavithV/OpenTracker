@@ -7,6 +7,8 @@ import { Input } from '@/shared/components/Input';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
+import { kgToLb, parseWeightInput } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { RoutineDraftExercise, RoutineDraftSet } from '../types/routine.types';
 
@@ -41,6 +43,7 @@ export function RoutineExerciseRow({
 }: RoutineExerciseRowProps) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const secondaryColor = colors.textSecondary[scheme];
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
 
   return (
     <Card>
@@ -101,7 +104,7 @@ export function RoutineExerciseRow({
             SET
           </Typography>
           <Typography variant="caption" className="flex-1">
-            KG
+            {unit.toUpperCase()}
           </Typography>
           <Typography variant="caption" className="flex-1">
             WDH
@@ -118,8 +121,8 @@ export function RoutineExerciseRow({
               <Input
                 keyboardType="numeric"
                 placeholder="-"
-                value={set.targetWeight === null ? '' : String(set.targetWeight)}
-                onChangeText={(text) => onUpdateSet(set.id, { targetWeight: toNumberOrNull(text) })}
+                value={set.targetWeight === null ? '' : String(unit === 'lb' ? kgToLb(set.targetWeight) : set.targetWeight)}
+                onChangeText={(text) => onUpdateSet(set.id, { targetWeight: parseWeightInput(text, unit) })}
               />
             </View>
             <View className="flex-1">

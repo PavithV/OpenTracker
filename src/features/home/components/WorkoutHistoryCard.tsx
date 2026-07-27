@@ -4,12 +4,15 @@ import { Image, View } from 'react-native';
 import { Card } from '@/shared/components/Card';
 import { Typography } from '@/shared/components/Typography';
 import { formatDuration } from '@/shared/utils/format';
+import { formatWeight } from '@/shared/utils/units';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { WorkoutHistoryItem } from '../types/workout-history.types';
 
 const MAX_VISIBLE_EXERCISES = 3;
 
 export function WorkoutHistoryCard({ workout, onPress }: { workout: WorkoutHistoryItem; onPress?: () => void }) {
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
   const visibleExercises = workout.exercises.slice(0, MAX_VISIBLE_EXERCISES);
   const remainingCount = workout.exercises.length - visibleExercises.length;
 
@@ -19,7 +22,7 @@ export function WorkoutHistoryCard({ workout, onPress }: { workout: WorkoutHisto
       <Typography variant="subtitle">{dayjs(workout.startedAt).format('DD.MM.YYYY')}</Typography>
       <View className="mt-sm flex-row gap-lg">
         <Typography variant="subtitle">{formatDuration(workout.durationSeconds)}</Typography>
-        <Typography variant="subtitle">{workout.totalVolume} kg</Typography>
+        <Typography variant="subtitle">{formatWeight(workout.totalVolume, unit)}</Typography>
         <Typography variant="subtitle">
           {workout.exercises.length} {workout.exercises.length === 1 ? 'Übung' : 'Übungen'}
         </Typography>

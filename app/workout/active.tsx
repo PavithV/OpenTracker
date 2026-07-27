@@ -18,7 +18,9 @@ import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { formatWeight } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
+import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 // Mirrors useElapsedSeconds but counts down from an absolute end-timestamp and calls onComplete
 // once remaining hits 0 (fires at most once per endsAt value, since reaching 0 doesn't change it
@@ -66,6 +68,7 @@ export default function ActiveWorkoutScreen() {
   const startRestTimer = useActiveWorkoutStore((state) => state.startRestTimer);
   const clearRestTimer = useActiveWorkoutStore((state) => state.clearRestTimer);
   const reset = useActiveWorkoutStore((state) => state.reset);
+  const unit = useUnitPreferenceStore((state) => state.unitPreference);
 
   const [isFinishing, setIsFinishing] = useState(false);
 
@@ -158,7 +161,7 @@ export default function ActiveWorkoutScreen() {
       <View className="flex-row justify-around pb-md">
         <View className="items-center">
           <Typography variant="caption">Volumen</Typography>
-          <Typography variant="cardTitle">{totalVolume} kg</Typography>
+          <Typography variant="cardTitle">{formatWeight(totalVolume, unit)}</Typography>
         </View>
         <View className="items-center">
           <Typography variant="caption">Sätze</Typography>
