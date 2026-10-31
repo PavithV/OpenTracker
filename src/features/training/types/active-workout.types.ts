@@ -3,6 +3,10 @@ export interface WorkoutSetEntry {
   weight: number | null;
   reps: number | null;
   completed: boolean;
+  // Planned reps from the routine (routine_exercise_sets.target_reps). Shown as the reps field's
+  // placeholder and used when a set is ticked off with an empty reps field; never synced itself.
+  // Optional so drafts persisted before this field existed still load.
+  targetReps?: number | null;
 }
 
 export interface ActiveWorkoutExercise {

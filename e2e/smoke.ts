@@ -129,9 +129,18 @@ async function main() {
       (await weights.nth(0).inputValue()) === '62.5',
       `prefilled weight ${await weights.nth(0).inputValue()}`,
     );
-    await page.getByPlaceholder('Wdh').nth(0).pressSequentially('8', { delay: 30 });
-    await page.getByPlaceholder('Wdh').nth(1).pressSequentially('10', { delay: 30 });
+    // target reps from the routine show as placeholders; Bench is ticked off without typing
+    // (takes the target 8), Overhead Press gets its reps typed
+    check(
+      (await page.getByPlaceholder('8').count()) === 1,
+      'target reps 8 not shown as placeholder',
+    );
+    await page.getByPlaceholder('10').pressSequentially('10', { delay: 30 });
     await page.getByLabel('Satz als erledigt markieren').nth(0).click();
+    check(
+      (await page.getByPlaceholder('8').inputValue()) === '8',
+      'ticking off did not take the target reps',
+    );
     await expectVisible(page, 'Pause'); // rest timer from the routine's 90 s
     const restText = await visibleText(page);
     check(/Pause\n01:(2\d|30)/.test(restText), 'rest countdown not ticking from 01:30');
@@ -233,14 +242,11 @@ async function main() {
     await expectVisible(page, 'Beenden');
     // unit is lb by now: 62.5 kg = 137.8 lb
     await expectVisible(page, 'Letztes Mal: 137.8 lb × 8');
-    await page.getByPlaceholder('Wdh').nth(0).pressSequentially('9', { delay: 30 });
+    await page.getByPlaceholder('8').pressSequentially('9', { delay: 30 });
     await page.getByLabel('Satz als erledigt markieren').nth(0).click();
     await page.reload(); // stands in for the app being killed mid-workout
     await expectVisible(page, 'Beenden');
-    check(
-      (await page.getByPlaceholder('Wdh').nth(0).inputValue()) === '9',
-      'reps lost after reload',
-    );
+    check((await page.getByPlaceholder('8').inputValue()) === '9', 'reps lost after reload');
     // react-native-web doesn't render accessibilityState as aria-checked; the completed styling is
     // the observable signal here.
     check(

@@ -4,20 +4,21 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { ActiveWorkoutExercise, WorkoutSetEntry } from '../types/active-workout.types';
+import { toggleSetCompletion } from '../utils/set-completion';
 
 function generateLocalId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-// Deliberately narrower than routines/types RoutineDraftExercise (no targetReps -- unused here,
-// the active workout only pre-fills weight, not reps, see startFromRoutine below) so this store
-// isn't coupled to the routines feature's exact shape, just this.
+// Deliberately narrower than routines/types RoutineDraftExercise so this store isn't coupled to the
+// routines feature's exact shape. startFromRoutine pre-fills the weight; target reps stay a hint
+// (placeholder) until the set is ticked off, see toggleSetCompletion.
 interface RoutineExerciseSeed {
   exerciseId: string;
   name: string;
   imageUrl: string | null;
   restSeconds: number | null;
-  sets: { targetWeight: number | null }[];
+  sets: { targetWeight: number | null; targetReps?: number | null }[];
 }
 
 interface ActiveWorkoutState {
@@ -114,6 +115,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
                     id: generateLocalId(),
                     weight: seedSet.targetWeight,
                     reps: null,
+                    targetReps: seedSet.targetReps ?? null,
                     completed: false,
                   })),
                 })),
@@ -179,7 +181,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
               ? {
                   ...exercise,
                   sets: exercise.sets.map((workoutSet) =>
-                    workoutSet.id === setId ? { ...workoutSet, completed: !workoutSet.completed } : workoutSet,
+                    workoutSet.id === setId ? toggleSetCompletion(workoutSet) : workoutSet,
                   ),
                 }
               : exercise,

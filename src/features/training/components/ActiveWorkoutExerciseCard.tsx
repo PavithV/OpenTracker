@@ -124,7 +124,7 @@ export function ActiveWorkoutExerciseCard({
                 </View>
                 <View className="w-20">
                   <Input
-                    placeholder="Wdh"
+                    placeholder={set.targetReps != null ? String(set.targetReps) : 'Wdh'}
                     keyboardType="number-pad"
                     value={set.reps === null ? '' : String(set.reps)}
                     onChangeText={(text) => onUpdateSet(set.id, { reps: parseWholeNumberInput(text) })}
