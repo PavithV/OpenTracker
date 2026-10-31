@@ -48,3 +48,6 @@ yarn-error.*
 # reference screenshots of a third-party app (Hevy), used as design inspiration during
 # development — not our IP, keep local-only, never commit.
 /screenshots
+
+# browser smoke test screenshots
+e2e/output/

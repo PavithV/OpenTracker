@@ -55,10 +55,13 @@ export default function EditRoutineScreen() {
       <RoutineForm
         onSave={async (name, notes, exercises) => {
           await updateRoutine(id, name, notes, exercises);
-          // Whole ['routines'] prefix, not just the list: this screen's own ['routines', 'edit', id]
-          // cache would otherwise still hold the pre-save version for the next 30 s (staleTime), so
-          // reopening the editor right away showed -- and re-saved -- the old exercises/sets.
-          queryClient.invalidateQueries({ queryKey: ['routines'] });
+          queryClient.invalidateQueries({ queryKey: ['routines', 'list'] });
+          // Awaited on purpose: the draft store is hydrated from this query's cached data the next
+          // time the editor opens, and a stale-but-cached copy is returned instantly (the refetch
+          // runs in the background, too late). Without refreshing it before closing, editing,
+          // saving and reopening a routine showed the pre-save version -- and saving again wrote
+          // that back.
+          await queryClient.invalidateQueries({ queryKey: ['routines', 'edit', id] });
         }}
       />
     </Screen>

@@ -57,7 +57,9 @@
     "db:seed": "tsx supabase/seed/import-exercises.ts",
     "lint": "expo lint",
     "format": "prettier --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "tsx e2e/build-web.ts && tsx e2e/smoke.ts",
+    "e2e:run": "tsx e2e/smoke.ts"
   },
   "private": true
 }

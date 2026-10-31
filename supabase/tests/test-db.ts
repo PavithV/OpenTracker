@@ -6,7 +6,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { PGlite, type Transaction } from '@electric-sql/pglite';
+import { PGlite, types, type Transaction } from '@electric-sql/pglite';
 
 const MIGRATIONS_DIR = path.resolve(__dirname, '../migrations');
 
@@ -47,7 +47,8 @@ export async function createTestDb(): Promise<PGlite> {
   // Dynamic import: this contrib entry point ships as ESM only, and supabase/tsconfig.json
   // type-checks these files as CommonJS (node16 module resolution).
   const { pgcrypto } = await import('@electric-sql/pglite/contrib/pgcrypto');
-  const db = await PGlite.create({ extensions: { pgcrypto } });
+  // PostgREST serialises numeric columns as JSON numbers; PGlite returns them as strings by default.
+  const db = await PGlite.create({ extensions: { pgcrypto }, parsers: { [types.NUMERIC]: (value: string) => Number(value) } });
   await db.exec(SUPABASE_PLATFORM_STUB);
   for (const file of listMigrations()) {
     try {
