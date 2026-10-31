@@ -190,6 +190,31 @@ Laut Audit das wichtigste fehlende Produkt-Feature ("letztes Mal: 60 kg × 8") �
 
 **Verifikation:** `npx vitest run` (4 Dateien, 18 Tests, alle grün), `npx tsc --noEmit` sauber, `npm run lint` sauber, `npx expo export --platform ios` sauber. Kein On-Device-Test in dieser Umgebung möglich (wie bei jedem vorherigen Blocker).
 
+## Autonome Session 2026-10-31 — ✅ auf Branch `claude/autonomous-session-2026-10-31` (nicht gemergt)
+
+Ohne Nutzer, in einer Cloud-Session. Push aus der Session war nicht möglich (Claude GitHub App fehlt für das Repo) — Lieferung als `git bundle`. Protokoll + Begründungen: `docs/AUTONOMOUS_SESSION_PLAN.md`.
+
+**Neue Testinfrastruktur**
+- `supabase/tests/` — PGlite (Postgres/WASM, devDependency) + Stub der Supabase-Plattform (`auth.users`, `auth.uid()`, Rollen/Grants), wendet alle Migrationen an. 18 Tests: `finish_workout` (Volumen, ein PR pro Übung, nur steigend, Epley, Owner-Check), RLS-Isolation, 0007-Constraints, `delete_account`, Rekord-Neuberechnung. Schließt die in „Basis-Tests" dokumentierte Lücke (SQL-Logik von `finish_workout` war ungetestet).
+- `e2e/` — Browser-Smoke-Test (`npm run e2e`, Anleitung in `e2e/README.md`): 13 Schritte, prüft UI **und** DB-Inhalt. Braucht lokal einmalig Playwright (nicht als Dependency eingetragen).
+- `react-dom`/`react-native-web`/`@expo/metro-runtime` als devDependencies (für den Web-Build des Tests). **Nach dem Merge `npm install` im Nutzer-Checkout** (siehe „Environment-Bug").
+
+**Bugs (alle mit Test abgesichert)**
+1. Gewichtseingabe: „62.5" → 625 kg gespeichert; „62,5" leerte das Feld. Neue `WeightInput`-Komponente hält den Rohtext; `parseWeightInput` akzeptiert Komma, lehnt Negatives ab; Wdh./Pause über `parseWholeNumberInput` (vorher landeten „8.5"/„-3"/Text erst beim Speichern als Fehler bzw. NaN).
+2. `delete_account()` schlug fehl, sobald eine eigene Übung in einer Routine/einem Workout steckte (RESTRICT-FK) → Migration `0008`.
+3. Eigene Übungen aller Nutzer waren für alle lesbar und im Picker sichtbar → `0008` (Select-Policy).
+4. Nach „Beenden" invalidierte nichts: Home zeigte „Noch keine Workouts" → `invalidateWorkoutDerivedQueries()` (auch beim Löschen).
+5. Routine bearbeiten → speichern → wieder öffnen zeigte die alte Version, erneutes Speichern schrieb sie zurück → Edit-Query wird vor dem Schließen neu geladen.
+6. Rekorde gelöschter Workouts blieben stehen (auch Tippfehler-Rekorde wie 625 kg) → `0009`: Trigger berechnet neu bzw. löscht, plus einmaliger Backfill.
+7. Profil: Diagramm-Achse überlappte bei Handybreite, E-Mail doppelt.
+
+**Roadmap-Punkte (`PRODUCT_AUDIT.md`)**: #15 Pull-to-Refresh, #20 Query-Invalidierung, #21 Timer-Isolation, #28 `DATABASE.md`, #42 Routine duplizieren. Zusätzlich: Soll-Wdh. der Routine als Platzhalter im aktiven Workout, beim Abhaken ohne Eingabe übernommen; neu hinzugefügte Übung startet mit einem Satz.
+
+**Offen / vom Nutzer zu tun**
+- Migrationen `0008` und `0009` auf das Supabase-Projekt anwenden (SQL-Editor oder Supabase-MCP).
+- On-Device-Test der Änderungen (Web-Test deckt Gesten, `expo-notifications`, Hardware-Back, `Alert`-Dialoge nicht ab).
+- Beobachtet, nicht geändert: `/` hat keine Route (Web zeigt „Unmatched Route"; nativ offenbar unkritisch); `Alert.alert` ist auf Web ein No-op; Toast hat auf Web keinen Hintergrund (NativeWind-Klasse auf `Animated.View`).
+
 ## Nächster Schritt
 
 **Alle 7 Punkte der Phase-4-Bestandsaufnahme sind erledigt**, dazu Nocturne- und iOS-Redesign sowie Launch-Blocker #1 (Teil A), #2, #3, #5, #6, #7, #8, #9 und #10, zusätzlich die Drag-and-Drop-Ablösung im aktiven Workout. **Damit sind alle 10 Launch-Blocker aus `LAUNCH_PLAN.md` §3 abgeschlossen — bis auf das bewusst zurückgestellte #4** (Pro-Plan-Voraussetzung, siehe oben) — bei einem künftigen Supabase-Upgrade einfach den Dashboard-Toggle setzen, kein weiterer Recherche-Aufwand nötig. Unabhängig vom Code weiterhin offen (siehe `LAUNCH_PLAN.md` §4/§6, Meilenstein B): die Web-Seite zur Kontolöschung aus Blocker #1 sowie die Google-Play-Konto-Anlage/Tester-Rekrutierung (§4.2, zeitlich der langsamste Teil, sollte so früh wie möglich parallel starten — Store-Listing-Text-Entwurf liegt bereits vor, siehe Session-Notiz), `eas.json` + erster `.aab`-Build.

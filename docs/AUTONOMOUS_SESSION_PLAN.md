@@ -39,4 +39,22 @@ abgelehnt, weil die Claude GitHub App für das Repo fehlt — Lieferung daher al
 
 ## Protokoll
 
-(wird während der Session fortgeschrieben)
+Zeiten MEZ. Jeder Schritt einzeln committet, nach jedem: `vitest` + `tsc` + `lint` (+ `npm run e2e` ab 19:30).
+
+| Zeit | Ergebnis |
+| --- | --- |
+| 18:50 | Repo geklont, Branch angelegt. Push → 403 (Claude GitHub App fehlt) → Lieferung als Bundle. Baseline grün (18 Tests). |
+| 18:55 | **SQL-Tests** (PGlite, alle Migrationen). Finden sofort 2 Bugs: `delete_account` scheitert an RESTRICT-FK bei benutzten eigenen Übungen; eigene Übungen für alle lesbar. → Migration `0008`. |
+| 19:05 | **Web-E2E-Harness**: Fake-Supabase (PostgREST/GoTrue-Teilmenge über derselben PGlite-DB), Web-Export, Playwright. |
+| 19:10 | **625-kg-Bug** im Browser reproduziert („62.5" → 625; „62,5" → leer). → `WeightInput`, Komma, Ganzzahl-Parser. |
+| 19:15 | Home zeigt beendetes Workout nicht → Query-Invalidierung. Profil-Achse/E-Mail. |
+| 19:30 | Smoke-Test als `npm run e2e` committet. Findet Routinen-Editor-Bug (alte Version nach Wiederöffnen; erster Fix-Versuch mit `gcTime`/`isFetchedAfterMount` griff nicht — Ursache: Draft wird aus dem gecachten Stand hydriert, bevor der Refetch zurück ist → Edit-Query vor dem Schließen awaited neu laden). |
+| 19:40 | Zwischen-Backup (Bundle) an Nutzer. |
+| 19:40 | **Rekorde gelöschter Workouts** bleiben stehen → `0009`. Erster Ansatz (Statement-Trigger auf `workouts`) feuert vor der FK-Kaskade; Statement-Trigger mit Übergangstabelle liefert in PGlite leere Ergebnisse → Zeilen-Trigger auf `personal_records` (set_id → NULL) + Backfill. |
+| 19:42 | Timer-Isolation (#21), Rest-Timer im Smoke-Test. |
+| 19:44 | Smoke-Test: „Letztes Mal" + Workout überlebt Reload. |
+| 19:45 | `DATABASE.md` (#28), Pull-to-Refresh (#15). |
+| 19:49 | Soll-Wdh. aus Routine als Platzhalter, Abhaken übernimmt sie; neue Übung startet mit 1 Satz. |
+| 19:54 | Routine duplizieren (#42). Diff-Review, Doku. |
+
+Stand danach: 49 Unit-/SQL-Tests (8 Dateien, davon 18 SQL), 13 E2E-Schritte grün, `tsc`/`lint` sauber.
