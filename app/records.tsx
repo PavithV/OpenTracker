@@ -4,6 +4,7 @@ import { Trophy, WarningCircle } from 'phosphor-react-native';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 
 import { getPersonalRecords } from '@/features/records/api/records.api';
+import { isRecentRecord } from '@/features/records/utils/recent-record';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ListItem } from '@/shared/components/ListItem';
 import { Screen } from '@/shared/components/Screen';
@@ -61,6 +62,18 @@ export default function RecordsScreen() {
               ]
                 .filter(Boolean)
                 .join(' · ')}
+              trailing={
+                isRecentRecord(item.achievedAt) ? (
+                  <View
+                    className="rounded-full bg-primary-light/15 px-sm py-xs dark:bg-primary-dark/15"
+                    accessibilityLabel="Neuer Rekord in den letzten 7 Tagen"
+                  >
+                    <Typography variant="label" color="accent">
+                      Neu
+                    </Typography>
+                  </View>
+                ) : null
+              }
               onPress={() => router.push(`/exercise/${item.exerciseId}`)}
             />
           )}

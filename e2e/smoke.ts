@@ -205,6 +205,7 @@ async function main() {
     await tap('Rekorde ansehen');
     await expectVisible(page, 'Bench Press');
     await expectVisible(page, 'Bestes Gewicht: 62,5 kg · Geschätztes 1RM: 79,17 kg');
+    await expectVisible(page, 'Neu'); // record set just now
     await page.goBack();
   });
 
