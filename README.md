@@ -10,6 +10,7 @@
     <img alt="React Native" src="https://img.shields.io/badge/React_Native-20232A?style=flat&logo=react&logoColor=61DAFB" />
     <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" />
     <img alt="Supabase" src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white" />
+    <a href="https://github.com/PavithV/OpenTracker/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/PavithV/OpenTracker/actions/workflows/ci.yml/badge.svg" /></a>
     <img alt="NativeWind" src="https://img.shields.io/badge/NativeWind-06B6D4?style=flat&logo=tailwindcss&logoColor=white" />
   </p>
 </div>
@@ -86,6 +87,10 @@ Architecture follows a feature-based structure (`src/features/<feature>/{api,com
 | `npm run lint` | Run ESLint |
 | `npm run format` | Run Prettier across the project |
 | `npm run db:seed` | Import the exercise dataset into Supabase |
+| `npm test` | Unit tests, SQL tests against all migrations (PGlite, no Docker) and history-at-scale integration tests |
+| `npm run e2e` | Build the web export and click through the core loop in Chromium against a local fake Supabase (needs Playwright, see `e2e/README.md`) |
+
+All of the above (plus type checks) run in GitHub Actions on every push to `master` (`.github/workflows/ci.yml`); none of it touches the live Supabase project.
 
 ## Project Documentation
 
