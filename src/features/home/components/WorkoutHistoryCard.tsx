@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Card } from '@/shared/components/Card';
+import { ExerciseThumbnail } from '@/shared/components/ExerciseThumbnail';
 import { Typography } from '@/shared/components/Typography';
 import { formatDuration } from '@/shared/utils/format';
 import { formatWeight } from '@/shared/utils/units';
@@ -32,15 +33,7 @@ export function WorkoutHistoryCard({ workout, onPress }: { workout: WorkoutHisto
         <View className="mt-sm gap-sm">
           {visibleExercises.map((exercise) => (
             <View key={exercise.exerciseId} className="flex-row items-center gap-sm">
-              {exercise.imageUrl ? (
-                <Image source={{ uri: exercise.imageUrl }} className="h-12 w-12 rounded-full" />
-              ) : (
-                <View className="h-12 w-12 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
-                  <Typography variant="label" color="accent">
-                    {exercise.name.charAt(0).toUpperCase()}
-                  </Typography>
-                </View>
-              )}
+              <ExerciseThumbnail name={exercise.name} imageUrl={exercise.imageUrl} />
               <Typography variant="body">
                 {exercise.setCount} {exercise.setCount === 1 ? 'Satz' : 'Sätze'} {exercise.name}
               </Typography>

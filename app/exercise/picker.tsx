@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Check, MagnifyingGlass, Star, WarningCircle } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Pressable, ScrollView, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, useColorScheme, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -24,6 +24,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { Input } from '@/shared/components/Input';
 import { ListItem } from '@/shared/components/ListItem';
 import { Screen } from '@/shared/components/Screen';
+import { ExerciseThumbnail } from '@/shared/components/ExerciseThumbnail';
 import { Typography } from '@/shared/components/Typography';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
@@ -192,15 +193,7 @@ export default function ExercisePickerScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Details zu ${item.name} anzeigen`}
                 >
-                  {item.imageUrl ? (
-                    <Image source={{ uri: item.imageUrl }} className="h-12 w-12 rounded-full" />
-                  ) : (
-                    <View className="h-12 w-12 items-center justify-center rounded-full bg-primary-light/15 dark:bg-primary-dark/15">
-                      <Typography variant="label" color="accent">
-                        {item.name.charAt(0).toUpperCase()}
-                      </Typography>
-                    </View>
-                  )}
+                  <ExerciseThumbnail name={item.name} imageUrl={item.imageUrl} />
                 </Pressable>
               }
               trailing={
