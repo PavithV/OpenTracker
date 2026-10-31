@@ -207,8 +207,9 @@ Ohne Nutzer, in einer Cloud-Session. Push aus der Session war nicht möglich (Cl
 5. Routine bearbeiten → speichern → wieder öffnen zeigte die alte Version, erneutes Speichern schrieb sie zurück → Edit-Query wird vor dem Schließen neu geladen.
 6. Rekorde gelöschter Workouts blieben stehen (auch Tippfehler-Rekorde wie 625 kg) → `0009`: Trigger berechnet neu bzw. löscht, plus einmaliger Backfill.
 7. Profil: Diagramm-Achse überlappte bei Handybreite, E-Mail doppelt.
+8. **Lange Historie**: Supabase liefert max. 1000 Zeilen pro Antwort (stillschweigend), und lange `in.(...)`-ID-Listen sprengen die URL (414). Home-Historie zeigte ab ~1000 geloggten Sätzen falsche Satz-Zahlen, Profil-Diagramm zu wenige Wdh., Übungs-Historie verlor Sätze; ab ~200 Workout-Übungen schlugen die Anfragen ganz fehl. → `shared/lib/fetch-all.ts` (`fetchAllPages`/`fetchAllIn`) in allen Historie-Abfragen. Test: `src/shared/lib/history-at-scale.integration.test.ts` (echte App-API-Funktionen + supabase-js gegen den Fake mit 120 Workouts/2160 Sätzen; der Fake erzwingt jetzt das 1000-Zeilen- und ein 8-KB-URL-Limit). `PRODUCT_AUDIT.md` 5.4.
 
-**Roadmap-Punkte (`PRODUCT_AUDIT.md`)**: #15 Pull-to-Refresh, #20 Query-Invalidierung, #21 Timer-Isolation, #28 `DATABASE.md`, #42 Routine duplizieren. Zusätzlich: Soll-Wdh. der Routine als Platzhalter im aktiven Workout, beim Abhaken ohne Eingabe übernommen; neu hinzugefügte Übung startet mit einem Satz; beim Beenden werden komplett unberührte Sätze (kein Gewicht, keine Wdh., nicht abgehakt) nicht mehr gespeichert.
+**Roadmap-Punkte (`PRODUCT_AUDIT.md`)**: 5.4 (Skalierung, s. Bug 8), #15 Pull-to-Refresh, #20 Query-Invalidierung, #21 Timer-Isolation, #28 `DATABASE.md`, #42 Routine duplizieren. Zusätzlich: Soll-Wdh. der Routine als Platzhalter im aktiven Workout, beim Abhaken ohne Eingabe übernommen; neu hinzugefügte Übung startet mit einem Satz; beim Beenden werden komplett unberührte Sätze (kein Gewicht, keine Wdh., nicht abgehakt) nicht mehr gespeichert.
 
 **Offen / vom Nutzer zu tun**
 - Migrationen `0008` und `0009` auf das Supabase-Projekt anwenden (SQL-Editor oder Supabase-MCP).

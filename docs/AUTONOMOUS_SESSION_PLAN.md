@@ -59,4 +59,7 @@ Zeiten MEZ. Jeder Schritt einzeln committet, nach jedem: `vitest` + `tsc` + `lin
 | 19:57 | Smoke-Test: Picker-Suche + Favoriten. |
 | 20:00 | Unberührte leere Sätze werden beim Beenden nicht mehr gespeichert. Bundle per Fast-Forward auf frischem Klon von `master` verifiziert; E2E 3×, Unit/SQL 3× hintereinander grün (keine Flakiness). |
 
-Stand danach: 49 Unit-/SQL-Tests (8 Dateien, davon 18 SQL), 14 E2E-Schritte + Fehler-Check grün, `tsc`/`lint` sauber.
+| 20:00 | Paket (Bundle, Patches, Anleitung) an Nutzer. |
+| 20:05 | **Lange Historie**: Fake erzwingt Supabase-1000-Zeilen-Cap + 8-KB-URL-Limit; Integrationstest (App-API + supabase-js, 120 Workouts/2160 Sätze) reproduziert falsche Satz-Zahlen und 414er → `fetchAllPages`/`fetchAllIn`. |
+
+Stand danach: 55 Unit-/SQL-/Integrationstests (9 Dateien, davon 18 SQL, 6 Integration), 14 E2E-Schritte + Fehler-Check grün, `tsc`/`lint` sauber.

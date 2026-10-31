@@ -31,7 +31,10 @@ npx playwright install chromium
   triggers, constraints and the `finish_workout`/`delete_account` RPCs are the real thing. Every
   request runs as the signed-in user (`authenticated` role + JWT `sub`), like PostgREST does.
   One fixed user (`e2e@example.com`), a dozen fixture exercises, no network access, no live project,
-  no signups (see the `no-test-signups` rule in `TODO.md`).
+  no signups (see the `no-test-signups` rule in `TODO.md`). Like the real API it caps responses at
+  1000 rows and rejects URLs over 8 KB (414), so code that assumes "one query returns everything"
+  fails here too. `src/shared/lib/history-at-scale.integration.test.ts` uses the same fake directly
+  from Vitest (no browser) to run the app's query functions against a long training history.
 - `harness.ts` — serves `dist/`, starts the fake, opens Chromium at 390×844 and records console
   errors, page errors and failed requests (any of them fails the run).
 - `smoke.ts` — the steps. Each asserts what is on screen and, where it matters, what landed in the
