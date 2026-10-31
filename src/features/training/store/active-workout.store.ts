@@ -142,7 +142,9 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
               name: exercise.name,
               imageUrl: exercise.imageUrl ?? null,
               notes: '',
-              sets: [],
+              // One empty set to start with, same as the routine editor -- before, every added
+              // exercise needed an extra "Satz hinzufügen" tap before anything could be logged.
+              sets: [{ id: generateLocalId(), weight: null, reps: null, completed: false }],
               restSeconds: null,
             }));
           return { exercises: [...state.exercises, ...toAdd] };

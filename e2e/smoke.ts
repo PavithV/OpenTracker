@@ -209,7 +209,7 @@ async function main() {
     await tap('Cable Fly One Arm');
     await tap('1 Übung hinzufügen');
     await expectVisible(page, 'Cable Fly One Arm');
-    await tap('Satz hinzufügen');
+    // an added exercise starts with one empty set, no extra tap needed
     await page.getByPlaceholder('kg').nth(0).pressSequentially('12,5', { delay: 30 });
     await page.getByPlaceholder('Wdh').nth(0).pressSequentially('12', { delay: 30 });
     await page.getByLabel('Satz als erledigt markieren').nth(0).click();
