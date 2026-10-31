@@ -8,7 +8,7 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, useColo
 
 import { getWorkoutHistory } from '@/features/home/api/workouts.api';
 import { WorkoutHistoryCard } from '@/features/home/components/WorkoutHistoryCard';
-import { buildMonthGrid, groupWorkoutsByDate } from '@/features/home/utils/calendar';
+import { buildMonthGrid, groupWorkoutsByDate, weeklyStreak } from '@/features/home/utils/calendar';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
@@ -51,6 +51,7 @@ export default function CalendarScreen() {
   const weeks = useMemo(() => chunkIntoWeeks(grid), [grid]);
   const selectedWorkouts = selectedDate ? (workoutsByDate.get(selectedDate) ?? []) : [];
   const today = dayjs().format('YYYY-MM-DD');
+  const streak = useMemo(() => weeklyStreak((workouts ?? []).map((workout) => workout.startedAt)), [workouts]);
 
   return (
     <Screen>
@@ -61,6 +62,11 @@ export default function CalendarScreen() {
       >
         <View className="py-md">
           <Typography variant="title">Kalender</Typography>
+          {streak > 0 ? (
+            <Typography variant="subtitle" color="accent">
+              {streak === 1 ? '1 Woche' : `${streak} Wochen`} in Folge trainiert
+            </Typography>
+          ) : null}
         </View>
 
         <View className="flex-row items-center justify-between pb-sm">

@@ -187,6 +187,7 @@ async function main() {
     await tab('Home');
     await page.getByLabel('Kalender öffnen').last().click();
     await expectVisible(page, 'Kalender');
+    await expectVisible(page, '1 Woche in Folge trainiert');
     check(
       (await page.getByLabel(/Workout vorhanden$/).count()) === 1,
       'expected exactly one day marked with a workout',

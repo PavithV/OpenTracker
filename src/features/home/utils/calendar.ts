@@ -35,3 +35,23 @@ export function groupWorkoutsByDate(workouts: WorkoutHistoryItem[]): Map<string,
   }
   return byDate;
 }
+
+function startOfMondayWeek(date: Dayjs): Dayjs {
+  return date.startOf('day').subtract((date.day() + 6) % 7, 'day');
+}
+
+// Wochen-Serie (PRODUCT_AUDIT.md Roadmap #38): Anzahl aufeinanderfolgender Kalenderwochen (Mo–So)
+// mit mindestens einem Workout. Eine Woche ohne Training *bisher* bricht die Serie noch nicht --
+// läuft die aktuelle Woche noch ohne Workout, zählt die Serie ab der Vorwoche.
+export function weeklyStreak(startedAtValues: string[], now: Dayjs = dayjs()): number {
+  const trainedWeeks = new Set(startedAtValues.map((value) => startOfMondayWeek(dayjs(value)).valueOf()));
+  let week = startOfMondayWeek(now);
+  if (!trainedWeeks.has(week.valueOf())) week = week.subtract(1, 'week');
+
+  let streak = 0;
+  while (trainedWeeks.has(week.valueOf())) {
+    streak += 1;
+    week = week.subtract(1, 'week');
+  }
+  return streak;
+}
