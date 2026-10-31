@@ -145,7 +145,7 @@ async function main() {
     await expectVisible(page, 'Beenden');
     const weights = page.getByPlaceholder('kg');
     check(
-      (await weights.nth(0).inputValue()) === '62.5',
+      (await weights.nth(0).inputValue()) === '62,5',
       `prefilled weight ${await weights.nth(0).inputValue()}`,
     );
     // target reps from the routine show as placeholders; Bench is ticked off without typing
@@ -178,8 +178,8 @@ async function main() {
 
   await step('workout detail', async () => {
     await page.getByText('Push Day A', { exact: true }).last().click();
-    await expectVisible(page, '62.5 kg × 8');
-    await expectVisible(page, '40.5 kg × 10');
+    await expectVisible(page, '62,5 kg × 8');
+    await expectVisible(page, '40,5 kg × 10');
     await page.goBack();
   });
 
@@ -204,7 +204,7 @@ async function main() {
     );
     await tap('Rekorde ansehen');
     await expectVisible(page, 'Bench Press');
-    await expectVisible(page, 'Bestes Gewicht: 62.5 kg · Geschätztes 1RM: 79.17 kg');
+    await expectVisible(page, 'Bestes Gewicht: 62,5 kg · Geschätztes 1RM: 79,17 kg');
     await page.goBack();
   });
 
@@ -265,7 +265,7 @@ async function main() {
     await expectVisible(page, 'Plattenrechner');
     const text = await visibleText(page);
     check(
-      text.includes('102.5 kg'),
+      text.includes('102,5 kg'),
       `plate calculator did not compute 102,5: ${text.slice(0, 300)}`,
     );
   });
@@ -274,7 +274,7 @@ async function main() {
     await page.goto(`${env.webUrl}/profile`);
     await tap('lb');
     await tab('Home');
-    await expectVisible(page, '1995.2 lb'); // 905 kg
+    await expectVisible(page, '1995,2 lb'); // 905 kg
   });
 
   await step('second run shows last time and survives a reload', async () => {
@@ -282,7 +282,7 @@ async function main() {
     await tap('Start');
     await expectVisible(page, 'Beenden');
     // unit is lb by now: 62.5 kg = 137.8 lb
-    await expectVisible(page, 'Letztes Mal: 137.8 lb × 8');
+    await expectVisible(page, 'Letztes Mal: 137,8 lb × 8');
     await page.getByPlaceholder('8').pressSequentially('9', { delay: 30 });
     await page.getByLabel('Satz als erledigt markieren').nth(0).click();
     await page.reload(); // stands in for the app being killed mid-workout

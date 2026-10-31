@@ -18,11 +18,18 @@ export function lbToKg(lb: number): number {
   return round(lb / LB_PER_KG, 2);
 }
 
+// German decimal comma ("62,5"), matching the rest of the German UI and what users type -- input
+// accepts both separators (parseWeightInput). Deliberately not Intl/toLocaleString: no thousands
+// separator wanted, and Intl support differs between Hermes builds.
+export function formatDecimal(value: number): string {
+  return String(value).replace('.', ',');
+}
+
 // Works for both a single set's weight and an aggregate like total_volume -- the kg->lb
 // conversion is a linear scalar, so it distributes over a sum just like it does over one value.
 export function formatWeight(kg: number, unit: UnitPreference): string {
   const value = unit === 'lb' ? kgToLb(kg) : kg;
-  return `${value} ${unit}`;
+  return `${formatDecimal(value)} ${unit}`;
 }
 
 // Accepts a decimal comma as well as a dot: German (and most European) numeric keyboards only
@@ -40,5 +47,5 @@ export function parseWeightInput(text: string, unit: UnitPreference): number | n
 // Text to prefill an editable weight field with (inverse of parseWeightInput).
 export function formatWeightInputValue(kg: number | null, unit: UnitPreference): string {
   if (kg === null) return '';
-  return String(unit === 'lb' ? kgToLb(kg) : kg);
+  return formatDecimal(unit === 'lb' ? kgToLb(kg) : kg);
 }

@@ -20,8 +20,12 @@ describe('formatWeight', () => {
     expect(formatWeight(60, 'kg')).toBe('60 kg');
   });
 
+  it('uses a German decimal comma', () => {
+    expect(formatWeight(62.5, 'kg')).toBe('62,5 kg');
+  });
+
   it('converts to lb for display', () => {
-    expect(formatWeight(100, 'lb')).toBe('220.5 lb');
+    expect(formatWeight(100, 'lb')).toBe('220,5 lb');
   });
 });
 

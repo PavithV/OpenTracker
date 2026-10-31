@@ -8,7 +8,7 @@ import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
-import { formatWeight, formatWeightInputValue, parseWeightInput } from '@/shared/utils/units';
+import { formatDecimal, formatWeight, formatWeightInputValue, parseWeightInput } from '@/shared/utils/units';
 import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 export default function PlateCalculatorScreen() {
@@ -76,7 +76,7 @@ export default function PlateCalculatorScreen() {
               <View className="mt-xs gap-xs">
                 {loadout.perSide.map((entry) => (
                   <View key={entry.weightKg} className="flex-row items-center justify-between">
-                    <Typography variant="body">{entry.weightKg} kg</Typography>
+                    <Typography variant="body">{formatDecimal(entry.weightKg)} kg</Typography>
                     <Typography variant="body">× {entry.count}</Typography>
                   </View>
                 ))}
