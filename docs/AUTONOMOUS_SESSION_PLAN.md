@@ -62,4 +62,11 @@ Zeiten MEZ. Jeder Schritt einzeln committet, nach jedem: `vitest` + `tsc` + `lin
 | 20:00 | Paket (Bundle, Patches, Anleitung) an Nutzer. |
 | 20:05 | **Lange Historie**: Fake erzwingt Supabase-1000-Zeilen-Cap + 8-KB-URL-Limit; Integrationstest (App-API + supabase-js, 120 Workouts/2160 Sätze) reproduziert falsche Satz-Zahlen und 414er → `fetchAllPages`/`fetchAllIn`. |
 
-Stand danach: 55 Unit-/SQL-/Integrationstests (9 Dateien, davon 18 SQL, 6 Integration), 14 E2E-Schritte + Fehler-Check grün, `tsc`/`lint` sauber.
+| 20:12 | Nutzer hat die Claude GitHub App installiert → Fast-Forward-Push nach `master` (`adb694f`). |
+| 20:15 | **CI** (GitHub Actions): tsc, lint, Unit/SQL, Browser-Smoke-Test — erster Lauf grün. Ab hier jeder Schritt direkt gepusht, CI pro Push geprüft. |
+| 20:20 | Gewichtsanzeige mit Dezimalkomma; CI-Actions auf v5 (Node-20-Deprecation). |
+| 20:25 | „Neu"-Badge für Rekorde der letzten 7 Tage (#39). |
+| 20:30 | Wochen-Serie im Kalender (#38). |
+| 20:35 | Gemeinsame `ExerciseThumbnail`-Komponente statt sechs Kopien (#32). |
+
+Stand danach: 64 Unit-/SQL-/Integrationstests (10 Dateien, davon 18 SQL, 6 Integration), 14 E2E-Schritte + Fehler-Check grün, `tsc`/`lint` sauber, CI grün.

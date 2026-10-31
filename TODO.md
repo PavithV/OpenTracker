@@ -190,9 +190,11 @@ Laut Audit das wichtigste fehlende Produkt-Feature ("letztes Mal: 60 kg × 8") �
 
 **Verifikation:** `npx vitest run` (4 Dateien, 18 Tests, alle grün), `npx tsc --noEmit` sauber, `npm run lint` sauber, `npx expo export --platform ios` sauber. Kein On-Device-Test in dieser Umgebung möglich (wie bei jedem vorherigen Blocker).
 
-## Autonome Session 2026-10-31 — ✅ auf Branch `claude/autonomous-session-2026-10-31` (nicht gemergt)
+## Autonome Session 2026-10-31 — ✅ in `master` (Fast-Forward, gepusht)
 
-Ohne Nutzer, in einer Cloud-Session. Push aus der Session war nicht möglich (Claude GitHub App fehlt für das Repo) — Lieferung als `git bundle`. Protokoll + Begründungen: `docs/AUTONOMOUS_SESSION_PLAN.md`.
+Ohne Nutzer, in einer Cloud-Session. Bis ~20:10 war Push nicht möglich (Claude GitHub App fehlte) — Zwischenstände gingen als `git bundle`; danach direkt nach `master` gepusht. Protokoll + Begründungen: `docs/AUTONOMOUS_SESSION_PLAN.md`.
+
+**CI** (`.github/workflows/ci.yml`): bei jedem Push auf `master` `tsc` (App + `supabase/`), `lint`, `npm test`, Browser-Smoke-Test (Screenshots als Artefakt). Braucht keine Secrets.
 
 **Neue Testinfrastruktur**
 - `supabase/tests/` — PGlite (Postgres/WASM, devDependency) + Stub der Supabase-Plattform (`auth.users`, `auth.uid()`, Rollen/Grants), wendet alle Migrationen an. 18 Tests: `finish_workout` (Volumen, ein PR pro Übung, nur steigend, Epley, Owner-Check), RLS-Isolation, 0007-Constraints, `delete_account`, Rekord-Neuberechnung. Schließt die in „Basis-Tests" dokumentierte Lücke (SQL-Logik von `finish_workout` war ungetestet).
@@ -209,12 +211,13 @@ Ohne Nutzer, in einer Cloud-Session. Push aus der Session war nicht möglich (Cl
 7. Profil: Diagramm-Achse überlappte bei Handybreite, E-Mail doppelt.
 8. **Lange Historie**: Supabase liefert max. 1000 Zeilen pro Antwort (stillschweigend), und lange `in.(...)`-ID-Listen sprengen die URL (414). Home-Historie zeigte ab ~1000 geloggten Sätzen falsche Satz-Zahlen, Profil-Diagramm zu wenige Wdh., Übungs-Historie verlor Sätze; ab ~200 Workout-Übungen schlugen die Anfragen ganz fehl. → `shared/lib/fetch-all.ts` (`fetchAllPages`/`fetchAllIn`) in allen Historie-Abfragen. Test: `src/shared/lib/history-at-scale.integration.test.ts` (echte App-API-Funktionen + supabase-js gegen den Fake mit 120 Workouts/2160 Sätzen; der Fake erzwingt jetzt das 1000-Zeilen- und ein 8-KB-URL-Limit). `PRODUCT_AUDIT.md` 5.4.
 
-**Roadmap-Punkte (`PRODUCT_AUDIT.md`)**: 5.4 (Skalierung, s. Bug 8), #15 Pull-to-Refresh, #20 Query-Invalidierung, #21 Timer-Isolation, #28 `DATABASE.md`, #42 Routine duplizieren. Zusätzlich: Soll-Wdh. der Routine als Platzhalter im aktiven Workout, beim Abhaken ohne Eingabe übernommen; neu hinzugefügte Übung startet mit einem Satz; beim Beenden werden komplett unberührte Sätze (kein Gewicht, keine Wdh., nicht abgehakt) nicht mehr gespeichert.
+**Roadmap-Punkte (`PRODUCT_AUDIT.md`)**: 5.4 (Skalierung, s. Bug 8), #15 Pull-to-Refresh, #20 Query-Invalidierung, #21 Timer-Isolation, #28 `DATABASE.md`, #32 gemeinsame `ExerciseThumbnail`-Komponente, #38 Wochen-Serie im Kalender, #39 „Neu"-Badge für Rekorde der letzten 7 Tage, #42 Routine duplizieren. Gewichte werden mit deutschem Dezimalkomma angezeigt („62,5 kg"). Zusätzlich: Soll-Wdh. der Routine als Platzhalter im aktiven Workout, beim Abhaken ohne Eingabe übernommen; neu hinzugefügte Übung startet mit einem Satz; beim Beenden werden komplett unberührte Sätze (kein Gewicht, keine Wdh., nicht abgehakt) nicht mehr gespeichert.
 
 **Offen / vom Nutzer zu tun**
-- Migrationen `0008` und `0009` auf das Supabase-Projekt anwenden (SQL-Editor oder Supabase-MCP).
+- Migrationen `0008` und `0009` auf das Supabase-Projekt anwenden (SQL-Editor oder Supabase-MCP — in der Cloud-Session war der Supabase-MCP nicht erreichbar).
+- Im eigenen Checkout `git pull --ff-only` und danach `npm install` (neue devDependencies).
 - On-Device-Test der Änderungen (Web-Test deckt Gesten, `expo-notifications`, Hardware-Back, `Alert`-Dialoge nicht ab).
-- Beobachtet, nicht geändert: `/` hat keine Route (Web zeigt „Unmatched Route"; nativ offenbar unkritisch); `Alert.alert` ist auf Web ein No-op; Toast hat auf Web keinen Hintergrund (NativeWind-Klasse auf `Animated.View`).
+- Beobachtet, nicht geändert: `/` hat keine Route (Web zeigt „Unmatched Route"; nativ offenbar unkritisch); `Alert.alert` ist auf Web ein No-op; Toast hat auf Web keinen Hintergrund und blendet nicht aus (NativeWind-Klasse bzw. `useNativeDriver` auf `Animated.View`) — alles nur Web, App ist nicht für Web gedacht.
 
 ## Nächster Schritt
 
