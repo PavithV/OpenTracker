@@ -1,6 +1,10 @@
 import { useState } from 'react';
 
-import { formatWeightInputValue, parseWeightInput, type UnitPreference } from '@/shared/utils/units';
+import {
+  formatWeightInputValue,
+  parseWeightInput,
+  type UnitPreference,
+} from '@/shared/utils/units';
 
 import { Input, type InputProps } from './Input';
 

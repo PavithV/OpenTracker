@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { WarningCircle } from 'phosphor-react-native';
 import { useEffect } from 'react';
-import { ActivityIndicator, Alert, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteAccount, signOut } from '@/features/auth/api/auth.api';
@@ -16,6 +16,7 @@ import { Card } from '@/shared/components/Card';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { usePullToRefresh } from '@/shared/lib/use-pull-to-refresh';
 import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
 import { getErrorMessage } from '@/shared/utils/errors';
 import type { UnitPreference } from '@/shared/utils/units';
@@ -49,6 +50,9 @@ const UNIT_OPTIONS: { value: UnitPreference; label: string }[] = [
 
 export default function ProfileScreen() {
   const session = useSessionStore((state) => state.session);
+  const queryClient = useQueryClient();
+  // Refetches every active ['profile', ...] query: profile, stats and the volume chart series.
+  const { refreshing, onRefresh } = usePullToRefresh(() => queryClient.invalidateQueries({ queryKey: ['profile'] }));
   const insets = useSafeAreaInsets();
   const themePreference = useThemeStore((state) => state.preference);
   const setThemePreference = useThemeStore((state) => state.setPreference);
@@ -138,7 +142,11 @@ export default function ProfileScreen() {
       {/* The tab bar floats (`position: 'absolute'`, required for its blur background -- see
           app/(tabs)/_layout.tsx), so it no longer reserves its own layout space here. */}
       <View style={{ flex: 1, paddingBottom: TAB_BAR_CLEARANCE_BASE + insets.bottom }}>
-        <ScrollView className="flex-1" contentContainerClassName="gap-lg py-md">
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-lg py-md"
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
           <Typography variant="title">Profil</Typography>
 
           {isLoading ? (

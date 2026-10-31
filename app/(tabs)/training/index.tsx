@@ -13,6 +13,7 @@ import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { usePullToRefresh } from '@/shared/lib/use-pull-to-refresh';
 import { TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { useSessionStore } from '@/store/session.store';
@@ -28,6 +29,7 @@ export default function TrainingScreen() {
     queryFn: () => getRoutines(session!.user.id),
     enabled: !!session,
   });
+  const pullToRefresh = usePullToRefresh(refetch);
 
   function handleCreateRoutine() {
     useRoutineDraftStore.getState().reset();
@@ -106,6 +108,7 @@ export default function TrainingScreen() {
             className="flex-1"
             data={routines ?? []}
             keyExtractor={(item) => item.id}
+            {...pullToRefresh}
             contentContainerClassName="gap-sm"
             renderItem={({ item }) => (
               <RoutineCard

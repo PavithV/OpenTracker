@@ -28,7 +28,11 @@ describe('bucketWorkoutSeries', () => {
       totalReps: 10,
     });
     const buckets = bucketWorkoutSeries(
-      [point('2026-08-01T10:00:00', 100), point('2026-08-02T10:00:00', 50), point('2026-10-30T10:00:00', 200)],
+      [
+        point('2026-08-01T10:00:00', 100),
+        point('2026-08-02T10:00:00', 50),
+        point('2026-10-30T10:00:00', 200),
+      ],
       '2026-07-31T12:00:00',
       'volume',
     );

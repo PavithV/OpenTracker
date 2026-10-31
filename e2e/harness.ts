@@ -25,13 +25,17 @@ export function serveDist(port = 8081) {
   const server = createServer((req, res) => {
     const urlPath = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
     let file = path.join(DIST, urlPath);
-    if (!file.startsWith(DIST) || !existsSync(file) || statSync(file).isDirectory()) file = path.join(DIST, 'index.html');
+    if (!file.startsWith(DIST) || !existsSync(file) || statSync(file).isDirectory())
+      file = path.join(DIST, 'index.html');
     res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] ?? 'application/octet-stream' });
     res.end(readFileSync(file));
   });
   return new Promise<{ url: string; close: () => Promise<void> }>((resolve) =>
     server.listen(port, () =>
-      resolve({ url: `http://localhost:${port}`, close: () => new Promise((done) => server.close(() => done())) }),
+      resolve({
+        url: `http://localhost:${port}`,
+        close: () => new Promise((done) => server.close(() => done())),
+      }),
     ),
   );
 }
@@ -42,7 +46,10 @@ export async function startEnvironment() {
   const supabase = await startFakeSupabase();
   const web = await serveDist();
   const browser = await chromium.launch();
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+  });
   const page = await context.newPage();
 
   const problems: string[] = [];
@@ -50,7 +57,11 @@ export async function startEnvironment() {
     if (message.type() === 'error') problems.push(`console.error: ${message.text()}`);
   });
   page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
-  page.on('requestfailed', (request) => problems.push(`requestfailed: ${request.method()} ${request.url()} ${request.failure()?.errorText}`));
+  page.on('requestfailed', (request) =>
+    problems.push(
+      `requestfailed: ${request.method()} ${request.url()} ${request.failure()?.errorText}`,
+    ),
+  );
   page.on('dialog', (dialog) => dialog.accept());
 
   return {

@@ -10,6 +10,7 @@ import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorko
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { usePullToRefresh } from '@/shared/lib/use-pull-to-refresh';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE, TAB_BAR_CLEARANCE_BASE } from '@/shared/theme/icons';
 import { getErrorMessage } from '@/shared/utils/errors';
@@ -25,6 +26,7 @@ export default function HomeScreen() {
     queryFn: () => getWorkoutHistory(session!.user.id),
     enabled: !!session,
   });
+  const pullToRefresh = usePullToRefresh(refetch);
 
   return (
     <Screen edges={['top', 'left', 'right']}>
@@ -63,6 +65,7 @@ export default function HomeScreen() {
           <FlatList
             data={workouts ?? []}
             keyExtractor={(item) => item.id}
+            {...pullToRefresh}
             contentContainerClassName="gap-sm"
             renderItem={({ item }) => (
               <WorkoutHistoryCard workout={item} onPress={() => router.push(`/workout/${item.id}`)} />

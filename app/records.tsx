@@ -8,6 +8,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ListItem } from '@/shared/components/ListItem';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { usePullToRefresh } from '@/shared/lib/use-pull-to-refresh';
 import { getErrorMessage } from '@/shared/utils/errors';
 import { formatWeight } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
@@ -22,6 +23,7 @@ export default function RecordsScreen() {
     queryFn: () => getPersonalRecords(session!.user.id),
     enabled: !!session,
   });
+  const pullToRefresh = usePullToRefresh(refetch);
 
   return (
     <Screen>
@@ -48,6 +50,7 @@ export default function RecordsScreen() {
         <FlatList
           data={records ?? []}
           keyExtractor={(item) => item.exerciseId}
+          {...pullToRefresh}
           ItemSeparatorComponent={() => <View className="border-b border-border-light dark:border-border-dark" />}
           renderItem={({ item }) => (
             <ListItem

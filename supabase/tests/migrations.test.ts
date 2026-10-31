@@ -5,7 +5,11 @@ import { asUser, createTestDb, createUser, insertExercise } from './test-db';
 
 type Row = Record<string, unknown>;
 
-async function insertWorkout(tx: Transaction, userId: string, startedAt = "now() - interval '1 hour'"): Promise<string> {
+async function insertWorkout(
+  tx: Transaction,
+  userId: string,
+  startedAt = "now() - interval '1 hour'",
+): Promise<string> {
   const result = await tx.query<{ id: string }>(
     `insert into public.workouts (user_id, name, started_at) values ($1, 'Push', ${startedAt}) returning id`,
     [userId],
@@ -13,7 +17,12 @@ async function insertWorkout(tx: Transaction, userId: string, startedAt = "now()
   return result.rows[0].id;
 }
 
-async function insertWorkoutExercise(tx: Transaction, workoutId: string, exerciseId: string, orderIndex = 0) {
+async function insertWorkoutExercise(
+  tx: Transaction,
+  workoutId: string,
+  exerciseId: string,
+  orderIndex = 0,
+) {
   const result = await tx.query<{ id: string }>(
     'insert into public.workout_exercises (workout_id, exercise_id, order_index) values ($1, $2, $3) returning id',
     [workoutId, exerciseId, orderIndex],
@@ -56,7 +65,11 @@ describe('supabase migrations (PGlite)', () => {
     alice = await createUser(db, 'alice@example.com');
     bob = await createUser(db, 'bob@example.com');
     benchPress = await insertExercise(db, { name: 'Bench Press' });
-    squat = await insertExercise(db, { name: 'Squat', category: 'upper legs', targetMuscle: 'quads' });
+    squat = await insertExercise(db, {
+      name: 'Squat',
+      category: 'upper legs',
+      targetMuscle: 'quads',
+    });
   }, 60_000);
 
   afterAll(async () => {
@@ -64,7 +77,9 @@ describe('supabase migrations (PGlite)', () => {
   });
 
   it('auto-creates a profile row for every new auth user', async () => {
-    const result = await db.query<Row>('select id, unit_preference from public.profiles order by id');
+    const result = await db.query<Row>(
+      'select id, unit_preference from public.profiles order by id',
+    );
     expect(result.rows.map((row) => row.id).sort()).toEqual([alice, bob].sort());
     expect(result.rows.every((row) => row.unit_preference === 'kg')).toBe(true);
   });
@@ -104,7 +119,10 @@ describe('supabase migrations (PGlite)', () => {
         await insertSet(tx, bench, 1, 50, 5);
         await tx.query('select public.finish_workout($1)', [workoutId]);
       });
-      expect(await personalRecords(db, alice, benchPress)).toEqual({ estimated_1rm: 88.67, max_weight: 70 });
+      expect(await personalRecords(db, alice, benchPress)).toEqual({
+        estimated_1rm: 88.67,
+        max_weight: 70,
+      });
 
       await asUser(db, alice, async (tx) => {
         const workoutId = await insertWorkout(tx, alice);
@@ -113,7 +131,10 @@ describe('supabase migrations (PGlite)', () => {
         await tx.query('select public.finish_workout($1)', [workoutId]);
       });
       // 100 kg beats 70 kg for max_weight; Epley 100*(1+1/30)=103.33 beats 88.67
-      expect(await personalRecords(db, alice, benchPress)).toEqual({ estimated_1rm: 103.33, max_weight: 100 });
+      expect(await personalRecords(db, alice, benchPress)).toEqual({
+        estimated_1rm: 103.33,
+        max_weight: 100,
+      });
     });
 
     it('handles several exercises in one workout independently', async () => {
@@ -156,7 +177,10 @@ describe('supabase migrations (PGlite)', () => {
 
       await asUser(db, dave, (tx) => tx.query('delete from public.workouts where id = $1', [typo]));
 
-      expect(await personalRecords(db, dave, benchPress)).toEqual({ max_weight: 80, estimated_1rm: 93.33 });
+      expect(await personalRecords(db, dave, benchPress)).toEqual({
+        max_weight: 80,
+        estimated_1rm: 93.33,
+      });
     });
 
     it('removes a record when no other workout has that exercise', async () => {
@@ -170,7 +194,9 @@ describe('supabase migrations (PGlite)', () => {
       });
       expect((await personalRecords(db, erin, squat)).max_weight).toBe(100);
 
-      await asUser(db, erin, (tx) => tx.query('delete from public.workouts where id = $1', [workoutId]));
+      await asUser(db, erin, (tx) =>
+        tx.query('delete from public.workouts where id = $1', [workoutId]),
+      );
 
       expect(await personalRecords(db, erin, squat)).toEqual({});
     });
@@ -188,13 +214,17 @@ describe('supabase migrations (PGlite)', () => {
         `update public.personal_records set value = 400, set_id = null where user_id = $1 and record_type = 'max_weight'`,
         [frank],
       );
-      await db.query('select public.refresh_personal_record(id) from public.personal_records where set_id is null');
+      await db.query(
+        'select public.refresh_personal_record(id) from public.personal_records where set_id is null',
+      );
       expect((await personalRecords(db, frank, benchPress)).max_weight).toBe(90);
     });
 
     it('refresh_personal_record is not callable by app users', async () => {
       await expect(
-        asUser(db, alice, (tx) => tx.query(`select public.refresh_personal_record(gen_random_uuid())`)),
+        asUser(db, alice, (tx) =>
+          tx.query(`select public.refresh_personal_record(gen_random_uuid())`),
+        ),
       ).rejects.toThrow(/permission denied/);
     });
 
@@ -207,7 +237,9 @@ describe('supabase migrations (PGlite)', () => {
         await tx.query('select public.finish_workout($1)', [id]);
         return id;
       });
-      await asUser(db, bob, (tx) => tx.query('delete from public.workouts where id = $1', [bobWorkout]));
+      await asUser(db, bob, (tx) =>
+        tx.query('delete from public.workouts where id = $1', [bobWorkout]),
+      );
       expect(await personalRecords(db, alice, benchPress)).toEqual(before);
     });
   });
@@ -215,16 +247,22 @@ describe('supabase migrations (PGlite)', () => {
   describe('row level security', () => {
     it("hides other users' workouts, sets and records", async () => {
       const counts = await asUser(db, bob, async (tx) => {
-        const workouts = await tx.query<{ n: number }>('select count(*)::int as n from public.workouts');
+        const workouts = await tx.query<{ n: number }>(
+          'select count(*)::int as n from public.workouts',
+        );
         const sets = await tx.query<{ n: number }>('select count(*)::int as n from public.sets');
-        const records = await tx.query<{ n: number }>('select count(*)::int as n from public.personal_records');
+        const records = await tx.query<{ n: number }>(
+          'select count(*)::int as n from public.personal_records',
+        );
         return [workouts.rows[0].n, sets.rows[0].n, records.rows[0].n];
       });
       expect(counts).toEqual([0, 0, 0]);
     });
 
     it('rejects inserting a workout on behalf of another user', async () => {
-      await expect(asUser(db, bob, (tx) => insertWorkout(tx, alice))).rejects.toThrow(/row-level security/);
+      await expect(asUser(db, bob, (tx) => insertWorkout(tx, alice))).rejects.toThrow(
+        /row-level security/,
+      );
     });
 
     it("hides other users' custom exercises from everyone else", async () => {
@@ -246,7 +284,9 @@ describe('supabase migrations (PGlite)', () => {
     });
 
     it('still shows the shared exercise library to signed-in users', async () => {
-      const rows = await asUser(db, bob, (tx) => tx.query<Row>('select name from public.exercises where is_custom = false'));
+      const rows = await asUser(db, bob, (tx) =>
+        tx.query<Row>('select name from public.exercises where is_custom = false'),
+      );
       expect(rows.rows.length).toBeGreaterThanOrEqual(2);
     });
   });
@@ -273,9 +313,9 @@ describe('supabase migrations (PGlite)', () => {
 
   describe('delete_account', () => {
     it('is not callable without a signed-in user', async () => {
-      await expect(asUser(db, null, (tx) => tx.query('select public.delete_account()'))).rejects.toThrow(
-        /permission denied/,
-      );
+      await expect(
+        asUser(db, null, (tx) => tx.query('select public.delete_account()')),
+      ).rejects.toThrow(/permission denied/);
     });
 
     it("removes every row the user owns, including custom exercises they've trained with", async () => {
@@ -300,7 +340,10 @@ describe('supabase migrations (PGlite)', () => {
           'insert into public.routine_exercise_sets (routine_exercise_id, set_number, target_weight, target_reps) values ($1, 1, 10, 12)',
           [routineExercise.rows[0].id],
         );
-        await tx.query('insert into public.favorite_exercises (user_id, exercise_id) values ($1, $2)', [carol, customId]);
+        await tx.query(
+          'insert into public.favorite_exercises (user_id, exercise_id) values ($1, $2)',
+          [carol, customId],
+        );
 
         const workoutId = await insertWorkout(tx, carol);
         const curl = await insertWorkoutExercise(tx, workoutId, customId);

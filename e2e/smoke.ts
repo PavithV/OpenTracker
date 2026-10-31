@@ -45,11 +45,17 @@ async function main() {
     } finally {
       await page.waitForTimeout(600);
       shot += 1;
-      await page.screenshot({ path: path.join(OUTPUT, `${String(shot).padStart(2, '0')}-${name.replace(/\W+/g, '-')}.png`) });
+      await page.screenshot({
+        path: path.join(
+          OUTPUT,
+          `${String(shot).padStart(2, '0')}-${name.replace(/\W+/g, '-')}.png`,
+        ),
+      });
     }
   }
   const tap = (text: string) => page.getByText(text, { exact: true }).last().click();
-  const tab = (name: 'Home' | 'Training' | 'Profil') => page.getByText(name, { exact: true }).last().click();
+  const tab = (name: 'Home' | 'Training' | 'Profil') =>
+    page.getByText(name, { exact: true }).last().click();
 
   await step('sign in', async () => {
     await page.goto(`${env.webUrl}/sign-in`);
@@ -72,16 +78,27 @@ async function main() {
     await fields.nth(1).pressSequentially('8', { delay: 30 });
     await fields.nth(2).pressSequentially('40,5', { delay: 30 }); // German decimal comma
     await fields.nth(3).pressSequentially('10', { delay: 30 });
-    check((await fields.nth(0).inputValue()) === '62.5', `weight field shows ${await fields.nth(0).inputValue()}`);
+    check(
+      (await fields.nth(0).inputValue()) === '62.5',
+      `weight field shows ${await fields.nth(0).inputValue()}`,
+    );
     // 90 s rest after Bench Press sets
-    await page.getByText('Pause (Sek.)', { exact: true }).first().locator('xpath=following::input[1]').pressSequentially('90');
+    await page
+      .getByText('Pause (Sek.)', { exact: true })
+      .first()
+      .locator('xpath=following::input[1]')
+      .pressSequentially('90');
     await tap('Speichern');
     await expectVisible(page, 'Bench Press, Overhead Press');
     const stored = await supabase.db.query<{ target_weight: number; target_reps: number }>(
       'select target_weight, target_reps from public.routine_exercise_sets order by target_weight desc',
     );
     check(
-      JSON.stringify(stored.rows) === JSON.stringify([{ target_weight: 62.5, target_reps: 8 }, { target_weight: 40.5, target_reps: 10 }]),
+      JSON.stringify(stored.rows) ===
+        JSON.stringify([
+          { target_weight: 62.5, target_reps: 8 },
+          { target_weight: 40.5, target_reps: 10 },
+        ]),
       `stored targets: ${JSON.stringify(stored.rows)}`,
     );
   });
@@ -96,7 +113,10 @@ async function main() {
     await expectVisible(page, 'Routine bearbeiten');
     const name = await page.getByPlaceholder('z. B. Push Day').inputValue();
     const stored = await supabase.db.query<{ name: string }>('select name from public.routines');
-    check(name === 'Push Day A', `editor reopened with stale name "${name}" (db: ${JSON.stringify(stored.rows)})`);
+    check(
+      name === 'Push Day A',
+      `editor reopened with stale name "${name}" (db: ${JSON.stringify(stored.rows)})`,
+    );
     await page.goBack();
     await expectVisible(page, 'Leeres Workout starten');
   });
@@ -105,7 +125,10 @@ async function main() {
     await tap('Start');
     await expectVisible(page, 'Beenden');
     const weights = page.getByPlaceholder('kg');
-    check((await weights.nth(0).inputValue()) === '62.5', `prefilled weight ${await weights.nth(0).inputValue()}`);
+    check(
+      (await weights.nth(0).inputValue()) === '62.5',
+      `prefilled weight ${await weights.nth(0).inputValue()}`,
+    );
     await page.getByPlaceholder('Wdh').nth(0).pressSequentially('8', { delay: 30 });
     await page.getByPlaceholder('Wdh').nth(1).pressSequentially('10', { delay: 30 });
     await page.getByLabel('Satz als erledigt markieren').nth(0).click();
@@ -119,7 +142,9 @@ async function main() {
     await page.waitForURL(/\/home$/);
     // Must show up right away (used to need a reload: no query was invalidated after finishing).
     await expectVisible(page, 'Push Day A');
-    const workout = await supabase.db.query<{ total_volume: number; name: string }>('select total_volume, name from public.workouts');
+    const workout = await supabase.db.query<{ total_volume: number; name: string }>(
+      'select total_volume, name from public.workouts',
+    );
     check(workout.rows[0]?.total_volume === 905, `stored volume ${JSON.stringify(workout.rows)}`);
   });
 
@@ -134,7 +159,10 @@ async function main() {
     await tab('Home');
     await page.getByLabel('Kalender öffnen').last().click();
     await expectVisible(page, 'Kalender');
-    check((await page.getByLabel(/Workout vorhanden$/).count()) === 1, 'expected exactly one day marked with a workout');
+    check(
+      (await page.getByLabel(/Workout vorhanden$/).count()) === 1,
+      'expected exactly one day marked with a workout',
+    );
     await page.goBack();
   });
 
@@ -142,7 +170,10 @@ async function main() {
     await tab('Profil');
     await expectVisible(page, '905 kg');
     const text = await visibleText(page);
-    check(!text.includes('e2e@example.com\ne2e@example.com'), 'email shown twice in profile header');
+    check(
+      !text.includes('e2e@example.com\ne2e@example.com'),
+      'email shown twice in profile header',
+    );
     await tap('Rekorde ansehen');
     await expectVisible(page, 'Bench Press');
     await expectVisible(page, 'Bestes Gewicht: 62.5 kg · Geschätztes 1RM: 79.17 kg');
@@ -183,7 +214,10 @@ async function main() {
     await page.getByPlaceholder('z. B. 100').fill('102,5');
     await expectVisible(page, 'Plattenrechner');
     const text = await visibleText(page);
-    check(text.includes('102.5 kg'), `plate calculator did not compute 102,5: ${text.slice(0, 300)}`);
+    check(
+      text.includes('102.5 kg'),
+      `plate calculator did not compute 102,5: ${text.slice(0, 300)}`,
+    );
   });
 
   await step('switch to lb', async () => {
@@ -203,31 +237,50 @@ async function main() {
     await page.getByLabel('Satz als erledigt markieren').nth(0).click();
     await page.reload(); // stands in for the app being killed mid-workout
     await expectVisible(page, 'Beenden');
-    check((await page.getByPlaceholder('Wdh').nth(0).inputValue()) === '9', 'reps lost after reload');
+    check(
+      (await page.getByPlaceholder('Wdh').nth(0).inputValue()) === '9',
+      'reps lost after reload',
+    );
     // react-native-web doesn't render accessibilityState as aria-checked; the completed styling is
     // the observable signal here.
     check(
-      ((await page.getByLabel('Satz als erledigt markieren').nth(0).getAttribute('class')) ?? '').includes('bg-primary-light/15'),
+      (
+        (await page.getByLabel('Satz als erledigt markieren').nth(0).getAttribute('class')) ?? ''
+      ).includes('bg-primary-light/15'),
       'completed state lost after reload',
     );
     await tap('Beenden');
     await page.waitForURL(/\/home$/);
-    const count = await supabase.db.query<{ n: number }>('select count(*)::int as n from public.workouts where ended_at is not null');
+    const count = await supabase.db.query<{ n: number }>(
+      'select count(*)::int as n from public.workouts where ended_at is not null',
+    );
     check(count.rows[0].n === 3, `expected 3 finished workouts, got ${count.rows[0].n}`);
   });
 
-  results.push({ step: 'no console/page errors', ok: env.problems.length === 0, error: env.problems.join(' | ') });
+  results.push({
+    step: 'no console/page errors',
+    ok: env.problems.length === 0,
+    error: env.problems.join(' | '),
+  });
 
   await env.close();
 
   for (const result of results) {
-    console.log(`${result.ok ? 'PASS' : 'FAIL'}  ${result.step}${result.ok ? '' : `\n      ${result.error}`}`);
+    console.log(
+      `${result.ok ? 'PASS' : 'FAIL'}  ${result.step}${result.ok ? '' : `\n      ${result.error}`}`,
+    );
   }
   console.log(`\nScreenshots: ${OUTPUT}`);
   const failed = results.filter((result) => !result.ok).length;
   if (failed) {
-    console.log(`\n${failed} of ${results.length} steps failed. Fake Supabase request log (non-200):`);
-    console.log(supabase.requestLog.filter((line) => !line.includes('-> 200') && !line.includes('-> 204')).join('\n'));
+    console.log(
+      `\n${failed} of ${results.length} steps failed. Fake Supabase request log (non-200):`,
+    );
+    console.log(
+      supabase.requestLog
+        .filter((line) => !line.includes('-> 200') && !line.includes('-> 204'))
+        .join('\n'),
+    );
     process.exit(1);
   }
 }

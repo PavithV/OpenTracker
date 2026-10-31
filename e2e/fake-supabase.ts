@@ -18,7 +18,16 @@ export const E2E_EMAIL = 'e2e@example.com';
 export const E2E_PASSWORD = 'correct-horse-battery';
 
 const IDENT = /^[a-z_][a-z0-9_]*$/;
-const FILTER_OPS: Record<string, string> = { eq: '=', neq: '<>', gt: '>', gte: '>=', lt: '<', lte: '<=', ilike: 'ilike', like: 'like' };
+const FILTER_OPS: Record<string, string> = {
+  eq: '=',
+  neq: '<>',
+  gt: '>',
+  gte: '>=',
+  lt: '<',
+  lte: '<=',
+  ilike: 'ilike',
+  like: 'like',
+};
 
 function ident(name: string): string {
   if (!IDENT.test(name)) throw new HttpError(400, `bad identifier: ${name}`);
@@ -35,13 +44,22 @@ class HttpError extends Error {
 }
 
 function base64url(value: object | string): string {
-  return Buffer.from(typeof value === 'string' ? value : JSON.stringify(value)).toString('base64url');
+  return Buffer.from(typeof value === 'string' ? value : JSON.stringify(value)).toString(
+    'base64url',
+  );
 }
 
 function makeJwt(userId: string, email: string): string {
   const now = Math.floor(Date.now() / 1000);
   const header = base64url({ alg: 'HS256', typ: 'JWT' });
-  const payload = base64url({ sub: userId, email, role: 'authenticated', aud: 'authenticated', iat: now, exp: now + 3600 });
+  const payload = base64url({
+    sub: userId,
+    email,
+    role: 'authenticated',
+    aud: 'authenticated',
+    iat: now,
+    exp: now + 3600,
+  });
   return `${header}.${payload}.${base64url('fake-signature')}`;
 }
 
@@ -122,7 +140,8 @@ function buildSelectList(params: URLSearchParams): string {
     .map((column) => column.trim())
     .map((column) => {
       if (column === '*') return '*';
-      if (column.includes('(')) throw new HttpError(400, `embedded selects are not supported: ${column}`);
+      if (column.includes('('))
+        throw new HttpError(400, `embedded selects are not supported: ${column}`);
       return ident(column);
     })
     .join(', ');
@@ -161,7 +180,10 @@ async function handleRest(db: PGlite, req: IncomingMessage, url: URL, userId: st
       const names = Object.keys(args);
       const values = names.map((name) => args[name]);
       const argList = names.map((name, index) => `${ident(name)} => $${index + 1}`).join(', ');
-      const result = await tx.query<Record<string, unknown>>(`select * from public.${fn}(${argList})`, values);
+      const result = await tx.query<Record<string, unknown>>(
+        `select * from public.${fn}(${argList})`,
+        values,
+      );
       return result.rows;
     }
 
@@ -185,7 +207,11 @@ async function handleRest(db: PGlite, req: IncomingMessage, url: URL, userId: st
             .map((column) => {
               if (!(column in record)) return 'default';
               const value = record[column];
-              values.push(value !== null && typeof value === 'object' && !Array.isArray(value) ? JSON.stringify(value) : value);
+              values.push(
+                value !== null && typeof value === 'object' && !Array.isArray(value)
+                  ? JSON.stringify(value)
+                  : value,
+              );
               return `$${values.length}`;
             })
             .join(', ')})`,
@@ -225,7 +251,11 @@ async function handleRest(db: PGlite, req: IncomingMessage, url: URL, userId: st
     return rows.length === 1 ? first : rows;
   }
   if (wantsSingle) {
-    if (rows.length !== 1) throw new HttpError(406, `JSON object requested, multiple (or no) rows returned (${rows.length})`);
+    if (rows.length !== 1)
+      throw new HttpError(
+        406,
+        `JSON object requested, multiple (or no) rows returned (${rows.length})`,
+      );
     return rows[0];
   }
   if (req.method !== 'GET' && !prefer.includes('return=representation')) return undefined;
@@ -259,23 +289,42 @@ async function handleAuth(db: PGlite, req: IncomingMessage, url: URL) {
     let email: string | undefined;
     if (grantType === 'password') {
       if (body.email !== E2E_EMAIL || body.password !== E2E_PASSWORD) {
-        throw new HttpError(400, JSON.stringify({ code: 'invalid_credentials', message: 'Invalid login credentials' }));
+        throw new HttpError(
+          400,
+          JSON.stringify({ code: 'invalid_credentials', message: 'Invalid login credentials' }),
+        );
       }
       email = body.email;
     } else if (grantType === 'refresh_token') {
       const id = body.refresh_token?.replace(/^refresh-/, '');
-      const result = await db.query<{ email: string }>('select email from auth.users where id::text = $1', [id]);
+      const result = await db.query<{ email: string }>(
+        'select email from auth.users where id::text = $1',
+        [id],
+      );
       email = result.rows[0]?.email;
     }
-    const result = await db.query<{ id: string }>('select id from auth.users where email = $1', [email ?? '']);
-    if (!result.rows[0]) throw new HttpError(400, JSON.stringify({ code: 'invalid_grant', message: 'Invalid Refresh Token' }));
+    const result = await db.query<{ id: string }>('select id from auth.users where email = $1', [
+      email ?? '',
+    ]);
+    if (!result.rows[0])
+      throw new HttpError(
+        400,
+        JSON.stringify({ code: 'invalid_grant', message: 'Invalid Refresh Token' }),
+      );
     return session(result.rows[0].id, email!);
   }
   if (path === 'logout') return undefined;
   if (path === 'user') {
     const id = userIdFromRequest(req);
-    const result = await db.query<{ email: string }>('select email from auth.users where id::text = $1', [id ?? '']);
-    if (!result.rows[0]) throw new HttpError(401, JSON.stringify({ code: 'user_not_found', message: 'User not found' }));
+    const result = await db.query<{ email: string }>(
+      'select email from auth.users where id::text = $1',
+      [id ?? ''],
+    );
+    if (!result.rows[0])
+      throw new HttpError(
+        401,
+        JSON.stringify({ code: 'user_not_found', message: 'User not found' }),
+      );
     if (req.method === 'PUT') await readBody(req);
     return userResponse(id!, result.rows[0].email);
   }
@@ -308,7 +357,13 @@ export async function startFakeSupabase(port = 54321) {
     await db.query(
       `insert into public.exercises (name, category, equipment, target_muscle, instructions)
        values ($1, $2, $3, $4, $5)`,
-      [name, category, equipment, target, JSON.stringify({ en: [`Do the ${name.toLowerCase()} with control.`] })],
+      [
+        name,
+        category,
+        equipment,
+        target,
+        JSON.stringify({ en: [`Do the ${name.toLowerCase()} with control.`] }),
+      ],
     );
   }
 
@@ -325,7 +380,8 @@ export async function startFakeSupabase(port = 54321) {
     const url = new URL(req.url ?? '/', `http://localhost:${port}`);
     try {
       let body: unknown;
-      if (url.pathname.startsWith('/rest/v1/')) body = await handleRest(db, req, url, userIdFromRequest(req));
+      if (url.pathname.startsWith('/rest/v1/'))
+        body = await handleRest(db, req, url, userIdFromRequest(req));
       else if (url.pathname.startsWith('/auth/v1/')) body = await handleAuth(db, req, url);
       else throw new HttpError(404, 'not found');
       requestLog.push(`${req.method} ${url.pathname}${url.search} -> 200`);

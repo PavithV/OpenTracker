@@ -4,7 +4,7 @@ import type { Dayjs } from 'dayjs';
 import { router } from 'expo-router';
 import { CaretLeft, CaretRight, ClockCounterClockwise, WarningCircle } from 'phosphor-react-native';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, useColorScheme, View } from 'react-native';
 
 import { getWorkoutHistory } from '@/features/home/api/workouts.api';
 import { WorkoutHistoryCard } from '@/features/home/components/WorkoutHistoryCard';
@@ -12,6 +12,7 @@ import { buildMonthGrid, groupWorkoutsByDate } from '@/features/home/utils/calen
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { usePullToRefresh } from '@/shared/lib/use-pull-to-refresh';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
 import { getErrorMessage } from '@/shared/utils/errors';
@@ -43,6 +44,7 @@ export default function CalendarScreen() {
     queryFn: () => getWorkoutHistory(session!.user.id),
     enabled: !!session,
   });
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   const workoutsByDate = useMemo(() => groupWorkoutsByDate(workouts ?? []), [workouts]);
   const grid = useMemo(() => buildMonthGrid(monthRef), [monthRef]);
@@ -52,7 +54,11 @@ export default function CalendarScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerClassName="pb-md" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerClassName="pb-md"
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         <View className="py-md">
           <Typography variant="title">Kalender</Typography>
         </View>

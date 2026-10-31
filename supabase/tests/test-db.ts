@@ -48,7 +48,10 @@ export async function createTestDb(): Promise<PGlite> {
   // type-checks these files as CommonJS (node16 module resolution).
   const { pgcrypto } = await import('@electric-sql/pglite/contrib/pgcrypto');
   // PostgREST serialises numeric columns as JSON numbers; PGlite returns them as strings by default.
-  const db = await PGlite.create({ extensions: { pgcrypto }, parsers: { [types.NUMERIC]: (value: string) => Number(value) } });
+  const db = await PGlite.create({
+    extensions: { pgcrypto },
+    parsers: { [types.NUMERIC]: (value: string) => Number(value) },
+  });
   await db.exec(SUPABASE_PLATFORM_STUB);
   for (const file of listMigrations()) {
     try {
@@ -61,13 +64,20 @@ export async function createTestDb(): Promise<PGlite> {
 }
 
 export async function createUser(db: PGlite, email: string): Promise<string> {
-  const result = await db.query<{ id: string }>('insert into auth.users (email) values ($1) returning id', [email]);
+  const result = await db.query<{ id: string }>(
+    'insert into auth.users (email) values ($1) returning id',
+    [email],
+  );
   return result.rows[0].id;
 }
 
 // Runs `fn` the way PostgREST runs a request for a signed-in user: inside a transaction, as the
 // `authenticated` role, with the JWT "sub" claim set -- so RLS and auth.uid() behave as in prod.
-export async function asUser<T>(db: PGlite, userId: string | null, fn: (tx: Transaction) => Promise<T>): Promise<T> {
+export async function asUser<T>(
+  db: PGlite,
+  userId: string | null,
+  fn: (tx: Transaction) => Promise<T>,
+): Promise<T> {
   return db.transaction(async (tx) => {
     await tx.exec(`set local role ${userId ? 'authenticated' : 'anon'}`);
     await tx.query(`select set_config('request.jwt.claim.sub', $1, true)`, [userId ?? '']);
@@ -77,12 +87,24 @@ export async function asUser<T>(db: PGlite, userId: string | null, fn: (tx: Tran
 
 export async function insertExercise(
   db: PGlite,
-  values: { name: string; category?: string; isCustom?: boolean; createdBy?: string | null; targetMuscle?: string },
+  values: {
+    name: string;
+    category?: string;
+    isCustom?: boolean;
+    createdBy?: string | null;
+    targetMuscle?: string;
+  },
 ): Promise<string> {
   const result = await db.query<{ id: string }>(
     `insert into public.exercises (name, category, equipment, target_muscle, is_custom, created_by)
      values ($1, $2, 'barbell', $3, $4, $5) returning id`,
-    [values.name, values.category ?? 'chest', values.targetMuscle ?? 'pectorals', values.isCustom ?? false, values.createdBy ?? null],
+    [
+      values.name,
+      values.category ?? 'chest',
+      values.targetMuscle ?? 'pectorals',
+      values.isCustom ?? false,
+      values.createdBy ?? null,
+    ],
   );
   return result.rows[0].id;
 }
