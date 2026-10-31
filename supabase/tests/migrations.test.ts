@@ -138,6 +138,80 @@ describe('supabase migrations (PGlite)', () => {
     });
   });
 
+  describe('deleting a workout', () => {
+    it('recomputes the personal records it held from the remaining workouts', async () => {
+      const dave = await createUser(db, 'dave@example.com');
+      const finishWith = (weight: number, reps: number) =>
+        asUser(db, dave, async (tx) => {
+          const workoutId = await insertWorkout(tx, dave);
+          const bench = await insertWorkoutExercise(tx, workoutId, benchPress);
+          await insertSet(tx, bench, 1, weight, reps);
+          await tx.query('select public.finish_workout($1)', [workoutId]);
+          return workoutId;
+        });
+
+      await finishWith(80, 5);
+      const typo = await finishWith(625, 5); // e.g. "62.5" mistyped -- the record must not stick
+      expect((await personalRecords(db, dave, benchPress)).max_weight).toBe(625);
+
+      await asUser(db, dave, (tx) => tx.query('delete from public.workouts where id = $1', [typo]));
+
+      expect(await personalRecords(db, dave, benchPress)).toEqual({ max_weight: 80, estimated_1rm: 93.33 });
+    });
+
+    it('removes a record when no other workout has that exercise', async () => {
+      const erin = await createUser(db, 'erin@example.com');
+      const workoutId = await asUser(db, erin, async (tx) => {
+        const id = await insertWorkout(tx, erin);
+        const sq = await insertWorkoutExercise(tx, id, squat);
+        await insertSet(tx, sq, 1, 100, 5);
+        await tx.query('select public.finish_workout($1)', [id]);
+        return id;
+      });
+      expect((await personalRecords(db, erin, squat)).max_weight).toBe(100);
+
+      await asUser(db, erin, (tx) => tx.query('delete from public.workouts where id = $1', [workoutId]));
+
+      expect(await personalRecords(db, erin, squat)).toEqual({});
+    });
+
+    it('refresh_personal_record repairs records orphaned before 0009 (backfill path)', async () => {
+      const frank = await createUser(db, 'frank@example.com');
+      await asUser(db, frank, async (tx) => {
+        const id = await insertWorkout(tx, frank);
+        const bench = await insertWorkoutExercise(tx, id, benchPress);
+        await insertSet(tx, bench, 1, 90, 3);
+        await tx.query('select public.finish_workout($1)', [id]);
+      });
+      // simulate a pre-0009 orphan: stale value, no set
+      await db.query(
+        `update public.personal_records set value = 400, set_id = null where user_id = $1 and record_type = 'max_weight'`,
+        [frank],
+      );
+      await db.query('select public.refresh_personal_record(id) from public.personal_records where set_id is null');
+      expect((await personalRecords(db, frank, benchPress)).max_weight).toBe(90);
+    });
+
+    it('refresh_personal_record is not callable by app users', async () => {
+      await expect(
+        asUser(db, alice, (tx) => tx.query(`select public.refresh_personal_record(gen_random_uuid())`)),
+      ).rejects.toThrow(/permission denied/);
+    });
+
+    it("leaves other users' records alone", async () => {
+      const before = await personalRecords(db, alice, benchPress);
+      const bobWorkout = await asUser(db, bob, async (tx) => {
+        const id = await insertWorkout(tx, bob);
+        const bench = await insertWorkoutExercise(tx, id, benchPress);
+        await insertSet(tx, bench, 1, 30, 5);
+        await tx.query('select public.finish_workout($1)', [id]);
+        return id;
+      });
+      await asUser(db, bob, (tx) => tx.query('delete from public.workouts where id = $1', [bobWorkout]));
+      expect(await personalRecords(db, alice, benchPress)).toEqual(before);
+    });
+  });
+
   describe('row level security', () => {
     it("hides other users' workouts, sets and records", async () => {
       const counts = await asUser(db, bob, async (tx) => {
