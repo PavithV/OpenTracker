@@ -1,3 +1,4 @@
+import { fetchAllIn, fetchAllPages } from '@/shared/lib/fetch-all';
 import { supabase } from '@/shared/lib/supabase';
 
 import type { WorkoutDetail } from '../types/workout-detail.types';
@@ -14,36 +15,37 @@ export async function deleteWorkout(workoutId: string): Promise<void> {
 // can show its exercise thumbnails/names/set counts (previously just an aggregate count via a
 // workout_exercises(count) embed), matching the Hevy reference screenshots.
 export async function getWorkoutHistory(userId: string): Promise<WorkoutHistoryItem[]> {
-  const { data: workouts, error: workoutsError } = await supabase
-    .from('workouts')
-    .select('id, name, started_at, duration_seconds, total_volume')
-    .eq('user_id', userId)
-    .not('ended_at', 'is', null)
-    .order('started_at', { ascending: false });
-  if (workoutsError) throw workoutsError;
+  // Whole-history queries: paged and id-chunked, see shared/lib/fetch-all.ts.
+  const workouts = await fetchAllPages(() =>
+    supabase
+      .from('workouts')
+      .select('id, name, started_at, duration_seconds, total_volume')
+      .eq('user_id', userId)
+      .not('ended_at', 'is', null)
+      .order('started_at', { ascending: false })
+      .order('id'),
+  );
   if (workouts.length === 0) return [];
 
   const workoutIds = workouts.map((workout) => workout.id);
-  const { data: workoutExercises, error: exercisesError } = await supabase
-    .from('workout_exercises')
-    .select('id, workout_id, exercise_id')
-    .in('workout_id', workoutIds)
-    .order('order_index');
-  if (exercisesError) throw exercisesError;
+  const workoutExercises = await fetchAllIn(workoutIds, (chunk) =>
+    supabase
+      .from('workout_exercises')
+      .select('id, workout_id, exercise_id')
+      .in('workout_id', chunk)
+      .order('order_index')
+      .order('id'),
+  );
 
   const workoutExerciseIds = workoutExercises.map((row) => row.id);
-  const { data: sets, error: setsError } =
-    workoutExerciseIds.length > 0
-      ? await supabase.from('sets').select('workout_exercise_id').in('workout_exercise_id', workoutExerciseIds)
-      : { data: [] as { workout_exercise_id: string }[], error: null };
-  if (setsError) throw setsError;
+  const sets = await fetchAllIn(workoutExerciseIds, (chunk) =>
+    supabase.from('sets').select('workout_exercise_id').in('workout_exercise_id', chunk).order('id'),
+  );
 
   const exerciseIds = Array.from(new Set(workoutExercises.map((row) => row.exercise_id)));
-  const { data: exercises, error: namesError } =
-    exerciseIds.length > 0
-      ? await supabase.from('exercises').select('id, name, image_url').in('id', exerciseIds)
-      : { data: [] as { id: string; name: string; image_url: string | null }[], error: null };
-  if (namesError) throw namesError;
+  const exercises = await fetchAllIn(exerciseIds, (chunk) =>
+    supabase.from('exercises').select('id, name, image_url').in('id', chunk).order('id'),
+  );
 
   const exerciseById = new Map(exercises.map((exercise) => [exercise.id, exercise]));
   const setCountByWorkoutExerciseId = new Map<string, number>();

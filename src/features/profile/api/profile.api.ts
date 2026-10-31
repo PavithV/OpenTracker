@@ -1,3 +1,4 @@
+import { fetchAllIn, fetchAllPages } from '@/shared/lib/fetch-all';
 import { supabase } from '@/shared/lib/supabase';
 import type { UnitPreference } from '@/shared/utils/units';
 
@@ -22,12 +23,14 @@ export async function updateProfile(userId: string, updates: { unitPreference: U
 }
 
 export async function getProfileStats(userId: string): Promise<ProfileStats> {
-  const { data, error } = await supabase
-    .from('workouts')
-    .select('duration_seconds, total_volume')
-    .eq('user_id', userId)
-    .not('ended_at', 'is', null);
-  if (error) throw error;
+  const data = await fetchAllPages(() =>
+    supabase
+      .from('workouts')
+      .select('id, duration_seconds, total_volume')
+      .eq('user_id', userId)
+      .not('ended_at', 'is', null)
+      .order('id'),
+  );
 
   return {
     workoutCount: data.length,
@@ -40,32 +43,32 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
 // are summed per workout from completed sets only, mirroring the completed-only convention
 // finish_workout already uses for total_volume.
 export async function getProfileWorkoutSeries(userId: string, sinceIso: string): Promise<ProfileWorkoutPoint[]> {
-  const { data: workouts, error: workoutsError } = await supabase
-    .from('workouts')
-    .select('id, started_at, duration_seconds, total_volume')
-    .eq('user_id', userId)
-    .not('ended_at', 'is', null)
-    .gte('started_at', sinceIso);
-  if (workoutsError) throw workoutsError;
+  // Up to a year of history: paged and id-chunked, see shared/lib/fetch-all.ts.
+  const workouts = await fetchAllPages(() =>
+    supabase
+      .from('workouts')
+      .select('id, started_at, duration_seconds, total_volume')
+      .eq('user_id', userId)
+      .not('ended_at', 'is', null)
+      .gte('started_at', sinceIso)
+      .order('id'),
+  );
   if (workouts.length === 0) return [];
 
   const workoutIds = workouts.map((workout) => workout.id);
-  const { data: workoutExercises, error: exercisesError } = await supabase
-    .from('workout_exercises')
-    .select('id, workout_id')
-    .in('workout_id', workoutIds);
-  if (exercisesError) throw exercisesError;
+  const workoutExercises = await fetchAllIn(workoutIds, (chunk) =>
+    supabase.from('workout_exercises').select('id, workout_id').in('workout_id', chunk).order('id'),
+  );
 
   const workoutExerciseIds = workoutExercises.map((row) => row.id);
-  const { data: sets, error: setsError } =
-    workoutExerciseIds.length > 0
-      ? await supabase
-          .from('sets')
-          .select('workout_exercise_id, reps')
-          .in('workout_exercise_id', workoutExerciseIds)
-          .eq('completed', true)
-      : { data: [] as { workout_exercise_id: string; reps: number | null }[], error: null };
-  if (setsError) throw setsError;
+  const sets = await fetchAllIn(workoutExerciseIds, (chunk) =>
+    supabase
+      .from('sets')
+      .select('workout_exercise_id, reps')
+      .in('workout_exercise_id', chunk)
+      .eq('completed', true)
+      .order('id'),
+  );
 
   const workoutIdByWorkoutExerciseId = new Map(workoutExercises.map((row) => [row.id, row.workout_id]));
   const repsByWorkoutId = new Map<string, number>();

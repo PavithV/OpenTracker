@@ -1,3 +1,4 @@
+import { fetchAllIn, fetchAllPages } from '@/shared/lib/fetch-all';
 import { supabase } from '@/shared/lib/supabase';
 
 import type { ExerciseRecordSummary } from '../types/record.types';
@@ -7,20 +8,20 @@ import type { ExerciseRecordSummary } from '../types/record.types';
 // (max_weight, estimated_1rm) exist for it -- an exercise can have only one of the two if its
 // sets were never logged with both weight and reps (see 0003_add_estimated_1rm_personal_record.sql).
 export async function getPersonalRecords(userId: string): Promise<ExerciseRecordSummary[]> {
-  const { data: records, error: recordsError } = await supabase
-    .from('personal_records')
-    .select('exercise_id, record_type, value, achieved_at')
-    .eq('user_id', userId)
-    .in('record_type', ['max_weight', 'estimated_1rm']);
-  if (recordsError) throw recordsError;
+  const records = await fetchAllPages(() =>
+    supabase
+      .from('personal_records')
+      .select('id, exercise_id, record_type, value, achieved_at')
+      .eq('user_id', userId)
+      .in('record_type', ['max_weight', 'estimated_1rm'])
+      .order('id'),
+  );
   if (records.length === 0) return [];
 
   const exerciseIds = Array.from(new Set(records.map((record) => record.exercise_id)));
-  const { data: exercises, error: namesError } = await supabase
-    .from('exercises')
-    .select('id, name')
-    .in('id', exerciseIds);
-  if (namesError) throw namesError;
+  const exercises = await fetchAllIn(exerciseIds, (chunk) =>
+    supabase.from('exercises').select('id, name').in('id', chunk).order('id'),
+  );
 
   const nameById = new Map(exercises.map((exercise) => [exercise.id, exercise.name]));
 

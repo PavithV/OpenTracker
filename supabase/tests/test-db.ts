@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // In-process Postgres (PGlite, WASM) running the real migrations from supabase/migrations/, plus
 // a minimal stand-in for the parts of Supabase's platform schema those migrations depend on:
 // `auth.users`, `auth.uid()`, and the `anon`/`authenticated` roles with Supabase's default grants.

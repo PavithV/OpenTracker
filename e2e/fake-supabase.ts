@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // Local stand-in for a Supabase project, for browser smoke tests of the web build.
 //
 // Database: PGlite with the real migrations (same harness as the SQL tests), so RLS, triggers,
@@ -161,10 +162,16 @@ function buildOrder(params: URLSearchParams): string {
   return `order by ${parts.join(', ')}`;
 }
 
+// Supabase's API caps every response at "Max rows" (default 1000) -- silently, without an error.
+// Mirrored here so code that assumes it gets every row fails in tests the way it would in prod.
+export const MAX_ROWS = 1000;
+export const MAX_URL_LENGTH = 8 * 1024;
+
 function buildLimit(params: URLSearchParams): string {
-  const limit = params.get('limit');
+  const requested = params.get('limit');
+  const limit = Math.min(requested ? Number(requested) : MAX_ROWS, MAX_ROWS);
   const offset = params.get('offset');
-  return `${limit ? `limit ${Number(limit)}` : ''} ${offset ? `offset ${Number(offset)}` : ''}`;
+  return `limit ${limit} ${offset ? `offset ${Number(offset)}` : ''}`;
 }
 
 async function handleRest(db: PGlite, req: IncomingMessage, url: URL, userId: string | null) {
@@ -379,6 +386,9 @@ export async function startFakeSupabase(port = 54321) {
     }
     const url = new URL(req.url ?? '/', `http://localhost:${port}`);
     try {
+      // Like an nginx-style proxy in front of PostgREST (8 KB request-line buffer): long `in.(...)`
+      // id lists in a GET URL fail there with 414 rather than reaching the database.
+      if ((req.url ?? '').length > MAX_URL_LENGTH) throw new HttpError(414, 'URI Too Long');
       let body: unknown;
       if (url.pathname.startsWith('/rest/v1/'))
         body = await handleRest(db, req, url, userIdFromRequest(req));

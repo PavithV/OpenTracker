@@ -1,3 +1,4 @@
+import { fetchAllIn, fetchAllPages } from '@/shared/lib/fetch-all';
 import { supabase } from '@/shared/lib/supabase';
 
 import type {
@@ -112,31 +113,38 @@ export async function getExercisePersonalRecords(
 // sync, so a given workout has at most one workout_exercises row per exercise -- safe to match
 // with find() below instead of handling multiple rows per workout.
 export async function getExerciseHistory(userId: string, exerciseId: string): Promise<ExerciseHistoryEntry[]> {
-  const { data: workouts, error: workoutsError } = await supabase
-    .from('workouts')
-    .select('id, name, started_at')
-    .eq('user_id', userId)
-    .not('ended_at', 'is', null)
-    .order('started_at', { ascending: false });
-  if (workoutsError) throw workoutsError;
+  // Whole-history queries: paged and id-chunked, see shared/lib/fetch-all.ts.
+  const workouts = await fetchAllPages(() =>
+    supabase
+      .from('workouts')
+      .select('id, name, started_at')
+      .eq('user_id', userId)
+      .not('ended_at', 'is', null)
+      .order('started_at', { ascending: false })
+      .order('id'),
+  );
   if (workouts.length === 0) return [];
 
   const workoutIds = workouts.map((workout) => workout.id);
-  const { data: workoutExercises, error: exercisesError } = await supabase
-    .from('workout_exercises')
-    .select('id, workout_id')
-    .eq('exercise_id', exerciseId)
-    .in('workout_id', workoutIds);
-  if (exercisesError) throw exercisesError;
+  const workoutExercises = await fetchAllIn(workoutIds, (chunk) =>
+    supabase
+      .from('workout_exercises')
+      .select('id, workout_id')
+      .eq('exercise_id', exerciseId)
+      .in('workout_id', chunk)
+      .order('id'),
+  );
   if (workoutExercises.length === 0) return [];
 
   const workoutExerciseIds = workoutExercises.map((row) => row.id);
-  const { data: sets, error: setsError } = await supabase
-    .from('sets')
-    .select('id, workout_exercise_id, set_number, weight, reps')
-    .in('workout_exercise_id', workoutExerciseIds)
-    .order('set_number');
-  if (setsError) throw setsError;
+  const sets = await fetchAllIn(workoutExerciseIds, (chunk) =>
+    supabase
+      .from('sets')
+      .select('id, workout_exercise_id, set_number, weight, reps')
+      .in('workout_exercise_id', chunk)
+      .order('set_number')
+      .order('id'),
+  );
 
   return workouts
     .map((workout) => {
@@ -164,24 +172,29 @@ export async function getPreviousSetsByExercise(
 ): Promise<Map<string, ExerciseHistorySet[]>> {
   if (exerciseIds.length === 0) return new Map();
 
-  const { data: workouts, error: workoutsError } = await supabase
-    .from('workouts')
-    .select('id')
-    .eq('user_id', userId)
-    .not('ended_at', 'is', null)
-    .order('started_at', { ascending: false });
-  if (workoutsError) throw workoutsError;
+  // Whole-history queries: paged and id-chunked, see shared/lib/fetch-all.ts.
+  const workouts = await fetchAllPages(() =>
+    supabase
+      .from('workouts')
+      .select('id')
+      .eq('user_id', userId)
+      .not('ended_at', 'is', null)
+      .order('started_at', { ascending: false })
+      .order('id'),
+  );
   if (workouts.length === 0) return new Map();
 
   const workoutRankById = new Map(workouts.map((workout, index) => [workout.id, index]));
   const workoutIds = workouts.map((workout) => workout.id);
 
-  const { data: workoutExercises, error: exercisesError } = await supabase
-    .from('workout_exercises')
-    .select('id, workout_id, exercise_id')
-    .in('exercise_id', exerciseIds)
-    .in('workout_id', workoutIds);
-  if (exercisesError) throw exercisesError;
+  const workoutExercises = await fetchAllIn(workoutIds, (chunk) =>
+    supabase
+      .from('workout_exercises')
+      .select('id, workout_id, exercise_id')
+      .in('exercise_id', exerciseIds)
+      .in('workout_id', chunk)
+      .order('id'),
+  );
 
   // Most recent (lowest rank) workout_exercises row per exercise_id.
   const mostRecentByExerciseId = new Map<string, { workoutExerciseId: string; rank: number }>();
@@ -195,12 +208,14 @@ export async function getPreviousSetsByExercise(
   if (mostRecentByExerciseId.size === 0) return new Map();
 
   const workoutExerciseIds = Array.from(mostRecentByExerciseId.values()).map((entry) => entry.workoutExerciseId);
-  const { data: sets, error: setsError } = await supabase
-    .from('sets')
-    .select('id, workout_exercise_id, set_number, weight, reps')
-    .in('workout_exercise_id', workoutExerciseIds)
-    .order('set_number');
-  if (setsError) throw setsError;
+  const sets = await fetchAllIn(workoutExerciseIds, (chunk) =>
+    supabase
+      .from('sets')
+      .select('id, workout_exercise_id, set_number, weight, reps')
+      .in('workout_exercise_id', chunk)
+      .order('set_number')
+      .order('id'),
+  );
 
   const result = new Map<string, ExerciseHistorySet[]>();
   for (const [exerciseId, { workoutExerciseId }] of mostRecentByExerciseId) {
