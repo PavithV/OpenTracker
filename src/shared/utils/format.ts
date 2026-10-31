@@ -17,6 +17,9 @@ export const GERMAN_MONTHS = [
   'Dezember',
 ];
 
+// Short forms for tight spots like chart axes, where six full month names overlap on a phone.
+export const GERMAN_MONTHS_SHORT = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+
 export function formatDuration(durationSeconds: number | null): string {
   if (durationSeconds === null) return '–';
   const hours = Math.floor(durationSeconds / 3600);

@@ -167,7 +167,8 @@ export default function ProfileScreen() {
                   </View>
                   <View>
                     <Typography variant="cardTitle">{profile?.displayName ?? session?.user.email}</Typography>
-                    <Typography variant="subtitle">{session?.user.email}</Typography>
+                    {/* Without a display name the title already is the email -- don't print it twice. */}
+                    {profile?.displayName ? <Typography variant="subtitle">{session?.user.email}</Typography> : null}
                   </View>
                 </View>
               </Card>

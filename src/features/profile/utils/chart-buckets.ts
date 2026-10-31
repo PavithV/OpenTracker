@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { GERMAN_MONTHS } from '@/shared/utils/format';
+import { GERMAN_MONTHS_SHORT } from '@/shared/utils/format';
 
 import type { ProfileWorkoutPoint } from '../types/profile.types';
 
@@ -35,7 +35,8 @@ export function bucketWorkoutSeries(
 
   const buckets = Array.from({ length: BUCKET_COUNT }, (_, index) => {
     const bucketStart = start.add(index * bucketMs, 'millisecond');
-    return { label: `${GERMAN_MONTHS[bucketStart.month()]} ${bucketStart.date()}`, value: 0 };
+    // German day-first order ("16. Aug"); full month names ("August 31") overlapped on phones.
+    return { label: `${bucketStart.date()}. ${GERMAN_MONTHS_SHORT[bucketStart.month()]}`, value: 0 };
   });
 
   for (const point of points) {
