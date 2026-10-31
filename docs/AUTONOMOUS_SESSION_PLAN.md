@@ -1,7 +1,8 @@
 # Autonome Session 2026-10-31 (18:50–23:00 MEZ) — Plan & Protokoll
 
-Branch: `claude/autonomous-session-2026-10-31` (lokal; Push aus der Cloud-Session wurde von GitHub mit 403
-abgelehnt, weil die Claude GitHub App für das Repo fehlt — Lieferung daher als `git bundle` + Patches).
+Branch: `claude/autonomous-session-2026-10-31`. Push wurde anfangs mit 403 abgelehnt (Claude GitHub App
+fehlte) — Zwischenstände gingen deshalb als `git bundle` an den Nutzer. Nach Installation der App um
+~20:10 per Fast-Forward nach `master` gepusht (Workflow laut `AGENTS.md`).
 
 ## Ausgangslage (verifiziert zu Sessionbeginn)
 
@@ -58,7 +59,6 @@ Zeiten MEZ. Jeder Schritt einzeln committet, nach jedem: `vitest` + `tsc` + `lin
 | 19:54 | Routine duplizieren (#42). Diff-Review, Doku. |
 | 19:57 | Smoke-Test: Picker-Suche + Favoriten. |
 | 20:00 | Unberührte leere Sätze werden beim Beenden nicht mehr gespeichert. Bundle per Fast-Forward auf frischem Klon von `master` verifiziert; E2E 3×, Unit/SQL 3× hintereinander grün (keine Flakiness). |
-
 | 20:00 | Paket (Bundle, Patches, Anleitung) an Nutzer. |
 | 20:05 | **Lange Historie**: Fake erzwingt Supabase-1000-Zeilen-Cap + 8-KB-URL-Limit; Integrationstest (App-API + supabase-js, 120 Workouts/2160 Sätze) reproduziert falsche Satz-Zahlen und 414er → `fetchAllPages`/`fetchAllIn`. |
 
