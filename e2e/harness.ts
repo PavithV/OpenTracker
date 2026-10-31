@@ -47,7 +47,7 @@ export async function startEnvironment() {
   const web = await serveDist();
   const browser = await chromium.launch();
   const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
+    viewport: { width: Number(process.env.E2E_WIDTH ?? 390), height: 844 },
     deviceScaleFactor: 2,
   });
   const page = await context.newPage();

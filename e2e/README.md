@@ -10,7 +10,8 @@ npm run e2e
 
 That builds the web export (`e2e/build-web.ts`), then runs `e2e/smoke.ts`. Screenshots of every
 step land in `e2e/output/` (git-ignored). To only re-run the test against an existing build:
-`npm run e2e:run`.
+`npm run e2e:run`. Phone width defaults to 390 px; `E2E_WIDTH=360 npm run e2e:run` checks a
+narrow Android phone.
 
 Needs Playwright with Chromium. It is not a project dependency (it is preinstalled in the cloud
 environment this was written in). Locally, once (`--no-save` keeps `package.json` untouched; a
