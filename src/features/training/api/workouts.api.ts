@@ -44,8 +44,14 @@ export async function finishActiveWorkout(userId: string, draft: WorkoutDraft): 
       .single();
     if (exerciseError) throw exerciseError;
 
-    if (exercise.sets.length > 0) {
-      const setRows = exercise.sets.map((workoutSet, setIndex) => ({
+    // A set that was never touched (no weight, no reps, not ticked off) carries no information and
+    // would only show up as "– × –" in the history -- e.g. the empty set a newly added exercise
+    // starts with. Sets with any value, or ticked off, are kept as before.
+    const loggedSets = exercise.sets.filter(
+      (workoutSet) => workoutSet.completed || workoutSet.weight !== null || workoutSet.reps !== null,
+    );
+    if (loggedSets.length > 0) {
+      const setRows = loggedSets.map((workoutSet, setIndex) => ({
         workout_exercise_id: workoutExercise.id,
         set_number: setIndex + 1,
         weight: workoutSet.weight,

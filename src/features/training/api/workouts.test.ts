@@ -92,7 +92,8 @@ describe('finishActiveWorkout', () => {
       exercises: [
         makeExercise('bench-press', [
           { id: 'local-1', weight: 60, reps: 8, completed: true },
-          { id: 'local-2', weight: null, reps: null, completed: false },
+          { id: 'local-2', weight: null, reps: null, completed: false }, // untouched -> dropped
+          { id: 'local-3', weight: 62.5, reps: null, completed: false }, // prefilled, not done -> kept
         ]),
         makeExercise('plank', []),
       ],
@@ -128,8 +129,8 @@ describe('finishActiveWorkout', () => {
     expect(setRows[0].completed_at).not.toBeNull();
     expect(setRows[1]).toMatchObject({
       workout_exercise_id: 'we-1',
-      set_number: 2,
-      weight: null,
+      set_number: 2, // renumbered after dropping the untouched set
+      weight: 62.5,
       reps: null,
       completed: false,
       completed_at: null,
