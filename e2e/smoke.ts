@@ -217,6 +217,28 @@ async function main() {
     await page.goBack();
   });
 
+  await step('picker search and favorites', async () => {
+    await page.getByPlaceholder('Übung suchen…').fill('press');
+    // search is debounced -- wait for the non-matching rows to go away
+    await page
+      .getByText('Squat', { exact: true })
+      .last()
+      .waitFor({ state: 'hidden', timeout: 10_000 });
+    await expectVisible(page, 'Incline Dumbbell Press');
+    await page.getByPlaceholder('Übung suchen…').fill('');
+    await page.getByLabel('Squat zu Favoriten hinzufügen').click();
+    await page.getByLabel('Squat von Favoriten entfernen').waitFor();
+    await tap('★ Favoriten');
+    await page
+      .getByText('Bench Press', { exact: true })
+      .last()
+      .waitFor({ state: 'hidden', timeout: 10_000 });
+    await expectVisible(page, 'Squat');
+    const stored = await supabase.db.query('select 1 from public.favorite_exercises');
+    check(stored.rows.length === 1, `favorites in db: ${stored.rows.length}`);
+    await tap('★ Favoriten');
+  });
+
   await step('create custom exercise and use it', async () => {
     await tap('+ Eigene Übung erstellen');
     await page.getByPlaceholder('z. B. Kabelzug einarmig').fill('Cable Fly One Arm');
