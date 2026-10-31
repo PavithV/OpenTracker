@@ -4,7 +4,13 @@ import { WarningCircle } from 'phosphor-react-native';
 import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { archiveRoutine, getRoutineForEdit, getRoutines, unarchiveRoutine } from '@/features/routines/api/routines.api';
+import {
+  archiveRoutine,
+  duplicateRoutine,
+  getRoutineForEdit,
+  getRoutines,
+  unarchiveRoutine,
+} from '@/features/routines/api/routines.api';
 import { RoutineCard } from '@/features/routines/components/RoutineCard';
 import { useRoutineDraftStore } from '@/features/routines/store/routine-draft.store';
 import { ActiveWorkoutMiniBar } from '@/features/training/components/ActiveWorkoutMiniBar';
@@ -62,6 +68,16 @@ export default function TrainingScreen() {
     ]);
   }
 
+  async function handleDuplicateRoutine(routineId: string) {
+    try {
+      await duplicateRoutine(session!.user.id, routineId);
+      await queryClient.invalidateQueries({ queryKey: ['routines', 'list', session?.user.id] });
+      useToastStore.getState().show({ message: 'Routine dupliziert' });
+    } catch (err) {
+      Alert.alert('Duplizieren fehlgeschlagen', getErrorMessage(err));
+    }
+  }
+
   async function handleStartRoutine(routineId: string) {
     if (useActiveWorkoutStore.getState().startedAt) {
       Alert.alert(
@@ -115,6 +131,7 @@ export default function TrainingScreen() {
                 routine={item}
                 onPress={() => router.push(`/routine/${item.id}/edit`)}
                 onStart={() => handleStartRoutine(item.id)}
+                onDuplicate={() => handleDuplicateRoutine(item.id)}
                 onDelete={() => handleDeleteRoutine(item.id, item.name)}
               />
             )}

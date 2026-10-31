@@ -1,5 +1,5 @@
-import { Trash } from 'phosphor-react-native';
-import { Pressable, View } from 'react-native';
+import { Copy, Trash } from 'phosphor-react-native';
+import { Pressable, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -13,10 +13,20 @@ interface RoutineCardProps {
   routine: RoutineListItem;
   onPress: () => void;
   onStart: () => void;
+  onDuplicate: () => void;
   onDelete: () => void;
 }
 
-export function RoutineCard({ routine, onPress, onStart, onDelete }: RoutineCardProps) {
+export function RoutineCard({
+  routine,
+  onPress,
+  onStart,
+  onDuplicate,
+  onDelete,
+}: RoutineCardProps) {
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const iconColor = colors.textSecondary[scheme];
+
   return (
     <Card onPress={onPress}>
       <View className="flex-row items-center gap-sm">
@@ -25,6 +35,15 @@ export function RoutineCard({ routine, onPress, onStart, onDelete }: RoutineCard
           {routine.exercisePreview ? <Typography variant="subtitle">{routine.exercisePreview}</Typography> : null}
         </View>
         <Button label="Start" size="sm" onPress={onStart} />
+        <Pressable
+          onPress={onDuplicate}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`${routine.name} duplizieren`}
+          className="active:opacity-60"
+        >
+          <Copy size={ICON_SIZE.md} color={iconColor} />
+        </Pressable>
         <Pressable
           onPress={onDelete}
           hitSlop={8}

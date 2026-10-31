@@ -121,6 +121,25 @@ async function main() {
     await expectVisible(page, 'Leeres Workout starten');
   });
 
+  await step('duplicate routine', async () => {
+    await page.getByLabel('Push Day A duplizieren').click();
+    await expectVisible(page, 'Push Day A (Kopie)');
+    const sets = await supabase.db.query<{ name: string; n: number }>(
+      `select r.name, count(s.*)::int as n from public.routines r
+       join public.routine_exercises re on re.routine_id = r.id
+       join public.routine_exercise_sets s on s.routine_exercise_id = re.id
+       group by r.name order by r.name`,
+    );
+    check(
+      JSON.stringify(sets.rows) ===
+        JSON.stringify([
+          { name: 'Push Day A', n: 2 },
+          { name: 'Push Day A (Kopie)', n: 2 },
+        ]),
+      `routine sets after duplicating: ${JSON.stringify(sets.rows)}`,
+    );
+  });
+
   await step('start routine, log sets, finish', async () => {
     await tap('Start');
     await expectVisible(page, 'Beenden');

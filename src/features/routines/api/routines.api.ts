@@ -125,6 +125,14 @@ export async function createRoutine(
   return data.id;
 }
 
+// "Als Kopie speichern" (PRODUCT_AUDIT.md roadmap #42): same exercises, per-set targets and rest
+// times under a new name. Reuses the editor's load + create path, so a copy is exactly what
+// saving the original from the editor would produce.
+export async function duplicateRoutine(userId: string, routineId: string): Promise<string> {
+  const { name, notes, exercises } = await getRoutineForEdit(routineId);
+  return createRoutine(userId, `${name} (Kopie)`, notes, exercises);
+}
+
 export async function updateRoutine(
   routineId: string,
   name: string,
