@@ -1,0 +1,52 @@
+# Runs on every push to master and on manual dispatch. No secrets needed: the tests use PGlite
+# and the local fake Supabase, never the live project.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Typecheck, lint, unit + SQL tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx tsc -p supabase/tsconfig.json
+      - run: npm run lint
+      - run: npm test
+
+  e2e:
+    name: Browser smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Not a project dependency (see e2e/README.md) -- installed for this job only.
+      - run: npm i --no-save playwright@1.63.0
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: e2e/output/
+          retention-days: 7
