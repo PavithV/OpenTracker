@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatWeight, kgToLb, lbToKg, parseWeightInput } from './units';
+import { formatWeight, formatWeightInputValue, kgToLb, lbToKg, parseWeightInput } from './units';
 
 describe('kgToLb / lbToKg', () => {
   it('round-trips realistic gym-weight increments cleanly', () => {
@@ -37,5 +37,32 @@ describe('parseWeightInput', () => {
 
   it('converts lb input back to canonical kg', () => {
     expect(parseWeightInput('220.5', 'lb')).toBeCloseTo(100, 1);
+  });
+
+  it('accepts a decimal comma (German numeric keyboards)', () => {
+    expect(parseWeightInput('62,5', 'kg')).toBe(62.5);
+    expect(parseWeightInput(' 22,5 ', 'kg')).toBe(22.5);
+  });
+
+  it('rejects negative weights (the DB would reject the whole workout)', () => {
+    expect(parseWeightInput('-5', 'kg')).toBeNull();
+  });
+
+  it('parses an unfinished decimal while typing', () => {
+    expect(parseWeightInput('62.', 'kg')).toBe(62);
+    expect(parseWeightInput('62,', 'kg')).toBe(62);
+  });
+});
+
+describe('formatWeightInputValue', () => {
+  it('is empty for no weight', () => {
+    expect(formatWeightInputValue(null, 'kg')).toBe('');
+  });
+
+  it('round-trips through parseWeightInput in both units', () => {
+    for (const kg of [20, 22.5, 62.5, 100, 137.5]) {
+      expect(parseWeightInput(formatWeightInputValue(kg, 'kg'), 'kg')).toBe(kg);
+      expect(parseWeightInput(formatWeightInputValue(kg, 'lb'), 'lb')).toBeCloseTo(kg, 1);
+    }
   });
 });

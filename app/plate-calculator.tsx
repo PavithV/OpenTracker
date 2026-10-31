@@ -8,7 +8,7 @@ import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
-import { formatWeight, kgToLb, parseWeightInput } from '@/shared/utils/units';
+import { formatWeight, formatWeightInputValue, parseWeightInput } from '@/shared/utils/units';
 import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 export default function PlateCalculatorScreen() {
@@ -20,7 +20,7 @@ export default function PlateCalculatorScreen() {
   const [targetWeightText, setTargetWeightText] = useState(() => {
     if (!weight) return '';
     const kg = Number(weight);
-    return Number.isNaN(kg) ? '' : String(unit === 'lb' ? kgToLb(kg) : kg);
+    return Number.isNaN(kg) ? '' : formatWeightInputValue(kg, unit);
   });
   const [barTypeId, setBarTypeId] = useState(BAR_TYPES[0].id);
 
@@ -44,7 +44,7 @@ export default function PlateCalculatorScreen() {
 
       <Input
         label={`Zielgewicht (${unit})`}
-        keyboardType="numeric"
+        keyboardType="decimal-pad"
         value={targetWeightText}
         onChangeText={setTargetWeightText}
         placeholder="z. B. 100"

@@ -25,9 +25,20 @@ export function formatWeight(kg: number, unit: UnitPreference): string {
   return `${value} ${unit}`;
 }
 
+// Accepts a decimal comma as well as a dot: German (and most European) numeric keyboards only
+// offer ",", which used to parse as NaN and silently clear the field.
 export function parseWeightInput(text: string, unit: UnitPreference): number | null {
-  if (text === '') return null;
-  const value = Number(text);
-  if (Number.isNaN(value)) return null;
+  const normalized = text.trim().replace(',', '.');
+  if (normalized === '') return null;
+  const value = Number(normalized);
+  // Negative weights are rejected by the sets/routine_exercise_sets CHECK constraints (0007) --
+  // letting one through would only make the whole workout fail to save at the very end.
+  if (Number.isNaN(value) || value < 0) return null;
   return unit === 'lb' ? lbToKg(value) : round(value, 2);
+}
+
+// Text to prefill an editable weight field with (inverse of parseWeightInput).
+export function formatWeightInputValue(kg: number | null, unit: UnitPreference): string {
+  if (kg === null) return '';
+  return String(unit === 'lb' ? kgToLb(kg) : kg);
 }

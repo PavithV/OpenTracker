@@ -3,7 +3,7 @@ import { Text, TextInput, useColorScheme, View, type TextInputProps } from 'reac
 
 import { colors } from '@/shared/theme/colors';
 
-interface InputProps extends TextInputProps {
+export interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
 }

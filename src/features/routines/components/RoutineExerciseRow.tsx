@@ -5,9 +5,10 @@ import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
 import { Typography } from '@/shared/components/Typography';
+import { WeightInput } from '@/shared/components/WeightInput';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
-import { kgToLb, parseWeightInput } from '@/shared/utils/units';
+import { parseWholeNumberInput } from '@/shared/utils/number-input';
 import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { RoutineDraftExercise, RoutineDraftSet } from '../types/routine.types';
@@ -23,10 +24,6 @@ interface RoutineExerciseRowProps {
   onRemoveSet: (setId: string) => void;
   onUpdateSet: (setId: string, patch: Partial<Pick<RoutineDraftSet, 'targetWeight' | 'targetReps'>>) => void;
   onUpdateRestSeconds: (restSeconds: number | null) => void;
-}
-
-function toNumberOrNull(text: string): number | null {
-  return text === '' ? null : Number(text);
 }
 
 export function RoutineExerciseRow({
@@ -118,19 +115,19 @@ export function RoutineExerciseRow({
               {index + 1}
             </Typography>
             <View className="flex-1">
-              <Input
-                keyboardType="numeric"
+              <WeightInput
                 placeholder="-"
-                value={set.targetWeight === null ? '' : String(unit === 'lb' ? kgToLb(set.targetWeight) : set.targetWeight)}
-                onChangeText={(text) => onUpdateSet(set.id, { targetWeight: parseWeightInput(text, unit) })}
+                weightKg={set.targetWeight}
+                unit={unit}
+                onChangeWeightKg={(targetWeight) => onUpdateSet(set.id, { targetWeight })}
               />
             </View>
             <View className="flex-1">
               <Input
-                keyboardType="numeric"
+                keyboardType="number-pad"
                 placeholder="-"
                 value={set.targetReps === null ? '' : String(set.targetReps)}
-                onChangeText={(text) => onUpdateSet(set.id, { targetReps: toNumberOrNull(text) })}
+                onChangeText={(text) => onUpdateSet(set.id, { targetReps: parseWholeNumberInput(text) })}
               />
             </View>
             <Pressable
@@ -153,9 +150,9 @@ export function RoutineExerciseRow({
       <View className="mt-sm w-32">
         <Input
           label="Pause (Sek.)"
-          keyboardType="numeric"
+          keyboardType="number-pad"
           value={exercise.restSeconds === null ? '' : String(exercise.restSeconds)}
-          onChangeText={(text) => onUpdateRestSeconds(toNumberOrNull(text))}
+          onChangeText={(text) => onUpdateRestSeconds(parseWholeNumberInput(text))}
         />
       </View>
     </Card>

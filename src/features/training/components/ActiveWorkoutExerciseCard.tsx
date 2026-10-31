@@ -6,9 +6,11 @@ import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
 import { Typography } from '@/shared/components/Typography';
+import { WeightInput } from '@/shared/components/WeightInput';
 import { colors } from '@/shared/theme/colors';
 import { ICON_SIZE } from '@/shared/theme/icons';
-import { formatWeight, kgToLb, parseWeightInput } from '@/shared/utils/units';
+import { parseWholeNumberInput } from '@/shared/utils/number-input';
+import { formatWeight } from '@/shared/utils/units';
 import { useUnitPreferenceStore } from '@/store/unit-preference.store';
 
 import type { ActiveWorkoutExercise, WorkoutSetEntry } from '../types/active-workout.types';
@@ -29,10 +31,6 @@ interface ActiveWorkoutExerciseCardProps {
   onRemoveSet: (setId: string) => void;
   onUpdateNotes: (notes: string) => void;
   onOpenPlateCalculator: (weight: number | null) => void;
-}
-
-function toNumberOrNull(text: string): number | null {
-  return text === '' ? null : Number(text);
 }
 
 export function ActiveWorkoutExerciseCard({
@@ -117,19 +115,19 @@ export function ActiveWorkoutExerciseCard({
                   {index + 1}
                 </Typography>
                 <View className="w-20">
-                  <Input
+                  <WeightInput
                     placeholder={unit}
-                    keyboardType="numeric"
-                    value={set.weight === null ? '' : String(unit === 'lb' ? kgToLb(set.weight) : set.weight)}
-                    onChangeText={(text) => onUpdateSet(set.id, { weight: parseWeightInput(text, unit) })}
+                    weightKg={set.weight}
+                    unit={unit}
+                    onChangeWeightKg={(weight) => onUpdateSet(set.id, { weight })}
                   />
                 </View>
                 <View className="w-20">
                   <Input
                     placeholder="Wdh"
-                    keyboardType="numeric"
+                    keyboardType="number-pad"
                     value={set.reps === null ? '' : String(set.reps)}
-                    onChangeText={(text) => onUpdateSet(set.id, { reps: toNumberOrNull(text) })}
+                    onChangeText={(text) => onUpdateSet(set.id, { reps: parseWholeNumberInput(text) })}
                   />
                 </View>
                 <Pressable
