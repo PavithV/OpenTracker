@@ -196,7 +196,7 @@ Ohne Nutzer, in einer Cloud-Session. Push aus der Session war nicht möglich (Cl
 
 **Neue Testinfrastruktur**
 - `supabase/tests/` — PGlite (Postgres/WASM, devDependency) + Stub der Supabase-Plattform (`auth.users`, `auth.uid()`, Rollen/Grants), wendet alle Migrationen an. 18 Tests: `finish_workout` (Volumen, ein PR pro Übung, nur steigend, Epley, Owner-Check), RLS-Isolation, 0007-Constraints, `delete_account`, Rekord-Neuberechnung. Schließt die in „Basis-Tests" dokumentierte Lücke (SQL-Logik von `finish_workout` war ungetestet).
-- `e2e/` — Browser-Smoke-Test (`npm run e2e`, Anleitung in `e2e/README.md`): 13 Schritte, prüft UI **und** DB-Inhalt. Braucht lokal einmalig Playwright (nicht als Dependency eingetragen).
+- `e2e/` — Browser-Smoke-Test (`npm run e2e`, Anleitung in `e2e/README.md`): 14 Schritte + Fehler-Check, prüft UI **und** DB-Inhalt. Braucht lokal einmalig Playwright (nicht als Dependency eingetragen).
 - `react-dom`/`react-native-web`/`@expo/metro-runtime` als devDependencies (für den Web-Build des Tests). **Nach dem Merge `npm install` im Nutzer-Checkout** (siehe „Environment-Bug").
 
 **Bugs (alle mit Test abgesichert)**
@@ -208,7 +208,7 @@ Ohne Nutzer, in einer Cloud-Session. Push aus der Session war nicht möglich (Cl
 6. Rekorde gelöschter Workouts blieben stehen (auch Tippfehler-Rekorde wie 625 kg) → `0009`: Trigger berechnet neu bzw. löscht, plus einmaliger Backfill.
 7. Profil: Diagramm-Achse überlappte bei Handybreite, E-Mail doppelt.
 
-**Roadmap-Punkte (`PRODUCT_AUDIT.md`)**: #15 Pull-to-Refresh, #20 Query-Invalidierung, #21 Timer-Isolation, #28 `DATABASE.md`, #42 Routine duplizieren. Zusätzlich: Soll-Wdh. der Routine als Platzhalter im aktiven Workout, beim Abhaken ohne Eingabe übernommen; neu hinzugefügte Übung startet mit einem Satz.
+**Roadmap-Punkte (`PRODUCT_AUDIT.md`)**: #15 Pull-to-Refresh, #20 Query-Invalidierung, #21 Timer-Isolation, #28 `DATABASE.md`, #42 Routine duplizieren. Zusätzlich: Soll-Wdh. der Routine als Platzhalter im aktiven Workout, beim Abhaken ohne Eingabe übernommen; neu hinzugefügte Übung startet mit einem Satz; beim Beenden werden komplett unberührte Sätze (kein Gewicht, keine Wdh., nicht abgehakt) nicht mehr gespeichert.
 
 **Offen / vom Nutzer zu tun**
 - Migrationen `0008` und `0009` auf das Supabase-Projekt anwenden (SQL-Editor oder Supabase-MCP).

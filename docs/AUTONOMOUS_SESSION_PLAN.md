@@ -56,5 +56,7 @@ Zeiten MEZ. Jeder Schritt einzeln committet, nach jedem: `vitest` + `tsc` + `lin
 | 19:45 | `DATABASE.md` (#28), Pull-to-Refresh (#15). |
 | 19:49 | Soll-Wdh. aus Routine als Platzhalter, Abhaken übernimmt sie; neue Übung startet mit 1 Satz. |
 | 19:54 | Routine duplizieren (#42). Diff-Review, Doku. |
+| 19:57 | Smoke-Test: Picker-Suche + Favoriten. |
+| 20:00 | Unberührte leere Sätze werden beim Beenden nicht mehr gespeichert. Bundle per Fast-Forward auf frischem Klon von `master` verifiziert; E2E 3×, Unit/SQL 3× hintereinander grün (keine Flakiness). |
 
-Stand danach: 49 Unit-/SQL-Tests (8 Dateien, davon 18 SQL), 13 E2E-Schritte grün, `tsc`/`lint` sauber.
+Stand danach: 49 Unit-/SQL-Tests (8 Dateien, davon 18 SQL), 14 E2E-Schritte + Fehler-Check grün, `tsc`/`lint` sauber.
