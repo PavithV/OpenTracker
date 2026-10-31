@@ -55,7 +55,10 @@ export default function EditRoutineScreen() {
       <RoutineForm
         onSave={async (name, notes, exercises) => {
           await updateRoutine(id, name, notes, exercises);
-          queryClient.invalidateQueries({ queryKey: ['routines', 'list'] });
+          // Whole ['routines'] prefix, not just the list: this screen's own ['routines', 'edit', id]
+          // cache would otherwise still hold the pre-save version for the next 30 s (staleTime), so
+          // reopening the editor right away showed -- and re-saved -- the old exercises/sets.
+          queryClient.invalidateQueries({ queryKey: ['routines'] });
         }}
       />
     </Screen>

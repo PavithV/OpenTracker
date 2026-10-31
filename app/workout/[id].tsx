@@ -11,6 +11,7 @@ import type { WorkoutHistoryItem } from '@/features/home/types/workout-history.t
 import { Button } from '@/shared/components/Button';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { invalidateWorkoutDerivedQueries } from '@/shared/lib/query-invalidation';
 import { formatDuration } from '@/shared/utils/format';
 import { formatWeight } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
@@ -55,7 +56,7 @@ export default function WorkoutDetailScreen() {
           const timeoutId = setTimeout(async () => {
             try {
               await deleteWorkout(id);
-              queryClient.invalidateQueries({ queryKey: ['profile', 'stats', session?.user.id] });
+              invalidateWorkoutDerivedQueries(queryClient);
             } catch {
               // The optimistic removal already happened; resync with the server on failure
               // rather than leaving the UI silently out of step with what's actually in the DB.

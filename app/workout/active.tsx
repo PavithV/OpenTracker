@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, View } from 'react-native';
@@ -18,6 +18,7 @@ import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Screen } from '@/shared/components/Screen';
 import { Typography } from '@/shared/components/Typography';
+import { invalidateWorkoutDerivedQueries } from '@/shared/lib/query-invalidation';
 import { formatWeight } from '@/shared/utils/units';
 import { useSessionStore } from '@/store/session.store';
 import { useUnitPreferenceStore } from '@/store/unit-preference.store';
@@ -48,6 +49,7 @@ function useRemainingSeconds(endsAt: string | null, onComplete: () => void): num
 
 export default function ActiveWorkoutScreen() {
   const session = useSessionStore((state) => state.session);
+  const queryClient = useQueryClient();
   const hasHydrated = useActiveWorkoutHydrated();
   const startedAt = useActiveWorkoutStore((state) => state.startedAt);
   const name = useActiveWorkoutStore((state) => state.name);
@@ -125,6 +127,7 @@ export default function ActiveWorkoutScreen() {
         exercises,
       });
       reset();
+      invalidateWorkoutDerivedQueries(queryClient);
       router.replace('/(tabs)/home');
     } catch (err) {
       Alert.alert('Speichern fehlgeschlagen', err instanceof Error ? err.message : 'Unbekannter Fehler');
