@@ -193,6 +193,29 @@ async function main() {
     await expectVisible(page, '1995.2 lb'); // 905 kg
   });
 
+  await step('second run shows last time and survives a reload', async () => {
+    await tab('Training');
+    await tap('Start');
+    await expectVisible(page, 'Beenden');
+    // unit is lb by now: 62.5 kg = 137.8 lb
+    await expectVisible(page, 'Letztes Mal: 137.8 lb × 8');
+    await page.getByPlaceholder('Wdh').nth(0).pressSequentially('9', { delay: 30 });
+    await page.getByLabel('Satz als erledigt markieren').nth(0).click();
+    await page.reload(); // stands in for the app being killed mid-workout
+    await expectVisible(page, 'Beenden');
+    check((await page.getByPlaceholder('Wdh').nth(0).inputValue()) === '9', 'reps lost after reload');
+    // react-native-web doesn't render accessibilityState as aria-checked; the completed styling is
+    // the observable signal here.
+    check(
+      ((await page.getByLabel('Satz als erledigt markieren').nth(0).getAttribute('class')) ?? '').includes('bg-primary-light/15'),
+      'completed state lost after reload',
+    );
+    await tap('Beenden');
+    await page.waitForURL(/\/home$/);
+    const count = await supabase.db.query<{ n: number }>('select count(*)::int as n from public.workouts where ended_at is not null');
+    check(count.rows[0].n === 3, `expected 3 finished workouts, got ${count.rows[0].n}`);
+  });
+
   results.push({ step: 'no console/page errors', ok: env.problems.length === 0, error: env.problems.join(' | ') });
 
   await env.close();
