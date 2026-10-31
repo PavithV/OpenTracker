@@ -73,6 +73,8 @@ async function main() {
     await fields.nth(2).pressSequentially('40,5', { delay: 30 }); // German decimal comma
     await fields.nth(3).pressSequentially('10', { delay: 30 });
     check((await fields.nth(0).inputValue()) === '62.5', `weight field shows ${await fields.nth(0).inputValue()}`);
+    // 90 s rest after Bench Press sets
+    await page.getByText('Pause (Sek.)', { exact: true }).first().locator('xpath=following::input[1]').pressSequentially('90');
     await tap('Speichern');
     await expectVisible(page, 'Bench Press, Overhead Press');
     const stored = await supabase.db.query<{ target_weight: number; target_reps: number }>(
@@ -107,6 +109,10 @@ async function main() {
     await page.getByPlaceholder('Wdh').nth(0).pressSequentially('8', { delay: 30 });
     await page.getByPlaceholder('Wdh').nth(1).pressSequentially('10', { delay: 30 });
     await page.getByLabel('Satz als erledigt markieren').nth(0).click();
+    await expectVisible(page, 'Pause'); // rest timer from the routine's 90 s
+    const restText = await visibleText(page);
+    check(/Pause\n01:(2\d|30)/.test(restText), 'rest countdown not ticking from 01:30');
+    await tap('Überspringen');
     await page.getByLabel('Satz als erledigt markieren').nth(1).click();
     await expectVisible(page, '905 kg'); // 62.5*8 + 40.5*10
     await tap('Beenden');

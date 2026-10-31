@@ -47,6 +47,27 @@ function useRemainingSeconds(endsAt: string | null, onComplete: () => void): num
   return remainingSeconds;
 }
 
+// The two ticking timers live in their own tiny components: when the screen itself held the
+// per-second state, every tick re-rendered the whole screen -- every exercise card and every
+// set input -- for the entire workout (PRODUCT_AUDIT.md 5.1 / roadmap #21).
+function ElapsedTime({ startedAt }: { startedAt: string | null }) {
+  const elapsedSeconds = useElapsedSeconds(startedAt);
+  return <Typography variant="cardTitle">{formatElapsed(elapsedSeconds)}</Typography>;
+}
+
+function RestTimerBanner({ restEndsAt, onClear }: { restEndsAt: string; onClear: () => void }) {
+  const remainingRestSeconds = useRemainingSeconds(restEndsAt, onClear);
+  return (
+    <View className="mb-md flex-row items-center justify-between rounded-md bg-surface-light px-md py-sm dark:bg-surface-dark">
+      <View>
+        <Typography variant="caption">Pause</Typography>
+        <Typography variant="cardTitle">{formatElapsed(remainingRestSeconds)}</Typography>
+      </View>
+      <Button label="Überspringen" variant="ghost" size="sm" onPress={onClear} />
+    </View>
+  );
+}
+
 export default function ActiveWorkoutScreen() {
   const session = useSessionStore((state) => state.session);
   const queryClient = useQueryClient();
@@ -78,8 +99,6 @@ export default function ActiveWorkoutScreen() {
     if (hasHydrated) start();
   }, [hasHydrated, start]);
 
-  const elapsedSeconds = useElapsedSeconds(startedAt);
-  const remainingRestSeconds = useRemainingSeconds(restEndsAt, clearRestTimer);
   const totalVolume = computeTotalVolume(exercises);
   const completedSets = computeCompletedSetCount(exercises);
 
@@ -148,7 +167,7 @@ export default function ActiveWorkoutScreen() {
             Abbrechen
           </Typography>
         </Pressable>
-        <Typography variant="cardTitle">{formatElapsed(elapsedSeconds)}</Typography>
+        <ElapsedTime startedAt={startedAt} />
         <Pressable
           onPress={handleFinishWorkout}
           disabled={isFinishing}
@@ -172,15 +191,7 @@ export default function ActiveWorkoutScreen() {
         </View>
       </View>
 
-      {restEndsAt ? (
-        <View className="mb-md flex-row items-center justify-between rounded-md bg-surface-light px-md py-sm dark:bg-surface-dark">
-          <View>
-            <Typography variant="caption">Pause</Typography>
-            <Typography variant="cardTitle">{formatElapsed(remainingRestSeconds)}</Typography>
-          </View>
-          <Button label="Überspringen" variant="ghost" size="sm" onPress={clearRestTimer} />
-        </View>
-      ) : null}
+      {restEndsAt ? <RestTimerBanner restEndsAt={restEndsAt} onClear={clearRestTimer} /> : null}
 
       <Input value={name} onChangeText={setName} placeholder="Workout-Name" />
       <Input value={notes} onChangeText={setNotes} placeholder="Notizen zum Workout…" multiline numberOfLines={2} />
