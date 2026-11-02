@@ -219,6 +219,14 @@ Ohne Nutzer, in einer Cloud-Session. Bis ~20:10 war Push nicht möglich (Claude 
 - On-Device-Test der Änderungen (Web-Test deckt Gesten, `expo-notifications`, Hardware-Back, `Alert`-Dialoge nicht ab).
 - Beobachtet, nicht geändert: `/` hat keine Route (Web zeigt „Unmatched Route"; nativ offenbar unkritisch); `Alert.alert` ist auf Web ein No-op; Toast hat auf Web keinen Hintergrund und blendet nicht aus (NativeWind-Klasse bzw. `useNativeDriver` auf `Animated.View`) — alles nur Web, App ist nicht für Web gedacht.
 
+## Dependency-Sicherheitsupdate (2026-11-02) — ✅
+
+`npm audit fix` (ohne `--force`) + Expo-SDK-57-Patch-Abgleich: 45 → 29 Funde, **kein kritischer mehr** (vorher `shell-quote`), hoch 15 → 6. `expo` 57.0.8 → 57.0.31 und dazu die vom SDK erwarteten Patch-Versionen (`bundledNativeModules.json`, entspricht `npx expo install --fix`): `react-native` 0.86.3, `react-native-reanimated` 4.5.1, `react-native-worklets` 0.10.1, `expo-blur`/`-linking`/`-notifications`/`-secure-store`. App-`zod` jetzt 4.6.7 (gefixt).
+
+**Bewusst offen**: `@expo/cli` (inkl. dessen `zod` 3.x) — nur Dev-Tooling; `query-string`/`decode-uri-component` in `expo-router` — Fix erst mit neuerem Expo-SDK (Override wäre riskant: neuere `decode-uri-component` sind ESM-only); `eslint`-Kette — nur Dev. **Nie `npm audit fix --force`**: will `expo@51`/`eslint@4` installieren.
+
+Verifikation: `tsc`, `lint`, 64 Tests, `npm run e2e`, `expo export` für Android **und** iOS. Lokal danach `npm install`; Expo Go auf dem Handy aktuell halten.
+
 ## Nächster Schritt
 
 **Alle 7 Punkte der Phase-4-Bestandsaufnahme sind erledigt**, dazu Nocturne- und iOS-Redesign sowie Launch-Blocker #1 (Teil A), #2, #3, #5, #6, #7, #8, #9 und #10, zusätzlich die Drag-and-Drop-Ablösung im aktiven Workout. **Damit sind alle 10 Launch-Blocker aus `LAUNCH_PLAN.md` §3 abgeschlossen — bis auf das bewusst zurückgestellte #4** (Pro-Plan-Voraussetzung, siehe oben) — bei einem künftigen Supabase-Upgrade einfach den Dashboard-Toggle setzen, kein weiterer Recherche-Aufwand nötig. Unabhängig vom Code weiterhin offen (siehe `LAUNCH_PLAN.md` §4/§6, Meilenstein B): die Web-Seite zur Kontolöschung aus Blocker #1 sowie die Google-Play-Konto-Anlage/Tester-Rekrutierung (§4.2, zeitlich der langsamste Teil, sollte so früh wie möglich parallel starten — Store-Listing-Text-Entwurf liegt bereits vor, siehe Session-Notiz), `eas.json` + erster `.aab`-Build.
